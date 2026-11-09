@@ -1,0 +1,75 @@
+/* Unit Revision Centre and concept map styles (Batch 9, owned by the Revision Centre author; concept-map author may append a clearly marked section) */
+/* Uses the site tokens from css/styles.css only; no site-wide rules are restyled here. */
+
+.uh h2.h3 { font-size: 1.1rem; }
+.uh h3.h4 { font-size: .95rem; margin: .2rem 0 .4rem; }
+.uh .mono { font-family: var(--mono); font-weight: 600; color: var(--teal-strong); }
+
+/* Section tabs (links, because each tab has its own route) */
+.uh-tabs { display: flex; gap: .3rem; border-bottom: 1px solid var(--line); margin-bottom: 1rem; flex-wrap: wrap; }
+.uh-tabs a { padding: .55rem .9rem; color: var(--ink-3); font-weight: 600; font-size: .9rem; border-bottom: 2px solid transparent; margin-bottom: -1px; text-decoration: none; transition: color var(--t), border-color var(--t); }
+.uh-tabs a:hover { color: var(--ink); text-decoration: none; }
+.uh-tabs a.on { color: var(--teal-strong); border-bottom-color: var(--teal); }
+
+.uh-stats .card { padding-top: 1rem; padding-bottom: 1rem; }
+.uh-stats .stat .v { font-size: 1.5rem; }
+
+/* Lists of recommendations, revisits, practicals and links */
+.uh-list { list-style: none; padding: 0; margin: 0; }
+.uh-list > li { padding: .55rem 0; border-bottom: 1px solid var(--line); }
+.uh-list > li:last-child { border-bottom: 0; }
+.uh-list.compact > li { padding: .3rem 0; }
+.uh-rev { display: flex; gap: .6rem; align-items: flex-start; justify-content: space-between; }
+.uh-rev > div { min-width: 0; }
+
+/* Charts */
+.uh-chart-wrap { max-width: 560px; }
+.uh-chart { display: block; width: 100%; height: auto; }
+
+/* Checklist */
+.uh details.acc > summary { flex-wrap: wrap; }
+.uh-flags { display: inline-flex; gap: .3rem; flex-wrap: wrap; align-items: center; font-weight: 400; }
+.uh-sub { padding: .6rem 0 .4rem; border-top: 1px solid var(--line); }
+.uh-sub:first-child { border-top: 0; }
+.uh-sub-head { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; justify-content: space-between; margin-bottom: .2rem; }
+.uh-sub-head > a { font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
+.uh-none { background: var(--amber-soft); border-left: 3px solid var(--amber); border-radius: 8px; padding: .45rem .7rem; margin: .3rem 0; }
+.uh .check-row .ref { min-width: 2.2rem; }
+.uh .check-row span { overflow-wrap: anywhere; }
+
+/* Custom test builder */
+.uh-test-grid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 1.1rem; align-items: start; }
+.uh-test-grid > *, .uh-test-grid .stack > * { min-width: 0; }
+.uh-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .7rem; }
+.uh-field { display: flex; flex-direction: column; gap: .25rem; font-size: .88rem; font-weight: 600; color: var(--ink-2); margin-top: .6rem; }
+.uh-field select, .uh-field input { width: 100%; min-width: 0; font: inherit; font-weight: 400; padding: .45rem .55rem; border: 1px solid var(--line-strong); border-radius: var(--radius-s); background: var(--surface); color: var(--ink); }
+.uh-field input:disabled { background: var(--surface-2); color: var(--ink-4); }
+.uh-fs { border: 1px solid var(--line); border-radius: 12px; padding: .5rem .8rem .6rem; margin: .8rem 0 0; min-width: 0; }
+.uh-fs legend { font-weight: 600; font-size: .88rem; padding: 0 .3rem; color: var(--ink-2); }
+.uh-cb { display: inline-flex; gap: .4rem; align-items: center; margin: .2rem 1rem .2rem 0; font-size: .9rem; cursor: pointer; }
+.uh-cb input { accent-color: var(--teal); width: 1rem; height: 1rem; flex: none; }
+.uh-big { font-size: 1.15rem; margin: 0 0 .3rem; }
+.uh-big strong { font-size: 1.6rem; }
+.uh-scroll { max-height: 320px; overflow: auto; }
+
+/* Context carried with interactive, focus and practical questions inside a test */
+.uh-from { margin: 0 0 .4rem; }
+.uh-ctx { border: 1px solid var(--line); border-radius: 10px; background: var(--surface-2); margin: 0 0 .7rem; }
+.uh-ctx > summary { cursor: pointer; padding: .45rem .7rem; font-weight: 600; font-size: .88rem; }
+.uh-ctx-body { padding: 0 .7rem .6rem; overflow-x: auto; max-width: 100%; }
+.uh-ctx-body svg { max-width: 100%; height: auto; }
+.uh-ctx-note { margin: 0 0 .7rem; }
+.uh-adj { margin: .4rem 0 0; padding: .35rem .6rem; border-left: 3px solid var(--amber, #c98a1b); background: var(--amber-soft, #fdf3e1); border-radius: 4px; }
+.uh-adj[hidden] { display: none; }
+
+@media (max-width: 860px) {
+  .uh .grid-4.uh-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .7rem; }
+  .uh-test-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 480px) {
+  .uh-fields { grid-template-columns: 1fr; }
+  .uh-rev { flex-direction: column; }
+  .uh .card > .tbl, .uh details > .tbl { display: block; overflow-x: auto; }
+}
+@media (prefers-reduced-motion: reduce) { .uh-tabs a { transition: none; } }
+html.reduce-motion .uh-tabs a { transition: none; }
