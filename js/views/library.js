@@ -19,13 +19,18 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
   B.views.library = function (uref, tref) {
     if (uref && tref) return topicIndex(uref, tref);
     if (uref) return unitPage(uref);
-    const cards = B.spec.units.map((u) => {
+    // release review 2026-11-16: the student's own course first; other units (e.g. Year 13 for an AS student) in a closed section
+    const mine = new Set(B.profile && B.profile.unitRefs ? B.profile.unitRefs() : B.spec.units.map((u) => u.ref));
+    const card = (u) => {
       const subs = u.topics.flatMap((t) => t.subsections); const authored = subs.filter((s) => contentOf(s.ref).status !== "not_started").length;
       const cov = B.progress.coverage((x) => x.unit === u.ref);
       return h`<a class="tile unit u${u.ref.replace(".", "-")}" href="#/library/${u.ref}">${raw(motif(u.ref))}<span class="ref">${u.ref} · ${u.code} · ${u.level}</span><h3>${u.short}</h3><div class="meta"><span>${u.topics.length} topics · ${subs.length} subsections</span><span class="badge ${authored ? "sage" : ""}">${authored}/${subs.length} written</span></div><div class="progress mt"><span style="width:${cov.pct}%"></span></div><div class="tiny muted mt" style="margin-top:.3rem">${cov.completed} completed by you</div></a>`;
-    }).join("");
-    B.app.render(h`<div class="page-head"><div><div class="eyebrow">Revision Library</div><h1>Units 1 to 4</h1><p class="lede">Organised exactly as the OxfordAQA 9610 specification, section 3. Open a unit to see its topics and numbered subsections.</p></div></div>
-      <div class="grid grid-2">${raw(cards)}</div>
+    };
+    const cards = B.spec.units.filter((u) => mine.has(u.ref)).map(card).join("");
+    const others = B.spec.units.filter((u) => !mine.has(u.ref));
+    const otherHTML = others.length ? `<details class="card mt"><summary><strong>Other units (${others.map((u) => u.ref).join(", ")})</strong> <span class="small muted">not in your course</span></summary><div class="grid grid-2 mt">${others.map(card).join("")}</div></details>` : "";
+    B.app.render(h`<div class="page-head"><div><div class="eyebrow">Revision Library</div><h1>${others.length ? "Your units" : "Units 1 to 4"}</h1><p class="lede">Organised exactly as the OxfordAQA 9610 specification, section 3. Open a unit to see its topics and numbered subsections.</p></div></div>
+      <div class="grid grid-2">${raw(cards)}</div>${raw(otherHTML)}
       <div class="card mt"><h3>Unit 5: Synoptic paper (BL05)</h3><p class="small muted">${B.spec.unit5.exam.structure}</p><a class="btn" href="#/synoptic">Go to the Synoptic hub</a></div>`, { title: "Library", crumbs: [{ label: "Library" }] });
   };
 
@@ -64,10 +69,10 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
     const statements = s.statements.map((x) => h`<label class="check-row"><input type="checkbox" data-id="${x.id}" ${st.checklist[x.id] ? "checked" : ""}><span>${x.text} ${raw(x.tags.map((tg) => `<span class="badge ${tg === "P" ? "sage" : tg === "M" ? "navy" : "amber"}">${{ P: "practical", M: "maths", E: "skill" }[tg]}</span>`).join(" "))}</span></label>`).join("");
     const authored = c.status !== "not_started";
     const html = el(h`<div>
-      <div class="page-head"><div><div class="eyebrow">${u.short} · ${t.ref} ${t.title}</div><h1>${s.ref} ${s.title}</h1><div class="row">${raw(statusBadge(c.status))}<span class="badge mono">${u.code}</span>${raw(rps.map((p) => h`<a class="badge sage" href="#/lab/${p.n}">RP${p.n}</a>`).join(""))}</div></div>
+      <div class="page-head"><div><div class="eyebrow">${u.short} · ${t.ref} ${t.title}</div><h1>${s.ref} ${s.title}</h1><div class="row">${raw(statusBadge(c.status))}<span class="badge" title="The exam paper that assesses this topic">Exam paper ${u.code}</span>${raw(rps.map((p) => h`<a class="badge sage" href="#/lab/${p.n}">RP${p.n}</a>`).join(""))}</div></div>
         <div class="row"><button class="btn ${cov.completed ? "" : "primary"}" id="complete">${cov.completed ? "Marked complete ✓ (undo)" : "Mark as complete"}</button></div></div>
 
-      <details class="acc" open><summary>Specification requirements (${s.statements.length}): tick each one you can do</summary><div class="acc-body">${raw(statements)}<p class="tiny muted mt">Source: OxfordAQA 9610 specification v${B.spec.meta.specVersion}, section ${s.ref}. Statements are paraphrased; <a href="${B.spec.meta.specPdfUrl}" target="_blank" rel="noopener">read the official wording</a>.</p></div></details>
+      <details class="acc" open><summary>Specification requirements (${s.statements.length}): tick each one you can do</summary><div class="acc-body">${raw(statements)}<p class="tiny muted mt">Source: OxfordAQA 9610 specification v${B.spec.meta.specVersion}, section ${s.ref}. ${/^3\.[12]\./.test(s.ref) ? "Statements quote the specification wording" : "Statements are paraphrased"}; <a href="${B.spec.meta.specPdfUrl}" target="_blank" rel="noopener">read the official wording</a>.</p></div></details>
 
       ${authored ? raw(authoredHTML(c, ref)) : raw(`<div class="card"><div class="empty">${icons.book}<h3>Notes for this subsection have not been written yet</h3><p>The specification requirements above are complete and verified, so you can still use them as a checklist with your textbook and class notes. Diagrams, questions and flashcards will appear here once this subsection is authored and reviewed.</p></div></div>`)}
 
@@ -176,6 +181,29 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
     (c.questions || []).forEach((q) => $("#practice", root).append(B.questions.render(q)));
     const ints = interactivesOf(c);
     $$(".interactive-host", root).forEach((hst) => B.views.interactive(ints[+hst.dataset.int], hst));
+    // pop-up keyword definitions in the Learn notes only (js/core/glossary.js)
+    if (B.glossaryLinker) { try { B.glossaryLinker.apply($(".learn-pane .notes", root), ref); } catch (e) { /* glossary is optional */ } }
+    // Release review (2026-11-15, teacher's decision): question banks attached to interactive models move from Learn to
+    // Check yourself, grouped by model, each group with a button back to its model. The questions keep their ids, marking
+    // and saved attempts (the same elements are moved, not copied). Learn keeps the notes, diagrams and models.
+    const learn = $(".learn-pane", root), prac = $("#practice", root);
+    if (learn && prac) {
+      const groups = [];
+      $$(".interactive-host", learn).forEach((hst, gi) => {
+        const qs = $$("section.q[data-qid]", hst); if (!qs.length) return;
+        const title = (($(".card-head h3", hst) || $("h3", hst) || {}).textContent || "the interactive model").trim();
+        if (!hst.id) hst.id = "ixm-" + gi;
+        const g = document.createElement("div"); g.className = "card mb ix-qgroup";
+        g.innerHTML = h`<div class="card-head"><h3>Questions on: ${title}</h3><button type="button" class="btn sm" data-back="${hst.id}">Open the model</button></div><p class="small muted">Use the model in Learn to help you answer these.</p>`;
+        qs.forEach((q) => g.append(q));
+        $$("h4, h5", hst).forEach((x) => { if (!/^\s*(questions?|try these|check your understanding|test yourself|marked questions)\b/i.test(x.textContent) || $("section.q", x.parentElement)) return;
+          const box = x.parentElement; if (box !== hst && box.children.length <= 2) { box.hidden = true; return; }
+          x.hidden = true; const nx = x.nextElementSibling; if (nx && nx.tagName === "P" && /marked and recorded|answer these|these questions/i.test(nx.textContent)) nx.hidden = true; });
+        groups.push(g);
+      });
+      if (groups.length) { const wrap = document.createElement("div"); wrap.className = "ix-qgroups"; groups.forEach((g) => wrap.append(g)); prac.before(wrap);
+        $$("[data-back]", wrap).forEach((b) => b.addEventListener("click", () => { show("notes"); const t = document.getElementById(b.dataset.back); if (t) t.scrollIntoView({ behavior: "smooth", block: "start" }); })); }
+    }
     (c.focus || []).forEach((f) => B.views.focusCard(f, $("#focus", root)));
   }
   function interactivesOf(c) { return [...(c.interactive ? [c.interactive] : []), ...(c.interactives || [])]; }

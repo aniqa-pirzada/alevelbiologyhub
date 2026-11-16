@@ -1,5 +1,9 @@
-// Unit 1 concept map view (Batch 9, owned by the concept-map author).
-// Route #/unit/:u/map → B.views.unitMap(u). Data: B.unitMaps[u] (data/unit1-map.js).
+// Unit concept map view (Batch 9, owned by the concept-map author; generalised for Unit 2 in Phase 4 Batch 4).
+// Route #/unit/:u/map → B.views.unitMap(u). Data: B.unitMaps[u] (data/unit1-map.js, data/unit2-map.js).
+// Optional data fields (Unit 1 uses none of them, so its page is unchanged): groups (colour key), lede, principlesNote,
+// legend {x, y, step}. Node kinds: topic, concept, practical and principle (a principle from an earlier unit, always
+// labelled with its unit); a node with status "outstanding" (a practical not built on the platform) is drawn dashed and
+// says so in its panel, and is never shown as complete.
 // A clickable SVG map (every node and every link is a keyboard-focusable button) with a shared detail panel, plus a
 // full list of connections that is the accessible and small-screen layout. Activating a link shows its explanation,
 // the specification statements it draws on, and one application question rendered by B.questions.render, so
@@ -26,12 +30,15 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
   .umap-node, .umap-link { cursor: pointer; outline: none; }
   .umap-node rect.box { stroke-width: 2; }
   .umap-node.concept rect.box { stroke-dasharray: 6 4; }
+  .umap-node.principle rect.box { stroke-dasharray: 2 4; stroke-linecap: round; }
+  .umap-node.outstanding rect.box { stroke-dasharray: 9 5; }
   .umap-node:hover rect.box, .umap-node:focus-visible rect.box { stroke-width: 3.5; }
   .umap-node:focus-visible rect.ring, .umap-link:focus-visible circle.ring { stroke: var(--focus); stroke-width: 4; fill: none; }
   .umap-node rect.ring, .umap-link circle.ring { fill: none; stroke: transparent; }
   .umap-edge { stroke: #9fb3ae; stroke-width: 2.2; fill: none; }
   .umap-link circle.dot { fill: #fff; stroke: #6b7d8f; stroke-width: 1.8; }
-  .umap-link text { font-size: 12.5px; font-weight: 700; fill: var(--ink); }
+  .umap-link text { font-size: 12.5px; font-weight: 700; fill: #16263a; }
+  html[data-theme="dark"] .umap-svg g[aria-hidden] text { fill: var(--ink-2); }
   .umap-link:hover circle.dot, .umap-link:focus-visible circle.dot { fill: var(--teal-soft); stroke: var(--teal-strong); }
   .umap-svg.has-sel .umap-edge, .umap-svg.has-sel .umap-link, .umap-svg.has-sel .umap-node { opacity: .32; }
   .umap-svg.has-sel .on { opacity: 1; }
@@ -96,17 +103,27 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
   B.views.unitMap = function (u) {
     const M = (B.unitMaps || {})[u];
     const unit = B.spec.units.find((x) => x.ref === u);
+    const G = (M && M.groups) || GROUPS;
+    const unitNo = unit ? unit.ref.split(".")[1] : "";
+    const mapTitle = (M && M.title) || `Unit ${unitNo} concept map`;
     const crumbs = [{ label: unit ? `Unit ${unit.ref.split(".")[1]} Revision Centre` : "Unit", href: `#/unit/${u}` }, { label: "Concept map" }];
     if (!M || !unit) return B.app.render(h`<div class="card"><div class="empty"><h3>No concept map for this unit yet</h3><p>Concept maps are being built unit by unit.</p><a class="btn" href="#/unit/${u}">Back to the unit</a></div></div>`, { title: "Concept map", crumbs });
 
     // Look-ups from the specification.
     const stmtText = {}, topicTitle = {};
     for (const t of unit.topics) { topicTitle[t.ref] = t.title; for (const s of t.subsections) { topicTitle[s.ref] = s.title; for (const st of s.statements) stmtText[st.id] = st.text; } }
+    // Statements and titles from other units (principles drawn on by this unit's links), labelled with their unit.
+    const otherUnit = {};
+    for (const ou of B.spec.units) if (ou.ref !== u) for (const t of ou.topics) { otherUnit[t.ref] = ou; if (!topicTitle[t.ref]) topicTitle[t.ref] = t.title; for (const s of t.subsections) { otherUnit[s.ref] = ou; if (!topicTitle[s.ref]) topicTitle[s.ref] = s.title; for (const st of s.statements) if (!stmtText[st.id]) { stmtText[st.id] = st.text; otherUnit[st.id] = ou; } } }
+    const unitTag = (id) => { const ou = otherUnit[id]; return ou ? ` (Unit ${ou.ref.split(".")[1]})` : ""; };
+    const KIND = { topic: "Topic", practical: "Required practical", concept: "Key concept", principle: "Unit 1 principle" };
+    const kindName = (n) => n.kind === "principle" ? `Unit ${(otherUnit[n.ref] || { ref: "3.1" }).ref.split(".")[1]} principle` : KIND[n.kind] || "Key concept";
     const node = Object.fromEntries(M.nodes.map((n) => [n.id, n]));
     const links = M.links.map((l, i) => Object.assign({ n: i + 1 }, l));
     const linkById = Object.fromEntries(links.map((l) => [l.id, l]));
-    const fullTitle = (n) => n.kind === "topic" ? `${n.ref} ${topicTitle[n.ref] || n.title}` : n.kind === "practical" ? `Required practical ${n.rp}` : `${n.title} (${n.ref})`;
-    const shortName = (n) => n.kind === "topic" ? `${n.ref} ${n.title}` : n.title;
+    const fullTitle = (n) => n.kind === "topic" ? `${n.ref} ${topicTitle[n.ref] || n.title}` : n.kind === "practical" ? `Required practical ${n.rp}` : n.kind === "principle" ? `${n.title} (${kindName(n)}, ${n.ref})` : `${n.title} (${n.ref})`;
+    const outstanding = (n) => n.status === "outstanding";
+    const shortName = (n) => n.kind === "topic" ? `${n.ref} ${n.title}` : n.kind === "principle" ? `${n.title} (${kindName(n)})` : n.title;
     const totalMarks = links.reduce((a, l) => a + l.question.marks, 0);
 
     // ----- SVG -----
@@ -116,15 +133,15 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
       return `<line class="umap-edge" data-link="${l.id}" x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" marker-end="url(#umap-arrow)"/>`;
     }).join("");
     const nodesSVG = M.nodes.map((n) => {
-      const g = GROUPS[n.group] || GROUPS.molecules;
-      const kicker = n.kind === "topic" ? `Topic ${n.ref}` : n.kind === "practical" ? `Practical · ${n.ref}` : `Key concept · ${n.ref}`;
+      const g = G[n.group] || Object.values(G)[0];
+      const kicker = n.kind === "topic" ? `Topic ${n.ref}` : n.kind === "practical" ? (outstanding(n) ? "Practical · not built yet" : `Practical · ${n.ref}`) : n.kind === "principle" ? `${kindName(n)} · ${n.ref}` : `Key concept · ${n.ref}`;
       const lines = wrap(n.title, 20);
       const ty = lines.length === 1 ? n.y + 12 : n.y + 4;
-      const label = `${n.kind === "topic" ? "Topic" : n.kind === "practical" ? "Required practical" : "Key concept"} ${n.kind === "practical" ? n.rp : n.ref}: ${n.kind === "topic" ? topicTitle[n.ref] || n.title : n.title}. Show its connections.`;
-      return h`<g class="umap-node ${n.kind}" data-node="${n.id}" tabindex="0" role="button" aria-label="${label}">
+      const label = `${kindName(n)} ${n.kind === "practical" ? n.rp : n.ref}: ${n.kind === "topic" ? topicTitle[n.ref] || n.title : n.title}${outstanding(n) ? " (not built on the platform yet: outstanding)" : ""}. Show its connections.`;
+      return h`<g class="umap-node ${n.kind}${outstanding(n) ? " outstanding" : ""}" data-node="${n.id}" tabindex="0" role="button" aria-label="${label}">
         <rect class="ring" x="${n.x - NW / 2 - 5}" y="${n.y - NH / 2 - 5}" width="${NW + 10}" height="${NH + 10}" rx="16"/>
         <rect class="box" x="${n.x - NW / 2}" y="${n.y - NH / 2}" width="${NW}" height="${NH}" rx="${n.kind === "concept" ? 28 : 12}" fill="${g.fill}" stroke="${g.stroke}"/>
-        <text x="${n.x}" y="${n.y - 13}" text-anchor="middle" font-size="12" font-weight="600" fill="#4b5e72">${kicker}</text>
+        <text x="${n.x}" y="${n.y - 12}" text-anchor="middle" font-size="13.5" font-weight="600" fill="#4b5e72">${kicker}</text>
         ${raw(lines.map((ln, i) => h`<text x="${n.x}" y="${ty + i * 16}" text-anchor="middle" font-size="15" font-weight="700" fill="#16263a">${ln}</text>`).join(""))}
       </g>`;
     }).join("");
@@ -139,14 +156,20 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
         <text x="${mx}" y="${my + 4.5}" text-anchor="middle">${l.n}</text>
       </g>`;
     }).join("");
-    const legendX = 935, legendY = 432;
-    const legendSVG = `<g aria-hidden="true" font-size="12" fill="#3c4f63">
-      <text x="${legendX}" y="${legendY}" font-weight="700" font-size="12.5" fill="#16263a">Key</text>
-      ${Object.values(GROUPS).map((g, i) => `<rect x="${legendX}" y="${legendY + 12 + i * 22}" width="22" height="14" rx="4" fill="${g.fill}" stroke="${g.stroke}" stroke-width="2"/><text x="${legendX + 30}" y="${legendY + 23 + i * 22}">${g.short}</text>`).join("")}
-      <rect x="${legendX}" y="${legendY + 128}" width="22" height="14" rx="7" fill="#fff" stroke="#6b7d8f" stroke-width="2" stroke-dasharray="4 3"/><text x="${legendX + 30}" y="${legendY + 139}">Dashed: key concept</text>
-      <circle cx="${legendX + 11}" cy="${legendY + 165}" r="9" fill="#fff" stroke="#6b7d8f" stroke-width="1.8"/><text x="${legendX + 11}" y="${legendY + 169}" text-anchor="middle" font-weight="700" font-size="10.5" fill="#16263a">n</text><text x="${legendX + 30}" y="${legendY + 169}">Numbered link: select it</text>
+    // Key. Unit 1 uses the defaults (x 935, y 432, rows 22 apart); a map may move it and tighten the rows (M.legend).
+    const LG = Object.assign({ x: 935, y: 432, step: 22 }, (M && M.legend) || {});
+    const legendX = LG.x, legendY = LG.y, step = LG.step, gList = Object.entries(G);
+    const cY = 12 + gList.length * step + 6; // row after the colour groups (Unit 1: 128)
+    const hasOut = M.nodes.some(outstanding);
+    const oY = hasOut ? cY + step : null; const nY = (hasOut ? oY : cY) + 37;
+    const legendSVG = `<g aria-hidden="true" font-size="15" fill="#3c4f63">
+      <text x="${legendX}" y="${legendY}" font-weight="700" font-size="15.5" fill="#16263a">Key</text>
+      ${gList.map(([k, g], i) => `<rect x="${legendX}" y="${legendY + 12 + i * step}" width="22" height="14" rx="4" fill="${g.fill}" stroke="${g.stroke}" stroke-width="2"${k === "principle" ? ' stroke-dasharray="2 3"' : ""}/><text x="${legendX + 30}" y="${legendY + 23 + i * step}">${g.short}</text>`).join("")}
+      <rect x="${legendX}" y="${legendY + cY}" width="22" height="14" rx="7" fill="#fff" stroke="#6b7d8f" stroke-width="2" stroke-dasharray="4 3"/><text x="${legendX + 30}" y="${legendY + cY + 11}">Dashed: key concept</text>
+      ${hasOut ? `<rect x="${legendX}" y="${legendY + oY}" width="22" height="14" rx="4" fill="#fbf0d8" stroke="#a87412" stroke-width="2" stroke-dasharray="6 3"/><text x="${legendX + 30}" y="${legendY + oY + 11}">Amber dashes: not built yet</text>` : ""}
+      <circle cx="${legendX + 11}" cy="${legendY + nY}" r="9" fill="#fff" stroke="#6b7d8f" stroke-width="1.8"/><text x="${legendX + 11}" y="${legendY + nY + 4}" text-anchor="middle" font-weight="700" font-size="13" fill="#16263a">n</text><text x="${legendX + 30}" y="${legendY + nY + 4}">Numbered link: select it</text>
     </g>`;
-    const svg = `<svg class="umap-svg" viewBox="0 0 ${VB_W} ${VB_H}" role="group" aria-label="Unit 1 concept map: ${M.nodes.length} topics and key concepts joined by ${links.length} numbered connections. Each box and each numbered circle is a button.">
+    const svg = `<svg class="umap-svg" viewBox="0 0 ${VB_W} ${VB_H}" role="group" aria-label="${mapTitle}: ${M.nodes.length} topics and key concepts joined by ${links.length} numbered connections. Each box and each numbered circle is a button.">
       <defs><marker id="umap-arrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#7d918c"/></marker></defs>
       <g aria-hidden="true">${edgesSVG}</g>${nodesSVG}${linksSVG}${legendSVG}</svg>`;
 
@@ -157,12 +180,15 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
       <td class="rel" data-h="Relationship">${l.label}</td>
       <td data-h="To"><a href="${node[l.to].href}">${shortName(node[l.to])}</a></td>
       <td><button class="btn sm" data-open-link="${l.id}" aria-label="Explain and practise connection ${l.n}">Explain and practise</button></td></tr>`).join("");
-    const nodeList = M.nodes.map((n) => h`<li><a href="${n.href}">${fullTitle(n)}</a>${n.lab ? raw(h` · <a href="${n.lab}">Virtual Laboratory</a>`) : ""}</li>`).join("");
+    const nodeList = M.nodes.map((n) => h`<li><a href="${n.href}">${fullTitle(n)}</a>${n.lab ? raw(h` · <a href="${n.lab}">Virtual Laboratory</a>`) : ""}${outstanding(n) ? raw(' <span class="badge rose">outstanding: not built yet</span>') : ""}</li>`).join("");
+    const backLabel = `Back to the Unit ${unitNo} Revision Centre`;
+    const ledeHTML = M.lede ? h`${M.lede} (${links.length} questions, ${totalMarks} marks; your answers count towards mastery).` : h`How the eleven Unit 1 topics fit together. Select a box to see its connections, or a numbered circle to read why two ideas are linked and to try a question on the link (${links.length} questions, ${totalMarks} marks; your answers count towards mastery).`;
+    const principlesHTML = M.principlesNote ? h`${M.principlesNote}` : "Biological principles for Unit 1 (specification, printed page 21) run through these links: condensation and hydrolysis; protein structure and function; enzyme rates; passive and active exchange across membranes; size and surface area to volume ratio; genes as DNA coding for amino acid sequences; meiosis producing genetically different cells; and the species defined by fertile offspring.";
 
     const page = el(h`<div>${raw(STYLE)}
-      <div class="page-head"><div><div class="eyebrow">${unit.code} · ${unit.short}</div><h1>Unit 1 concept map</h1>
-        <p class="lede">How the eleven Unit 1 topics fit together. Select a box to see its connections, or a numbered circle to read why two ideas are linked and to try a question on the link (${links.length} questions, ${totalMarks} marks; your answers count towards mastery).</p></div>
-        <div class="row"><a class="btn" href="#/unit/${u}">Back to the Unit 1 Revision Centre</a><a class="btn ghost" href="#umap-list" data-skip>Skip to the list of connections</a></div></div>
+      <div class="page-head"><div><div class="eyebrow">${unit.code} · ${unit.short}</div><h1>${mapTitle}</h1>
+        <p class="lede">${raw(ledeHTML)}</p></div>
+        <div class="row"><a class="btn" href="#/unit/${u}">${backLabel}</a><a class="btn ghost" href="#umap-list" data-skip>Skip to the list of connections</a></div></div>
       <div class="card mb umap-figure">
         <p class="umap-caption" id="umap-caption" aria-hidden="true">Hover over or tab to a box or numbered circle; press Enter to open it. Press Escape to clear the selection.</p>
         <div class="umap-wrap">${raw(svg)}</div>
@@ -172,13 +198,13 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
       <section class="card mb" id="umap-list" aria-labelledby="umap-list-h" tabindex="-1">
         <h2 id="umap-list-h">All ${links.length} connections</h2>
         <p class="small muted">Each connection reads in order: <em>from</em>, relationship, <em>to</em>. The topic and concept names open their pages.</p>
-        <table class="umap-table"><caption class="sr-only">All ${links.length} connections on the Unit 1 concept map: from, relationship, to</caption><thead><tr><th scope="col">#</th><th scope="col">From</th><th scope="col">Relationship</th><th scope="col">To</th><th scope="col"><span class="sr-only">Action</span></th></tr></thead><tbody>${raw(rows)}</tbody></table>
+        <table class="umap-table"><caption class="sr-only">All ${links.length} connections on the ${mapTitle}: from, relationship, to</caption><thead><tr><th scope="col">#</th><th scope="col">From</th><th scope="col">Relationship</th><th scope="col">To</th><th scope="col"><span class="sr-only">Action</span></th></tr></thead><tbody>${raw(rows)}</tbody></table>
       </section>
       <section class="card" aria-labelledby="umap-nodes-h"><h2 id="umap-nodes-h">Topics and key concepts on the map</h2><ul class="umap-nodes">${raw(nodeList)}</ul>
-        <p class="small muted mt">Biological principles for Unit 1 (specification, printed page 21) run through these links: condensation and hydrolysis; protein structure and function; enzyme rates; passive and active exchange across membranes; size and surface area to volume ratio; genes as DNA coding for amino acid sequences; meiosis producing genetically different cells; and the species defined by fertile offspring.</p>
-        <div class="row mt"><a class="btn" href="#/unit/${u}">Back to the Unit 1 Revision Centre</a></div></section>
+        <p class="small muted mt">${raw(principlesHTML)}</p>
+        <div class="row mt"><a class="btn" href="#/unit/${u}">${backLabel}</a></div></section>
     </div>`);
-    B.app.render(page, { title: "Unit 1 concept map", crumbs });
+    B.app.render(page, { title: mapTitle, crumbs });
 
     const svgEl = $(".umap-svg", page), detail = $("#umap-detail", page), caption = $("#umap-caption", page);
     const reduce = () => matchMedia("(prefers-reduced-motion: reduce)").matches || document.documentElement.classList.contains("reduce-motion");
@@ -194,7 +220,7 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
       if (focus) head.focus({ preventScroll: true });
       detail.scrollIntoView({ behavior: reduce() ? "auto" : "smooth", block: "start" });
     }
-    const stmtList = (ids) => h`<details class="mt"><summary class="small">Specification statements this link draws on (${ids.length})</summary><ul class="umap-stmts">${raw(ids.map((s) => h`<li><a class="mono" href="#/topic/${s.replace(/\.s\d+$/, "")}">${s}</a> ${stmtText[s] || ""}</li>`).join(""))}</ul></details>`;
+    const stmtList = (ids) => h`<details class="mt"><summary class="small">Specification statements this link draws on (${ids.length})</summary><ul class="umap-stmts">${raw(ids.map((s) => h`<li><a class="mono" href="#/topic/${s.replace(/\.s\d+$/, "")}">${s}</a>${unitTag(s) ? raw(h` <span class="badge navy">${unitTag(s).replace(/[()]/g, "").trim()} principle</span>`) : ""} ${stmtText[s] || ""}</li>`).join(""))}</ul></details>`;
     const navButtons = (l) => {
       const prev = links[l.n - 2], next = links[l.n];
       return h`<div class="umap-dn">${prev ? raw(h`<button class="btn sm" data-open-link="${prev.id}">← Connection ${prev.n}</button>`) : raw("<span></span>")}<button class="btn sm ghost" data-back>Back to where I was</button>${next ? raw(h`<button class="btn sm" data-open-link="${next.id}">Connection ${next.n} →</button>`) : raw("<span></span>")}</div>`;
@@ -220,10 +246,10 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
       if (opts.from) returnTo = opts.from;
       highlightNode(id);
       const conns = links.filter((l) => l.from === id || l.to === id);
-      showDetail(h`<span class="badge ${n.kind === "practical" ? "amber" : n.kind === "concept" ? "sage" : "teal"}">${n.kind === "topic" ? "Topic" : n.kind === "practical" ? "Required practical" : "Key concept"}</span>
+      showDetail(h`<span class="badge ${n.kind === "practical" ? "amber" : n.kind === "concept" ? "sage" : n.kind === "principle" ? "navy" : "teal"}">${kindName(n)}</span>${outstanding(n) ? raw(' <span class="badge rose">Outstanding: not built on the platform yet</span>') : ""}
         <h2 id="umap-detail-h" tabindex="-1" class="mt">${fullTitle(n)}</h2>
         <p>${n.desc}</p>
-        <div class="row"><a class="btn primary" href="${n.href}">Open ${n.kind === "topic" ? "the topic" : "subsection " + n.ref}</a>${n.lab ? raw(h`<a class="btn" href="${n.lab}">Open RP${n.rp} in the Virtual Laboratory</a>`) : ""}<button class="btn ghost" data-back>Back to where I was</button></div>
+        <div class="row"><a class="btn primary" href="${n.href}">Open ${n.kind === "topic" ? "the topic" : n.kind === "principle" ? `${kindName(n).replace(" principle", "")} ${/^\d+\.\d+\.\d+$/.test(n.ref) ? "topic" : "subsection"} ${n.ref}` : "subsection " + n.ref}</a>${n.lab ? raw(h`<a class="btn" href="${n.lab}">Open RP${n.rp} in the Virtual Laboratory</a>`) : ""}<button class="btn ghost" data-back>Back to where I was</button></div>
         <h3 class="mt">Connections (${conns.length})</h3>
         <ul class="umap-conn">${raw(conns.map((l) => h`<li><button class="btn sm" data-open-link="${l.id}"><span class="mono">${l.n}.</span> ${shortName(node[l.from])} <em>${l.label}</em> ${shortName(node[l.to])}</button></li>`).join(""))}</ul>`, opts.focus !== false);
     }

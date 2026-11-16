@@ -10,6 +10,9 @@ window.BIO = window.BIO || {}; window.BIO.content = window.BIO.content || {};
   const zigPath = (x, y, n) => { let d = `M${x} ${y}`; let cx = x, cy = y; for (let i = 0; i < n; i++) { cx += 16; cy += i % 2 ? 9 : -9; d += ` L${cx} ${cy}`; } return { d, ex: cx, ey: cy }; };
   const zig = (x, y, n) => { const z = zigPath(x, y, n); return `<path d="${z.d}" fill="none" stroke="${INK}" stroke-width="2"/>`; };
   const zigEnd = (x, y, n) => zigPath(x, y, n);
+  // Chain of n bonds from (x,y) whose last vertex is the terminal CH3 carbon: the last bond stops short of the "CH₃"
+  // label, which is written at that vertex, so counting vertices plus the label gives the right number of carbons.
+  const zigCH3 = (x, y, n) => { const z = zigPath(x, y, n); const pts = z.d.slice(1).split(" L").map((q) => q.split(" ").map(Number)); const [px, py] = pts[pts.length - 2]; const [ex, ey] = pts[pts.length - 1]; const d = "M" + pts.slice(0, -1).map((q) => q.join(" ")).join(" L") + ` L${(px + 0.45 * (ex - px)).toFixed(1)} ${(py + 0.45 * (ey - py)).toFixed(1)}`; return `<path d="${d}" fill="none" stroke="${INK}" stroke-width="2"/>` + T(ex - 7, ey + 5, "CH₃", { a: "start" }); };
   const cap = (x, y, s, a = "middle") => T(x, y, s, { s: 11, w: 500, c: GREY, a });
   const ROW = 58; // vertical spacing between glycerol carbons
   const Catom = (x, y) => `<circle cx="${x}" cy="${y - 4}" r="9" fill="#fff"/>` + T(x, y, "C");
@@ -25,13 +28,13 @@ window.BIO = window.BIO || {}; window.BIO.content = window.BIO.content || {};
     let s = "";
     if (o.showOH !== false) s += T(x, y + 4, "HO", { c: TEAL }) + L(x + 16, y, x + 30, y, { c: TEAL });
     const cx = x + 40; s += T(cx, y + 4, "C") + dbl(cx, y - 8, cx, y - 26) + T(cx, y - 30, "O") + L(cx + 10, y, cx + 26, y);
-    const z = zigEnd(cx + 26, y, n); s += `<path d="${z.d}" fill="none" stroke="${INK}" stroke-width="2"/>` + T(z.ex + 20, z.ey + 4, "CH₃");
+    s += zigCH3(cx + 26, y, n);
     return s;
   };
   // An ester-linked chain from a glycerol carbon at (x,y): –O–C(=O)–zigzag–CH3, returns svg; box marks the ester bond
   const esterChain = (x, y, n = 5, box = true) => {
     const cy = y - 4; let s = L(x + 10, cy, x + 24, cy) + T(x + 34, y, "O") + L(x + 44, cy, x + 58, cy) + T(x + 68, y, "C") + dbl(x + 68, cy - 8, x + 68, cy - 26) + T(x + 68, cy - 30, "O") + L(x + 78, cy, x + 94, cy);
-    const z = zigEnd(x + 94, cy, n); s += `<path d="${z.d}" fill="none" stroke="${INK}" stroke-width="2"/>` + T(z.ex + 20, z.ey + 4, "CH₃");
+    s += zigCH3(x + 94, cy, n);
     if (box) s += `<rect x="${x + 22}" y="${cy - 22}" width="58" height="34" rx="6" fill="none" stroke="${AMB}" stroke-width="2"/>`;
     return s;
   };
@@ -63,16 +66,16 @@ window.BIO = window.BIO || {}; window.BIO.content = window.BIO.content || {};
     const z = zigEnd(96, 220, 6); s += `<path d="${z.d}" fill="none" stroke="${INK}" stroke-width="2"/>`;
     // double bond segment (horizontal) then chain continues bent up by 40 degrees
     const dx = z.ex, dy = z.ey; s += dbl(dx, dy, dx + 22, dy) + `<circle cx="${dx + 11}" cy="${dy}" r="15" fill="none" stroke="${AMB}" stroke-width="2"/>`;
-    const z2 = zigEnd(0, 0, 6); s += `<g transform="translate(${dx + 22},${dy}) rotate(-40)"><path d="${z2.d}" fill="none" stroke="${INK}" stroke-width="2"/></g>`;
+    const z2 = zigEnd(0, 0, 6); const zp = z2.d.slice(1).split(" L").map((q) => q.split(" ").map(Number)); const [qx, qy] = zp[zp.length - 2]; const short = "M" + zp.slice(0, -1).map((q) => q.join(" ")).join(" L") + ` L${(qx + 0.45 * (z2.ex - qx)).toFixed(1)} ${(qy + 0.45 * (z2.ey - qy)).toFixed(1)}`; s += `<g transform="translate(${dx + 22},${dy}) rotate(-40)"><path d="${short}" fill="none" stroke="${INK}" stroke-width="2"/></g>`;
     const ex = dx + 22 + Math.cos(-40 * Math.PI / 180) * z2.ex - Math.sin(-40 * Math.PI / 180) * z2.ey, ey = dy + Math.sin(-40 * Math.PI / 180) * z2.ex + Math.cos(-40 * Math.PI / 180) * z2.ey;
-    s += T(ex + 22, ey + 4, "CH₃") + T(dx + 11, dy + 34, "C=C double bond", { s: 11, w: 600, c: AMBD });
+    s += T(ex - 7, ey + 5, "CH₃", { a: "start" }) + T(dx + 11, dy + 34, "C=C double bond", { s: 11, w: 600, c: AMBD });
     s += cap(410, 200, "One or more C=C double bonds, so fewer hydrogen atoms.", "start") + cap(410, 218, "A cis C=C kinks the chain, so chains cannot pack closely", "start") + cap(410, 236, "→ lower melting point: oils, usually liquid at room temperature.", "start") + cap(410, 254, "Monounsaturated = one C=C; polyunsaturated = two or more.", "start");
     return `<svg viewBox="0 0 760 270" width="760" role="img" aria-label="saturated and unsaturated fatty acid chains">${s}</svg>`;
   })();
 
   const dTriglyceride = (() => {
     const gy = 76; let s = "";
-    s += cap(70, 22, "glycerol") + cap(240, 22, "3 fatty acids") + cap(600, 22, "triglyceride");
+    s += cap(70, 13, "glycerol") + cap(240, 13, "3 fatty acids") + cap(600, 13, "triglyceride");
     s += glycerolAt(70, gy);
     [0, 1, 2].forEach((i) => { s += fattyAcidAt(150, gy + i * ROW - 4, 4); });
     s += `<path d="M330 ${gy + ROW} l44 0" stroke="${INK}" stroke-width="2.5" marker-end="url(#arr)"/>` + T(352, gy + ROW - 12, "condensation", { s: 11, w: 600 });
@@ -81,7 +84,7 @@ window.BIO = window.BIO || {}; window.BIO.content = window.BIO.content || {};
     s += T(px + 52, gy + 2 * ROW + 40, "ester bonds (×3)", { s: 11, w: 600, c: AMBD });
     [0, 1, 2].forEach((i) => { const cy = gy + i * ROW; s += `<circle cx="712" cy="${cy - 4}" r="15" fill="#e4ebf5" stroke="${NAVY}" stroke-width="2"/>` + T(712, cy, "H₂O", { s: 11, c: NAVY }); });
     s += T(712, gy + 2 * ROW + 28, "+ 3 H₂O", { s: 11, w: 600, c: NAVY });
-    s += cap(20, 254, "Each ester bond: the O of a glycerol –OH joins the C of a –COOH; the H (from glycerol) and the OH (from the acid)", "start") + cap(20, 268, "leave as water. Fatty acid chains are shortened.", "start");
+    s += cap(20, 254, "Each ester bond: the O of a glycerol –OH joins the C of a –COOH; the H (from glycerol) and the OH (from the acid)", "start") + cap(20, 268, "leave as water. Fatty acid chains are drawn shortened.", "start");
     return `<svg viewBox="0 0 760 275" width="760" role="img" aria-label="formation of a triglyceride from glycerol and three fatty acids"><defs><marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8z" fill="${INK}"/></marker></defs>${s}</svg>`;
   })();
 
@@ -102,16 +105,6 @@ window.BIO = window.BIO || {}; window.BIO.content = window.BIO.content || {};
     return `<svg viewBox="0 0 760 280" width="760" role="img" aria-label="structure of a phospholipid">${s}</svg>`;
   })();
 
-  const dBilayer = (() => {
-    let s = `<rect x="0" y="0" width="760" height="260" fill="#e4ebf5"/>`;
-    const lip = (x, y, flip) => `<g transform="translate(${x},${y}) ${flip ? "rotate(180)" : ""}"><circle cx="0" cy="0" r="11" fill="#1f8a8a"/><path d="M-5 10 q-4 14 0 28 q-4 14 0 28" fill="none" stroke="${AMB}" stroke-width="3"/><path d="M5 10 q4 14 0 28 q4 14 0 28" fill="none" stroke="${AMB}" stroke-width="3"/></g>`;
-    for (let i = 0; i < 11; i++) { s += lip(210 + i * 40, 66, false) + lip(210 + i * 40, 194, true); }
-    s += T(16, 24, "extracellular water", { s: 12, w: 600, c: NAVY, a: "start" }) + T(16, 250, "cytoplasm (water)", { s: 12, w: 600, c: NAVY, a: "start" });
-    s += `<path d="M660 54 l20 0 M660 206 l20 0 M670 54 l0 152" stroke="${INK}" stroke-width="1.5" fill="none"/>` + T(682, 134, "≈ 7 nm", { s: 11, w: 600, a: "start" });
-    s += T(170, 70, "hydrophilic heads", { s: 11, w: 600, c: TEAL, a: "end" }) + T(170, 134, "hydrophobic tails", { s: 11, w: 600, c: AMBD, a: "end" }) + T(170, 198, "hydrophilic heads", { s: 11, w: 600, c: TEAL, a: "end" });
-    return `<svg viewBox="0 0 760 260" width="760" role="img" aria-label="phospholipid bilayer">${s}</svg>`;
-  })();
-
   const dEmulsion = (() => {
     const tube = (x, y, fill, label, extra = "") => `<path d="M${x} ${y} l0 120 a25 25 0 0 0 50 0 l0 -120" fill="#fff" stroke="${INK}" stroke-width="2"/><path d="M${x + 2} ${y + 50} l0 70 a23 23 0 0 0 46 0 l0 -70z" fill="${fill}"/>${extra}${T(x + 25, y + 170, label, { s: 11, w: 600 })}`;
     let s = "";
@@ -119,7 +112,7 @@ window.BIO = window.BIO || {}; window.BIO.content = window.BIO.content || {};
     s += `<path d="M190 110 l40 0" stroke="${INK}" stroke-width="2.5" marker-end="url(#arr2)"/>` + cap(210, 100, "pour into");
     s += T(300, 24, "2. Add to water", { s: 13 }) + tube(275, 40, "#e4ebf5", "water");
     s += `<path d="M390 110 l40 0" stroke="${INK}" stroke-width="2.5" marker-end="url(#arr2)"/>`;
-    s += T(500, 24, "Positive", { s: 13, c: "#166f70" }) + tube(475, 40, "#f1f1ec", "cloudy white emulsion", Array.from({ length: 40 }, (_, i) => `<circle cx="${480 + ((i * 37) % 44)}" cy="${95 + ((i * 53) % 60)}" r="2.5" fill="#fff" stroke="#b9c9c4"/>`).join("")) + cap(500, 228, "tiny lipid droplets dispersed") + cap(500, 244, "in water scatter light");
+    s += T(500, 24, "Positive", { s: 13, c: "#166f70" }) + tube(475, 40, "#f1f1ec", "cloudy white emulsion", Array.from({ length: 40 }, (_, i) => `<circle cx="${482 + ((i * 37) % 37)}" cy="${95 + ((i * 53) % 60)}" r="2.5" fill="#fff" stroke="#b9c9c4"/>`).join("")) + cap(500, 228, "tiny lipid droplets dispersed") + cap(500, 244, "in water scatter light");
     s += T(650, 24, "Negative", { s: 13, c: "#c25f5f" }) + tube(625, 40, "#e4ebf5", "stays clear") + cap(650, 228, "no lipid present");
     return `<svg viewBox="0 0 760 260" width="760" role="img" aria-label="the emulsion test for lipids"><defs><marker id="arr2" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8z" fill="${INK}"/></marker></defs>${s}</svg>`;
   })();
@@ -199,7 +192,7 @@ window.BIO = window.BIO || {}; window.BIO.content = window.BIO.content || {};
 <li>"The phosphate head is hydrophobic." The head is hydrophilic; the tails are hydrophobic.</li>
 <li>"Add water first in the emulsion test." Ethanol first, to dissolve the lipid; then water.</li></ul></div>
 <div class="examtip"><strong>Exam focus.</strong> Be ready to (1) draw a fatty acid, glycerol and the ester bond; (2) state the number of water molecules released (3 for a triglyceride, 2 for the ester bonds of a phospholipid); (3) explain insolubility and energy content in terms of structure; (4) describe the emulsion test with ethanol <em>before</em> water and the observation "cloudy white emulsion". Questions on membranes (3.1.4.1) often start from phospholipid structure.</div>
-<div class="enrich"><strong>Enrichment (not required):</strong> cholesterol (a different lipid, named only in 3.1.4.1) and the health effects of saturated fat (3.2.7.2) are context, not 3.1.1.3 content.</div>
+<div class="enrich"><strong>Enrichment (not required):</strong> cholesterol (a different lipid, met in 3.1.4.1 and 3.2.7.2) and the health effects of saturated fat (3.2.7.2) are context, not 3.1.1.3 content.</div>
 `,
     diagrams: [
       { id: "d-3.1.1.3-1", title: "Glycerol", status: "reviewed", caption: "Displayed formula of glycerol (propane-1,2,3-triol). Each of the three carbons carries a hydroxyl group that can form an ester bond.", alt: "A vertical chain of three carbon atoms, each bonded to a hydrogen atom on the left and a hydroxyl group on the right; the top and bottom carbons also carry a hydrogen.", svg: dGlycerol },
@@ -207,12 +200,11 @@ window.BIO = window.BIO || {}; window.BIO.content = window.BIO.content || {};
       { id: "d-3.1.1.3-3", title: "Saturated and unsaturated fatty acid chains", status: "reviewed", caption: "A saturated chain has only C–C single bonds and is straight. An unsaturated chain has at least one C=C double bond (circled), which puts a kink in the chain.", alt: "Two zigzag chains with carboxyl groups: the upper one straight; the lower one with a circled double bond in the middle after which the chain changes direction.", svg: dSatUnsat },
       { id: "d-3.1.1.3-4", title: "Formation of a triglyceride", status: "reviewed", caption: "One glycerol and three fatty acids join by condensation, forming three ester bonds (boxed) and releasing three molecules of water. Hydrolysis reverses this.", alt: "Left: glycerol with three hydroxyl groups lined up with the carboxyl groups of three fatty acids. Arrow labelled condensation. Right: the triglyceride with three ester links from the glycerol carbons to the fatty acid chains, and three water molecules.", svg: dTriglyceride },
       { id: "d-3.1.1.3-5", title: "Structure of a phospholipid", status: "reviewed", caption: "Two fatty acids are ester-linked to glycerol; the third carbon carries a phosphate group (and often a further polar group such as choline). The charged phosphate makes the head hydrophilic; the tails are hydrophobic.", alt: "A glycerol backbone with two fatty acid chains attached through ester bonds, and a phosphate group attached to the third carbon which in turn links to a box labelled e.g. choline; brackets mark the hydrophilic head and hydrophobic tails. A simplified icon of a circle with two wavy tails is shown alongside.", svg: dPhospholipid },
-      { id: "d-3.1.1.3-6", title: "Phospholipid bilayer", status: "reviewed", caption: "With water on both sides, phospholipids form a bilayer about 7 nm thick: heads outward in contact with water, tails inward forming a hydrophobic core.", alt: "Two rows of phospholipid icons, heads pointing up in the top row and down in the bottom row, with tails meeting in the middle; water labelled above and below.", svg: dBilayer },
       { id: "d-3.1.1.3-7", title: "The emulsion test", status: "reviewed", caption: "Sample is shaken with ethanol, then added to water. A cloudy white emulsion is positive; a clear mixture is negative.", alt: "Four test tubes in sequence: sample with ethanol, water, a cloudy tube labelled positive, and a clear tube labelled negative.", svg: dEmulsion },
     ],
     interactives: [
       { kind: "ester", title: "Animate: forming and breaking an ester bond", note: "Condensation between one –OH of glycerol and the –COOH of a fatty acid. Press hydrolysis to reverse it." },
-      { kind: "bilayer", title: "Explore: how phospholipids arrange themselves in water", note: "Change the environment and watch the heads and tails orientate. Icons only: each circle is a phosphate head and each wavy line a fatty acid tail." },
+      { kind: "bilayer", title: "Explore: how phospholipids arrange themselves in water", note: "Each circle is a phosphate head and each pair of wavy lines the two fatty acid tails. Press Arrange to see the bilayer form." },
     ],
     examFocus: `<ul><li><strong>Counting water:</strong> one water molecule per ester bond. Triglyceride: 3. Phospholipid: 2 from the fatty acids (the phosphate link is also formed by condensation, but questions normally ask about the fatty acid ester bonds).</li>
 <li><strong>"Explain why lipids are insoluble":</strong> non-polar hydrocarbon tails cannot form hydrogen bonds with water.</li>

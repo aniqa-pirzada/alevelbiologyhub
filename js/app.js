@@ -14,18 +14,19 @@ window.BIO = window.BIO || {};
     parts.forEach((c, i) => { if (i) bc.append(el('<span class="sep">/</span>')); bc.append(c.href ? el(h`<a href="${c.href}">${c.label}</a>`) : el(h`<span>${c.label}</span>`)); });
     if (crumbs.length) main.append(bc);
     if (typeof html === "string") main.insertAdjacentHTML("beforeend", html); else main.append(html);
-    document.title = (title ? title + " · " : "") + "Biology Revision · OxfordAQA 9610";
+    document.title = (title ? title + " · " : "") + "Biology Lab · OxfordAQA 9610";
     window.scrollTo({ top: 0, behavior: "auto" });
     const hash = location.hash;
     $$(".nav a").forEach((a) => {
       const href = a.getAttribute("href");
       let on;
-      if (a.closest(".nav-sub")) {
+      if (a.closest(".nav-sub") && /^#\/library\//.test(href)) {
         // Topic links (#/library/<unit>/<topic>): only the topic being viewed is highlighted, including its subsections,
         // consolidation page and practice routes, never the whole unit at once.
         const t = href.split("/")[3];
         on = hash === href || new RegExp("^#/(topic|consolidat(?:e|ion)|flashcards/deck:|library/[^/]+)/?" + t.replace(/\./g, "\\.") + "(\\.|/|$)").test(hash);
       } else if (href === "#/dashboard") on = hash === "#/dashboard" || hash === "";
+      else if (/^#\/(unit|cluster)\//.test(href)) on = hash === href || hash.startsWith(href + "/"); // one unit centre or cluster at a time
       else on = hash.startsWith(href.split("/").slice(0, 2).join("/"));
       a.classList.toggle("active", on);
     });
@@ -40,41 +41,57 @@ window.BIO = window.BIO || {};
   }
 
   function closeSidebar() { $(".sidebar").classList.remove("open"); $(".scrim").classList.remove("show"); }
+  // Units in the sidebar follow the student's course (Year 12 sees Units 1–2 first); every other unit stays one click away
+  // under "More units", so nothing is ever locked.
+  // Sidebar units (teacher's design, 2026-11-16): one folding section per unit. Each opens with its Revision Centre (where
+  // one exists), then any cross-topic pages, then the topics. Units outside the student's course are marked "Year 13" (or
+  // "AS") rather than hidden. Unit 5 is the synoptic paper.
+  const UNIT_EXTRAS = {
+    "3.1": { centre: "#/unit/3.1" },
+    "3.2": { centre: "#/unit/3.2", cross: [["#/cluster/3.2.1-3.2.3", "Disease to rehydration"], ["#/cluster/3.2.4-3.2.5", "HIV to vaccination"], ["#/cluster/3.2.6-exchange", "Circulation to exchange"], ["#/cluster/3.2.7-3.2.9", "Heart disease to plant viruses"]] },
+  };
+  function unitsNavHTML() { const spec = B.spec; const inC = B.profile ? B.profile.unitRefs() : spec.units.map((u) => u.ref);
+    const item = (u, i) => { const x = UNIT_EXTRAS[u.ref] || {}; const other = !inC.includes(u.ref);
+      return h`<details class="nav-unit"><summary class="nav-btn" title="${u.title}">${`Unit ${i + 1}`} <span class="nav-unit-name">${u.short}</span>${other ? raw(`<span class="nav-tag">${u.level === "AS" ? "AS" : "Year 13"}</span>`) : ""}</summary><div class="nav-sub">${raw(
+        (x.centre ? h`<a class="nav-centre" href="${x.centre}">Unit ${i + 1} Revision Centre</a>` : "") +
+        (x.cross ? h`<div class="nav-subhead">Cross-topic pages</div>` + x.cross.map(([href, t]) => h`<a class="nav-cross" href="${href}">${t}</a>`).join("") + h`<div class="nav-subhead">Topics</div>` : "") +
+        u.topics.map((t) => h`<a href="#/library/${u.ref}/${t.ref}">${t.ref} ${t.title}</a>`).join(""))}</div></details>`; };
+    return spec.units.map(item).join("") + h`<details class="nav-unit"><summary class="nav-btn">Unit 5 <span class="nav-unit-name">Synoptic paper (BL05)</span></summary><div class="nav-sub"><a href="#/synoptic">Synoptic links and BL05 guide</a></div></details>`; }
+  function profileFootHTML() { const n = B.profile ? B.profile.name() : ""; const c = B.profile ? B.profile.COURSES[B.profile.course()].short : ""; return h`<span class="nav-profile">${n ? n + " · " : ""}${c}</span> <button type="button" class="linkbtn" id="profile-edit">Change</button><br><a href="#/about">About Biology Lab, privacy and data</a>`; }
+  function rebuildNav() { const box = document.querySelector(".nav-units"); if (box) box.innerHTML = unitsNavHTML(); const foot = document.querySelector(".sidebar-foot"); if (foot) foot.innerHTML = profileFootHTML(); }
+  document.addEventListener("click", (e) => { if (e.target && e.target.id === "profile-edit" && B.onboarding) B.onboarding.open({ mode: "edit" }); });
   function buildShell() {
     const spec = B.spec;
-    const unitsNav = spec.units.map((u) => h`<details class="nav-unit"><summary class="nav-btn" style="list-style:none;cursor:pointer;padding:.45rem .65rem;border-radius:10px;font-size:.88rem;color:var(--ink-2)">${u.ref} ${u.short}</summary><div class="nav-sub">${raw(u.topics.map((t) => h`<a href="#/library/${u.ref}/${t.ref}">${t.ref} ${t.title}</a>`).join(""))}</div></details>`).join("");
+    const unitsNav = unitsNavHTML();
     document.body.innerHTML = `
       <a class="skip-link" href="#content">Skip to content</a>
       <div class="app">
-        <aside class="sidebar" aria-label="Main navigation">
-          <div class="brand"><div class="brand-mark">${icons.seed}</div><div><div class="brand-title">Biology Revision</div><div class="brand-sub">OxfordAQA International AS &amp; A-level (9610)</div></div></div>
+        <aside class="sidebar" id="main-nav" aria-label="Main navigation">
+          <div class="brand"><div class="brand-mark">${icons.seed}</div><div><div class="brand-title">Biology Lab</div><div class="brand-sub">OxfordAQA International AS &amp; A-level (9610)</div></div></div>
           <nav class="nav">
-            <div class="nav-section">Study</div>
             <a href="#/dashboard">${icons.dashboard}<span>Student Dashboard</span></a>
-            <a href="#/library">${icons.book}<span>Revision Library</span></a>
-            <a href="#/lab">${icons.lab}<span>Virtual Practical Laboratory</span></a>
-            <a href="#/maths">${icons.maths}<span>Maths &amp; Data Skills Hub</span></a>
+            <div class="nav-section">Revision centre</div>
             <a href="#/flashcards">${icons.cards}<span>Flashcards &amp; Retrieval</span></a>
-            <a href="#/synoptic">${icons.synoptic}<span>Synoptic &amp; Unit 5</span></a>
-            <a href="#/exam">${icons.exam}<span>Exam Practice Centre</span></a>
-            <a href="#/unit/3.1">${icons.book}<span>Unit 1 Revision Centre</span></a>
-            <a href="#/papers">${icons.exam}<span>Practice Papers</span></a>
-            <a href="#/cluster/3.2.1-3.2.3">${icons.synoptic}<span>Unit 2: Disease to Rehydration</span></a>
-            <div class="nav-section">Plan &amp; track</div>
-            <a href="#/planner">${icons.planner}<span>Revision Planner</span></a>
-            <a href="#/progress">${icons.progress}<span>Personal Progress</span></a>
-            <a href="#/checklist">${icons.check}<span>Specification Checklist</span></a>
+            <a href="#/exam">${icons.exam}<span>Exam Practice &amp; Papers</span></a>
+            <a href="#/lab">${icons.lab}<span>Virtual Practical Lab</span></a>
+            <a href="#/maths">${icons.maths}<span>Maths &amp; Data Skills</span></a>
+            <a href="#/synoptic">${icons.synoptic}<span>Synoptic</span></a>
             <div class="nav-section">Units</div>
-            ${unitsNav}
+            <div class="nav-units">${unitsNav}</div>
+            <div class="nav-section">My progress</div>
+            <a href="#/progress">${icons.progress}<span>Personal Progress</span></a>
+            <a href="#/planner">${icons.planner}<span>Revision Planner</span></a>
+            <a href="#/checklist">${icons.check}<span>Specification Checklist</span></a>
           </nav>
-          <div class="sidebar-foot">Created by Aniqa Pirzada. Not endorsed by OxfordAQA.<br><a href="#/about">About, privacy &amp; data</a></div>
+          <div class="sidebar-foot">${profileFootHTML()}</div>
         </aside>
         <div class="scrim"></div>
         <div class="main">
           <header class="topbar">
             <button class="btn menu-btn" aria-label="Open navigation">${icons.menu}</button>
+            <button class="btn sm ghost nav-collapse-btn" id="nav-collapse" type="button" aria-controls="main-nav" aria-expanded="true" title="Hide or show the menu">${icons.menu}<span>Hide menu</span></button>
             <div class="search" role="search">${icons.search}<input id="search" type="search" placeholder="Search topics, keywords, spec references, practicals…" aria-label="Search" autocomplete="off"><div class="search-results" id="search-results" role="listbox"></div></div>
-            <div class="topbar-right"><button class="btn sm ghost theme-toggle" id="theme-toggle" type="button" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg><span>Dark mode</span></button><a class="btn sm" href="#/checklist">Spec checklist</a></div>
+            <div class="topbar-right"><button class="btn sm ghost theme-toggle" id="theme-toggle" type="button" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg><span>Dark mode</span></button></div>
           </header>
           <main id="content" class="content" tabindex="-1"></main>
           <footer class="foot">
@@ -85,6 +102,13 @@ window.BIO = window.BIO || {};
       </div>`;
     $(".menu-btn").addEventListener("click", () => { $(".sidebar").classList.add("open"); $(".scrim").classList.add("show"); });
     $(".scrim").addEventListener("click", closeSidebar);
+    // Desktop: hide or show the sidebar (a per-browser display preference, kept apart from the progress store)
+    { const app = $(".app"), btn = $("#nav-collapse"), KEY = "bio9610.ui.navCollapsed";
+      const apply = (c) => { app.classList.toggle("nav-collapsed", c); btn.setAttribute("aria-expanded", String(!c)); btn.querySelector("span").textContent = c ? "Show menu" : "Hide menu"; };
+      let c0 = false; try { c0 = localStorage.getItem(KEY) === "1"; } catch (e) {} apply(c0);
+      btn.addEventListener("click", () => { const c = !app.classList.contains("nav-collapsed"); app.classList.add("nav-anim"); apply(c);
+        // let width-dependent layouts (benches, readable labels) settle once the slide has finished
+        setTimeout(() => { try { window.dispatchEvent(new Event("resize")); } catch (e) {} }, 360); try { localStorage.setItem(KEY, c ? "1" : "0"); } catch (e) {} }); }
     // search
     const inp = $("#search"), res = $("#search-results");
     inp.addEventListener("input", () => { const hits = B.search.query(inp.value); res.innerHTML = hits.map((x) => h`<a href="${x.href}" role="option"><div class="k">${x.kind} · ${x.ref}</div><div class="t">${x.title}</div></a>`).join("") || (inp.value.trim() ? '<div class="s" style="padding:.7rem .9rem">No matches</div>' : ""); res.classList.toggle("open", !!inp.value.trim()); });
@@ -94,15 +118,18 @@ window.BIO = window.BIO || {};
     res.addEventListener("click", () => { res.classList.remove("open"); inp.value = ""; });
   }
 
-  B.app = { route, render, navigate };
+  B.app = { route, render, navigate, rebuildNav };
   window.addEventListener("hashchange", navigate);
   // Theme: the student's saved choice (prefs.theme "light" | "dark"); with no choice, follow the device setting.
   const applyTheme = () => { const pref = (B.store.get().prefs || {}).theme; const dark = pref ? pref === "dark" : !!(window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches);
     document.documentElement.dataset.theme = dark ? "dark" : "light"; const t = document.getElementById("theme-toggle"); if (t) { t.setAttribute("aria-pressed", String(dark)); t.querySelector("span").textContent = dark ? "Light mode" : "Dark mode"; } };
   B.applyTheme = applyTheme;
-  window.addEventListener("DOMContentLoaded", () => { B.store.load(); document.documentElement.classList.toggle("reduce-motion", !!(B.store.get().prefs || {}).reducedMotion); buildShell(); applyTheme();
+  window.addEventListener("DOMContentLoaded", () => {
+    // teacher view (shows internal review status badges): ?teacher=1 turns it on for this device, ?teacher=0 off
+    try { const q = new URLSearchParams(location.search).get("teacher"); if (q === "1") localStorage.setItem("bio9610.ui.teacher", "1"); if (q === "0") localStorage.removeItem("bio9610.ui.teacher"); if (localStorage.getItem("bio9610.ui.teacher") === "1") document.documentElement.classList.add("teacher-view"); } catch (e) { /* storage unavailable: student view */ }
+    B.store.load(); document.documentElement.classList.toggle("reduce-motion", !!(B.store.get().prefs || {}).reducedMotion); buildShell(); applyTheme();
     // Optional authorised bank: never required; when one loads, refresh a past-paper page that is already open.
     if (B.banks) { document.addEventListener("bio:banks-loaded", () => { if (/^#\/pastpapers/.test(location.hash)) navigate(); }); B.banks.load(); }
     document.getElementById("theme-toggle").addEventListener("click", () => { const st = B.store.get(); st.prefs = st.prefs || {}; st.prefs.theme = document.documentElement.dataset.theme === "dark" ? "light" : "dark"; B.store.save(); applyTheme(); });
-    if (window.matchMedia) matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { if (!(B.store.get().prefs || {}).theme) applyTheme(); }); B.search.build(); B.views.register(); navigate(); });
+    if (window.matchMedia) matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { if (!(B.store.get().prefs || {}).theme) applyTheme(); }); B.search.build(); B.views.register(); navigate(); if (B.onboarding) B.onboarding.maybeShow(); });
 })(window.BIO);

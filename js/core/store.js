@@ -34,6 +34,11 @@ window.BIO = window.BIO || {};
     revisits: [],
     // In-progress practice-paper drafts (Batch 9, js/views/papers.js): paper id -> {answers, elapsed, ...}
     paperDrafts: {},
+    // Flashcard sessions (2026-11-09, js/core/flashcards.js): hub choices and daily goal, the one saved in-progress session
+    // (null when none) and a short log of finished sessions used to rotate card choice. Older saves gain these on load.
+    fcPrefs: { goal: 15, size: 15, scope: null, includeNew: false },
+    fcSession: null,
+    fcLog: [],
   });
 
   let state = null;
@@ -59,6 +64,9 @@ window.BIO = window.BIO || {};
       if (obj.papers && (typeof obj.papers !== "object" || Array.isArray(obj.papers))) errors.push("papers must be an object");
       if (obj.revisits && !Array.isArray(obj.revisits)) errors.push("revisits must be an array");
       if (obj.paperDrafts && (typeof obj.paperDrafts !== "object" || Array.isArray(obj.paperDrafts))) errors.push("paperDrafts must be an object");
+      if (obj.fcPrefs && (typeof obj.fcPrefs !== "object" || Array.isArray(obj.fcPrefs))) errors.push("fcPrefs must be an object");
+      if (obj.fcSession != null && (typeof obj.fcSession !== "object" || Array.isArray(obj.fcSession))) errors.push("fcSession must be an object or null");
+      if (obj.fcLog && !Array.isArray(obj.fcLog)) errors.push("fcLog must be an array");
       if (Array.isArray(obj.attempts)) obj.attempts.forEach((a, i) => { if (!a.qid || typeof a.ts !== "number") errors.push(`attempt ${i} malformed`); });
     }
     return { ok: errors.length === 0, errors };
@@ -66,7 +74,7 @@ window.BIO = window.BIO || {};
 
   function exportJSON() {
     const s = get();
-    const doc = { app: "Biology Revision (OxfordAQA 9610)", exportedAt: new Date().toISOString(), data: s };
+    const doc = { app: "Biology Lab (OxfordAQA 9610)", exportedAt: new Date().toISOString(), data: s };
     const blob = new Blob([JSON.stringify(doc, null, 1)], { type: "application/json" });
     const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
     a.download = `biology-revision-progress-${B.util.dayKey()}.json`; document.body.appendChild(a); a.click(); a.remove();

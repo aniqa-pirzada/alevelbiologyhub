@@ -11,22 +11,23 @@ window.BIO = window.BIO || {}; window.BIO.content = window.BIO.content || {};
     const p = (k) => [P[k][0] + ox, P[k][1] + oy];
     const L = (a, b, w = 2) => `<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="#16263a" stroke-width="${w}"/>`;
     const T = (x, y, s, anchor = "middle", size = 13, weight = 500) => `<text x="${x}" y="${y}" text-anchor="${anchor}" font-size="${size}" font-weight="${weight}" fill="#16263a">${s}</text>`;
-    const sub = (k, dir, txt, offset = 34) => { const [x, y] = p(k); const y2 = y + (dir === "up" ? -offset : offset); return L([x, y], [x, y2 + (dir === "up" ? 6 : -10)], 1.6) + T(x, y2 + (dir === "up" ? 0 : 4), txt); };
+    // gap: clearance between the end of the bond line and an upward label (CH2OH needs more, for its subscript)
+    const sub = (k, dir, txt, offset = 34, gap = 6) => { const [x, y] = p(k); const y2 = y + (dir === "up" ? -offset : offset); return L([x, y], [x, y2 + (dir === "up" ? gap : -10)], 1.6) + T(x, y2 + (dir === "up" ? 0 : 4), txt); };
     let s = "";
     s += L(p("C5"), p("O")) + L(p("O"), p("C1")) + L(p("C1"), p("C2")) + L(p("C2"), p("C3"), 5) + L(p("C3"), p("C4")) + L(p("C4"), p("C5"));
     const [ox2, oy2] = p("O"); s += `<circle cx="${ox2}" cy="${oy2}" r="9" fill="#fff"/>` + T(ox2, oy2 + 4, "O", "middle", 13, 700);
     // carbon numbers
-    if (o.nums) s += T(p("C1")[0] + 10, p("C1")[1] + 2, "1", "start", 10, 700) + T(p("C2")[0] + 8, p("C2")[1] + 14, "2", "start", 10, 700) + T(p("C3")[0] - 8, p("C3")[1] + 14, "3", "end", 10, 700) + T(p("C4")[0] + o.c4num[0], p("C4")[1] + o.c4num[1], "4", "end", 10, 700) + T(p("C5")[0] - 8, p("C5")[1] - 6, "5", "end", 10, 700);
+    if (o.nums) s += T(p("C1")[0] + 10, p("C1")[1] + 2, "1", "start", 12, 700) + T(p("C2")[0] + 8, p("C2")[1] + 15, "2", "start", 12, 700) + T(p("C3")[0] - 8, p("C3")[1] + 15, "3", "end", 12, 700) + T(p("C4")[0] + o.c4num[0], p("C4")[1] + o.c4num[1], "4", "end", 12, 700) + T(p("C5")[0] - 8, p("C5")[1] - 6, "5", "end", 12, 700);
     // C5: CH2OH up, H down
-    s += sub("C5", "up", "CH<tspan baseline-shift='sub' font-size='9'>2</tspan>OH", 40) + sub("C5", "down", "H", 30);
+    s += sub("C5", "up", "CH<tspan baseline-shift='sub' font-size='11'>2</tspan>OH", 44, 12) + sub("C5", "down", "H", 30);
     // C1
     // C1 OH drawn on a longer stick so its label sits clear of the C1–C2 ring bond
     if (o.showC1OH) { s += o.anomer === "alpha" ? sub("C1", "down", "OH", 48) + sub("C1", "up", "H", 24) : sub("C1", "up", "OH", 44) + sub("C1", "down", "H", 24); }
     else { s += o.anomer === "alpha" ? sub("C1", "up", "H", 24) : sub("C1", "down", "H", 24); }
-    // C2 OH down, H up ; C3 OH up, H down ; C4 OH down, H up
+    // C2 OH down, H up ; C3 OH up, H down ; C4 OH down (longer stick so its label sits clearly below the C3 OH), H up
     s += sub("C2", "down", "OH") + sub("C2", "up", "H", 24);
     s += sub("C3", "up", "OH") + sub("C3", "down", "H", 24);
-    if (o.showC4OH) s += sub("C4", "down", "OH"); s += sub("C4", "up", "H", 24);
+    if (o.showC4OH) s += sub("C4", "down", "OH", 46); s += sub("C4", "up", "H", 24);
     if (o.label) s += T(ox + 165, oy + 262, o.label, "middle", 14, 700);
     return s;
   }
@@ -44,8 +45,8 @@ window.BIO = window.BIO || {}; window.BIO.content = window.BIO.content || {};
     <path d="M360 174 L428 158 L428 140" fill="none" stroke="#16263a" stroke-width="2"/>
     <circle cx="348" cy="176" r="11" fill="#fbf0d8" stroke="#c8902a" stroke-width="2"/><text x="348" y="180.5" text-anchor="middle" font-size="13" font-weight="700" fill="#16263a">O</text>
     <text x="348" y="206" text-anchor="middle" font-size="12" font-weight="700" fill="#8a5f12">α-1,4 glycosidic bond</text>
-    <text x="348" y="221" text-anchor="middle" font-size="10" fill="#3c4f63">(O below the ring: carbon 1 was α)</text>
-    <text x="380" y="288" text-anchor="middle" font-size="13" fill="#3c4f63">Condensation: α-glucose + α-glucose → maltose + H<tspan baseline-shift="sub" font-size="9">2</tspan>O  (OH from C1 and H from C4 leave as water)</text>
+    <text x="348" y="223" text-anchor="middle" font-size="12" fill="#3c4f63">(O below the ring: carbon 1 was α)</text>
+    <text x="380" y="288" text-anchor="middle" font-size="13" fill="#3c4f63">Condensation: α-glucose + α-glucose → maltose + H<tspan baseline-shift="sub" font-size="11">2</tspan>O  (the OH on C1 and the H of the OH on C4 leave as water)</text>
   </svg>`;
   // Labelling question: two rings without carbon numbers. Ring 1 = beta, ring 2 = alpha.
   // Ring 2 (ox 360, oy 10): C1 = (628,118), C4 = (418,130).
@@ -57,10 +58,13 @@ window.BIO = window.BIO || {}; window.BIO.content = window.BIO.content || {};
     <line x1="638" y1="118" x2="662" y2="118" stroke="#1e3a5f" stroke-width="1.5"/>${num(674, 118, 3)}
     <line x1="408" y1="130" x2="384" y2="130" stroke="#1e3a5f" stroke-width="1.5"/>${num(372, 130, 4)}
   </svg>`;
+  // Amylose drawn as a helix seen from the side: one chain coiling round a vertical axis, front half of each turn bold
+  // and back half faint (the same drawing style as the α-helix in 3.1.1.4).
+  const coil = (cx, y0, r, pitch, turns, w, col) => { const pts = (a, b) => { const q = []; for (let t = a; t <= b + 1e-9; t += 0.1) q.push(`${(cx + r * Math.sin(t)).toFixed(1)} ${(y0 + pitch * t / (2 * Math.PI)).toFixed(1)}`); return "M" + q.join(" L"); }; let out = ""; for (let k = 0; k < turns; k++) { const t0 = k * 2 * Math.PI; out += `<path d="${pts(t0 + Math.PI, t0 + 2 * Math.PI)}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linecap="round" opacity=".35"/><path d="${pts(t0, t0 + Math.PI)}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linecap="round"/>`; } return out; };
   const polysacc = `<svg viewBox="0 0 760 300" width="760" role="img" aria-label="Schematic comparison of amylose, amylopectin and cellulose">
    <g font-size="13" fill="#16263a">
     <text x="130" y="24" text-anchor="middle" font-weight="700">Amylose (starch)</text>
-    <path d="M40 60 c 60 -30 120 30 180 0 c 60 -30 -140 70 -180 110 c -40 40 120 50 180 20" fill="none" stroke="#1f8a8a" stroke-width="7" stroke-linecap="round"/>
+    ${coil(130, 48, 46, 36, 4, 7, "#1f8a8a")}
     <text x="130" y="226" text-anchor="middle" font-size="12">unbranched α-1,4 chain</text><text x="130" y="242" text-anchor="middle" font-size="12">coils into a helix; compact</text>
     <text x="380" y="24" text-anchor="middle" font-weight="700">Amylopectin (starch)</text>
     <path d="M300 180 L380 110 L460 180 M380 110 L380 40 M340 145 L310 110 M420 145 L450 100 M380 75 L420 55" fill="none" stroke="#6b9a7f" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
@@ -137,10 +141,9 @@ window.BIO = window.BIO || {}; window.BIO.content = window.BIO.content || {};
         caption: "Schematic chain shapes only. Amylose coils; amylopectin branches; cellulose chains are straight and hydrogen-bonded together.",
         alt: "Three schematic drawings: a coiled line for amylose, a branched line for amylopectin, and four parallel straight lines joined by dashed cross-links for cellulose.", svg: polysacc },
     ],
-    interactive: { id: "i-3.1.1.2", title: "Animate: condensation and hydrolysis (general schematic)", note: "The same general schematic as in 3.1.1.1: each block stands for a whole monosaccharide, not for its atoms. For glucose, the OH on carbon 1 of one molecule and the H from the OH on carbon 4 of the other leave as water, and the remaining O bridges the two rings (see the maltose diagram).", kind: "condensation" },
     examFocus: `<ul><li><strong>Draw it:</strong> you may be asked to draw α-glucose, β-glucose or a glycosidic bond. Practise until the carbon 1 OH position is automatic.</li>
 <li><strong>Structure to function:</strong> starch (compact, insoluble, branched for rapid hydrolysis) and cellulose (straight chains, hydrogen bonds, microfibrils, strength).</li>
-<li><strong>Required practical link:</strong> Benedict's and iodine tests are practical skills that can be examined in any paper, including in a planning or evaluation context (AO4).</li>
+<li><strong>Practical skills link:</strong> Benedict's and iodine tests are practical skills that can be examined in any paper, including in a planning or evaluation context (AO4).</li>
 <li><strong>Maths link:</strong> the semi-quantitative Benedict's test can be made quantitative with a colorimeter and a calibration curve: expect graph interpretation.</li></ul>`,
     synoptic: [
       { ref: "3.1.1.1", text: "Glycosidic bonds form by condensation and are broken by hydrolysis." },
@@ -165,7 +168,7 @@ window.BIO = window.BIO || {}; window.BIO.content = window.BIO.content || {};
       { id: "f-3.1.1.2-7", front: "Describe the Benedict's test for a reducing sugar.", back: "Add Benedict's reagent and heat (water bath); a reducing sugar gives a green, yellow, orange or brick-red precipitate depending on concentration." },
       { id: "f-3.1.1.2-8", front: "How do you test for a non-reducing sugar?", back: "Negative Benedict's; hydrolyse a fresh sample with dilute HCl and heat; neutralise with sodium hydrogencarbonate; repeat Benedict's: brick-red precipitate." },
       { id: "f-3.1.1.2-9", front: "Describe the test for starch.", back: "Add iodine in potassium iodide solution; orange-brown to blue-black if starch is present." },
-      { id: "f-3.1.1.2-10", front: "Why is sucrose a non-reducing sugar?", back: "Its glycosidic bond involves both reducing groups (C1 of glucose and C2 of fructose), so neither can reduce Cu2+ ions." },
+      { id: "f-3.1.1.2-10", front: "Why is sucrose a non-reducing sugar?", back: "Its glycosidic bond involves both reducing groups (C1 of glucose and C2 of fructose), so neither can reduce Cu²⁺ ions." },
       { id: "f-3.1.1.2-11", front: "You are given two unfamiliar monosaccharides and told which carbons join. How do you show the condensation?", back: "Remove the OH from one carbon and only the H from the OH on the other; these form one H₂O. Join the two carbons through the remaining O (the glycosidic bond). Hydrolysis is the reverse: add H₂O to restore both OH groups." },
     ],
     questions: [
@@ -176,7 +179,7 @@ window.BIO = window.BIO || {}; window.BIO.content = window.BIO.content || {};
       { id: "q-3.1.1.2-m5", ref: "3.1.1.2", stmts: ["3.1.1.2.s10", "3.1.1.2.s7"], type: "mcq", marks: 1, stem: "Why does iodine solution give a blue-black colour with starch but not with cellulose?", options: ["Cellulose has no glucose units", "Iodine fits inside the helix of amylose; cellulose chains are straight", "Cellulose is branched", "Iodine only reacts with α-1,6 bonds"], answer: 1, explanation: "The iodine complex forms within the amylose helix." },
       { id: "q-3.1.1.2-m6", ref: "3.1.1.2", stmts: ["3.1.1.2.s6"], type: "mcq", marks: 1, stem: "How many glycosidic bonds are present in a chain of 50 glucose units in amylose?", options: ["50", "49", "51", "25"], answer: 1, explanation: "Links = units − 1." },
       { id: "q-3.1.1.2-m7", ref: "3.1.1.2", stmts: ["3.1.1.2.s9"], type: "mcq", marks: 1, stem: "Which property of polysaccharides makes them suitable as storage molecules in cells?", options: ["They are highly soluble", "They are insoluble, so they do not affect the cell's water potential", "They are reducing sugars", "They are small molecules"], answer: 1, explanation: "Insolubility avoids osmotic effects." },
-      { id: "q-3.1.1.2-m8", ref: "3.1.1.2", stmts: ["3.1.1.2.s10"], type: "mcq", marks: 1, stem: "Why is neutralisation needed after acid hydrolysis in the non-reducing sugar test?", options: ["To stop the sugar being destroyed", "Because Benedict's reagent only works in alkaline conditions", "To make the precipitate dissolve", "To hydrolyse the remaining bonds"], answer: 1, explanation: "Benedict's reagent requires alkaline conditions to reduce Cu2+." },
+      { id: "q-3.1.1.2-m8", ref: "3.1.1.2", stmts: ["3.1.1.2.s10"], type: "mcq", marks: 1, stem: "Why is neutralisation needed after acid hydrolysis in the non-reducing sugar test?", options: ["To stop the sugar being destroyed", "Because Benedict's reagent only works in alkaline conditions", "To make the precipitate dissolve", "To hydrolyse the remaining bonds"], answer: 1, explanation: "Benedict's reagent requires alkaline conditions to reduce Cu²⁺." },
       { id: "q-3.1.1.2-m9", ref: "3.1.1.2", stmts: ["3.1.1.2.s8", "3.1.1.2.s9"], type: "mcq", marks: 1, stem: "Alternate β-glucose units in cellulose are rotated by 180°. What is the consequence?", options: ["The chain forms a helix", "The chain is straight so chains can hydrogen bond to each other", "The chain is branched", "The chain becomes soluble"], answer: 1, explanation: "Rotation lets C1 and C4 OH groups align, keeping the chain straight." },
       { id: "q-3.1.1.2-match", ref: "3.1.1.2", stmts: ["3.1.1.2.s7", "3.1.1.2.s8", "3.1.1.2.s10"], type: "match", marks: 4, stem: "Match each carbohydrate feature to the molecule.", pairs: [{ left: "Coiled unbranched α-1,4 chain", right: "Amylose" }, { left: "α-1,6 branch points", right: "Amylopectin" }, { left: "β-1,4 bonds with 180° rotation of alternate units", right: "Cellulose" }, { left: "Non-reducing disaccharide in phloem sap", right: "Sucrose" }], explanation: "" },
       { id: "q-3.1.1.2-s1", ref: "3.1.1.2", stmts: ["3.1.1.2.s8", "3.1.1.2.s9"], type: "short", marks: 4, stem: "Explain how the structure of cellulose is related to its function in plant cell walls. (4 marks)",
@@ -193,7 +196,7 @@ window.BIO = window.BIO || {}; window.BIO.content = window.BIO.content || {};
         model: "Starch is a polymer of α-glucose made of amylose (unbranched α-1,4 chains that coil into a helix) and amylopectin (α-1,4 chains with α-1,6 branches), whereas cellulose is a polymer of β-glucose joined only by β-1,4 bonds. The amylose helix is compact so starch stores a lot of glucose in little space, and the branches of amylopectin provide many ends for enzymes so glucose is released rapidly; starch is insoluble so it has no osmotic effect on the cell. In cellulose, alternate glucose units are rotated 180°, giving straight chains that lie side by side and hydrogen bond to one another, forming microfibrils of great tensile strength, which is why cellulose is the structural material of cell walls.",
         commonErrors: "Mixing up which polymer is branched; stating cellulose is for energy." },
       { id: "q-3.1.1.2-d1", ref: "3.1.1.2", stmts: ["3.1.1.2.s10"], type: "short", marks: 3, stem: "A student used a colorimeter to measure the absorbance of Benedict's solution after heating it with glucose solutions of known concentration, then with an unknown juice. After heating, each tube was filtered to remove the precipitate and the absorbance of the remaining solution was measured using a red filter.\n\nConcentration (g dm⁻³): 0, 2, 4, 6, 8, 10\nAbsorbance: 0.92, 0.80, 0.66, 0.51, 0.38, 0.24\nUnknown juice: 0.45\n\nEstimate the glucose concentration of the juice and explain why absorbance decreases as glucose concentration increases. (3 marks)",
-        scheme: [{ point: "Approximately 7 g dm⁻³ (accept 6.8 to 7.2) read from calibration curve", marks: 1 }, { point: "More glucose reduces more Cu2+ to Cu+ / more precipitate removes more copper(II) from solution", marks: 1 }, { point: "So the solution is less blue and transmits more light / absorbs less light", marks: 1 }],
+        scheme: [{ point: "Approximately 7 g dm⁻³ (accept 6.8 to 7.2) read from calibration curve", marks: 1 }, { point: "More glucose reduces more Cu²⁺ to Cu⁺ / more precipitate removes more copper(II) from solution", marks: 1 }, { point: "So the solution is less blue and transmits more light / absorbs less light", marks: 1 }],
         model: "Plotting the calibration data, an absorbance of 0.45 corresponds to about 7 g dm⁻³. As glucose concentration rises, more copper(II) ions are reduced to copper(I) oxide precipitate, so less blue copper(II) remains in solution and the supernatant absorbs less light.",
         commonErrors: "Reading the value without stating units; saying the precipitate absorbs light (the precipitate is removed before measuring)." },
       { id: "q-3.1.1.2-id1", ref: "3.1.1.2", stmts: ["3.1.1.2.s2"], type: "label", marks: 4, stem: "The diagram shows two glucose molecules. Identify structures 1 and 2, and the carbon atoms labelled 3 and 4.", svg: idRings,

@@ -2,6 +2,10 @@
 //
 // Routes (wired in misc.js):
 //   #/papers                      list of papers by unit, previous runs, links to start, resume or review
+//   #/papers/unit/:u              the same list for one unit only (linked from each Unit Revision Centre); "unit" is
+//                                 reserved and is never a paper id
+// Papers for any unit (Phase 4 Batch 4): every label that named BL01 now uses the paper's own code (p.code, e.g. BL01 or
+// BL02) or the codes of the papers listed. No paper is ever presented as an official OxfordAQA paper.
 //   #/papers/:id                  start screen (Exam Mode or Practice Mode, instructions, structure, resume or discard)
 //   #/papers/:id/run              the paper. Exam Mode: continuous countdown from a stored deadline (keeps running while
 //                                 the page is closed; no pause; warnings at 10 and 1 min; auto-submit at zero, also on
@@ -195,6 +199,7 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
   B.views.papers = function (id, mode, arg) {
     if (active) { active.stop(); active = null; }
     if (!id) return listView();
+    if (id === "unit") return listView(mode);
     const p = (B.papers || {})[id];
     if (!p || !Array.isArray(p.questions) || !partsOf(p).length) return missing(id);
     if (!mode) return startView(p);
@@ -208,8 +213,23 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
   function missing(id) {
     B.app.render(h`<div class="page-head"><div><h1>Paper not found</h1><p class="lede">There is no practice paper called <code>${id}</code> yet, or it has no questions.</p></div></div><div class="card"><a class="btn" href="#/papers">All practice papers</a></div>`, { title: "Practice papers", crumbs: crumbs(null) });
   }
-  const NOTE = "Original platform paper written in the BL01 style. Not an official OxfordAQA paper.";
-  const officialNote = `<p class="small pp-official" role="note"><strong>About these papers.</strong> They are original practice papers written for this platform in the style of the OxfordAQA BL01 paper (structure, timing and question styles). They are not official OxfordAQA papers, were not set or endorsed by OxfordAQA and do not predict what will be examined. Marks are self-awarded for written answers, so treat your score as a guide.</p>`;
+  // Labels per paper and per unit: the code comes from the paper (or, for a list, from the papers shown).
+  const noteOf = (p) => p.note || `Original platform paper written in the ${p.code || "OxfordAQA"} style. Not an official OxfordAQA paper.`;
+  const codesText = (codes) => { const c = [...new Set(codes.filter(Boolean))]; return c.length ? (c.length === 1 ? `the OxfordAQA ${c[0]} paper` : `the OxfordAQA ${c.slice(0, -1).join(", ")} and ${c[c.length - 1]} papers`) : "OxfordAQA papers"; };
+  const officialNote = (codes) => `<p class="small pp-official" role="note"><strong>About these papers.</strong> They are original practice papers written for this platform in the style of ${esc(codesText(codes))} (structure, timing and question styles). They are not official OxfordAQA papers, were not set or endorsed by OxfordAQA and do not predict what will be examined. Marks are self-awarded for written answers, so treat your score as a guide.</p>`;
+  const KIND_LABEL = { comprehension: "Comprehension (passage)", prose: "Structured question (continuous prose)", extended: "Structured question (continuous prose)" };
+  // The specification (p. 10) fixes the 10-mark question by paper: BL01 a comprehension, BL02 a structured question
+  // requiring continuous prose. A BL02 question still marked "comprehension" is therefore described as prose.
+  const PROSE_CODES = ["BL02"];
+  const kindOf = (p, q) => (q.kind === "comprehension" && p && PROSE_CODES.includes(p.code) ? "prose" : q.kind);
+  const kindLabel = (p, q) => KIND_LABEL[kindOf(p, q)] || "Short-answer";
+  // Short label after "Question n" and in the report: BL01's 10-mark question is a comprehension; BL02's is a structured
+  // question requiring continuous prose (kind "prose"; "extended" is read the same way). Either may carry a passage
+  // (q.passage, numbered when it marks its lines with <br>) or stimulus material in q.intro.
+  const KIND_SHORT = { comprehension: "comprehension", prose: "structured question, continuous prose", extended: "structured question, continuous prose" };
+  const ctxLabel = (q) => q.passage ? "Show the passage and question context" : "Show the question context and figures";
+  const unitExam = (p) => { const u = (B.spec.units || []).find((x) => x.ref === p.unit); return u && u.exam ? `${u.exam.duration_min} minutes, ${u.exam.marks} marks. ${u.exam.structure || ""}`.trim() : ""; };
+  const unitOfRef = (ref) => String(ref).split(".").slice(0, 2).join(".");
 
   // ---------- list ----------
   function runsTable(p) {
@@ -239,19 +259,27 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
     return h`<article class="card pp-card" aria-labelledby="pc-${p.id}">
       <div class="card-head"><h3 id="pc-${p.id}">${p.title}</h3>${raw(statusBadge(p.status))}</div>
       <p class="small"><span class="badge mono">${p.code || ""}</span> ${paperMax(p)} marks · ${p.minutes || 90} minutes · ${plural(nQ, "question")} (${plural(nP, "part")})</p>
-      <p class="tiny muted">${p.note || NOTE}</p>
+      <p class="tiny muted">${noteOf(p)}</p>
       <div class="row mb">${raw(primaryAction(p))}</div>
       <h4 class="small">Previous attempts</h4>${raw(runsTable(p))}</article>`;
   }
-  function listView() {
-    const ps = allPapers(); const by = {}; ps.forEach((p) => (by[p.unit] = by[p.unit] || []).push(p));
-    const known = B.spec.units.filter((u) => by[u.ref]);
-    const other = Object.keys(by).filter((k) => !known.some((u) => u.ref === k));
-    const sections = known.map((u, i) => h`<section class="mb pp-unit" aria-labelledby="pu-${i}"><h2 id="pu-${i}">${u.code} · Unit ${B.spec.units.indexOf(u) + 1}: ${u.short}</h2><p class="small muted">${u.exam ? `${u.exam.duration_min} minutes, ${u.exam.marks} marks. ${u.exam.structure || ""}` : ""}</p><div class="grid grid-2">${raw(by[u.ref].map(paperCard).join(""))}</div></section>`).join("")
+  // All papers grouped by unit (specification order), or one unit's papers (#/papers/unit/:u). A unit in the student's
+  // course that has no papers yet gets a short honest note instead of being left out silently.
+  function listView(onlyUnit) {
+    const unitSel = onlyUnit ? B.spec.units.find((u) => u.ref === onlyUnit) : null;
+    if (onlyUnit && !unitSel) return missing("unit/" + onlyUnit);
+    const ps = allPapers().filter((p) => !unitSel || p.unit === unitSel.ref); const by = {}; ps.forEach((p) => (by[p.unit] = by[p.unit] || []).push(p));
+    const courseUnits = B.profile && B.profile.unitRefs ? B.profile.unitRefs() : [];
+    const shown = B.spec.units.filter((u) => unitSel ? u === unitSel : by[u.ref] || courseUnits.includes(u.ref));
+    const other = unitSel ? [] : Object.keys(by).filter((k) => !B.spec.units.some((u) => u.ref === k));
+    const uNo = (u) => B.spec.units.indexOf(u) + 1;
+    const sections = shown.map((u, i) => h`<section class="mb pp-unit" id="pp-unit-${u.ref.replace(".", "-")}" aria-labelledby="pu-${i}"><h2 id="pu-${i}">${u.code} · Unit ${uNo(u)}: ${u.short}</h2><p class="small muted">${u.exam ? `${u.exam.duration_min} minutes, ${u.exam.marks} marks. ${u.exam.structure || ""}` : ""} <a href="#/unit/${u.ref}">Unit ${uNo(u)} Revision Centre</a></p>${by[u.ref] ? raw(h`<div class="grid grid-2">${raw(by[u.ref].map(paperCard).join(""))}</div>`) : raw(h`<div class="card"><p class="small">No ${u.code}-style practice papers are ready yet. They are written and checked before they appear here. Meanwhile, use the <a href="#/unit/${u.ref}/test">Unit ${uNo(u)} custom test builder</a> for exam-style questions.</p></div>`)}</section>`).join("")
       + other.map((k, i) => h`<section class="mb pp-unit" aria-labelledby="po-${i}"><h2 id="po-${i}">Other papers</h2><div class="grid grid-2">${raw(by[k].map(paperCard).join(""))}</div></section>`).join("");
-    B.app.render(h`<div class="pp-page"><div class="page-head"><div><div class="eyebrow">Exam practice</div><h1>Practice papers</h1><p class="lede">Full-length papers in Exam Mode (a continuous timed sitting) or Practice Mode (untimed, save and come back), then self-marking against the mark scheme and an Exam Review that tells you which specification statements to revisit.</p></div></div>
-      ${raw(officialNote)}
-      ${ps.length ? raw(sections) : raw(`<div class="card"><div class="empty">${icons.exam}<h3>No practice papers yet</h3><p>The first BL01-style papers are being written and checked. They will appear here when they are ready.</p></div></div>`)}</div>`, { title: "Practice papers", crumbs: crumbs(null) });
+    const codes = ps.map((p) => p.code).concat(shown.map((u) => u.code));
+    const title = unitSel ? `Unit ${uNo(unitSel)} practice papers` : "Practice papers";
+    B.app.render(h`<div class="pp-page"><div class="page-head"><div><div class="eyebrow">Exam practice${unitSel ? ` · ${unitSel.code}` : ""}</div><h1>${title}</h1><p class="lede">Full-length papers in Exam Mode (a continuous timed sitting) or Practice Mode (untimed, save and come back), then self-marking against the mark scheme and an Exam Review that tells you which specification statements to revisit.</p>${unitSel ? raw(h`<div class="row mt"><a class="btn" href="#/unit/${unitSel.ref}">Unit ${uNo(unitSel)} Revision Centre</a><a class="btn ghost" href="#/papers">All practice papers</a></div>`) : ""}</div></div>
+      ${raw(officialNote(codes))}
+      ${ps.length || shown.length ? raw(sections) : raw(`<div class="card"><div class="empty">${icons.exam}<h3>No practice papers yet</h3><p>The first practice papers are being written and checked. They will appear here when they are ready.</p></div></div>`)}</div>`, { title, crumbs: unitSel ? [{ label: "Practice papers", href: "#/papers" }, { label: `Unit ${uNo(unitSel)}` }] : crumbs(null) });
   }
 
   // ---------- start screen ----------
@@ -260,9 +288,10 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
     // Exam Mode deadline already passed: the paper is closed for answering and goes straight to self-marking.
     if (d && expired(d)) { location.replace(`#/papers/${p.id}/run`); return; }
     const lost = droppedDrafts[p.id]; delete droppedDrafts[p.id];
-    const comp = p.questions.filter((q) => q.kind === "comprehension"); const compMarks = comp.reduce((n, q) => n + qMax(q), 0);
+    const comp = p.questions.filter((q) => kindOf(p, q) === "comprehension"); const compMarks = comp.reduce((n, q) => n + qMax(q), 0);
+    const prose = p.questions.filter((q) => ["prose", "extended"].includes(kindOf(p, q))); const proseMarks = prose.reduce((n, q) => n + qMax(q), 0);
     const hasObj = partsOf(p).some(({ pt }) => isObj(pt));
-    const struct = p.questions.map((q) => h`<tr><th scope="row">${q.num}</th><td>${q.kind === "comprehension" ? "Comprehension (passage)" : "Short-answer"}</td><td>${(q.parts || []).length}</td><td>${qMax(q)}</td></tr>`).join("");
+    const struct = p.questions.map((q) => h`<tr><th scope="row">${q.num}</th><td>${kindLabel(p, q)}</td><td>${(q.parts || []).length}</td><td>${qMax(q)}</td></tr>`).join("");
     // The attempt in progress, if any (only one per paper).
     let current = "";
     if (d && d.stage === "mark") current = h`<section class="card mb notice pp-notice" aria-labelledby="pp-cur-h"><h2 id="pp-cur-h" class="pp-h3">Attempt waiting to be marked</h2><p><strong>${modeLabel(d)}.</strong> You have finished this attempt but not marked it yet. Your answers are saved.</p><div class="row"><a class="btn primary" href="#/papers/${p.id}/mark" id="pp-resume">Continue marking</a></div></section>`;
@@ -295,25 +324,26 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
       <div id="pp-replace" class="card pp-replace" hidden role="group" aria-labelledby="pp-replace-h"><h3 id="pp-replace-h" tabindex="-1">You already have an attempt at this paper</h3><p class="small" id="pp-replace-txt"></p>
         <div class="row"><a class="btn primary" href="#/papers/${p.id}/${d && d.stage === "mark" ? "mark" : "run"}">${d && d.stage === "mark" ? "Continue marking it" : "Resume it"}</a><button class="btn danger" id="pp-replace-yes"></button><button class="btn" id="pp-replace-no">Cancel</button></div></div></section>`;
     const html = el(h`<div class="pp-page">
-      <div class="page-head"><div><div class="eyebrow">${p.code || ""} practice paper · ${unitLabel(p)}</div><h1>${p.title}</h1><p class="lede">${p.note || NOTE}</p><div class="row mt">${raw(statusBadge(p.status))}<span class="badge navy">${max} marks</span><span class="badge">${hoursMins(mins)}</span></div></div></div>
+      <div class="page-head"><div><div class="eyebrow">${p.code || ""} practice paper · ${unitLabel(p)}</div><h1>${p.title}</h1><p class="lede">${noteOf(p)}</p><div class="row mt">${raw(statusBadge(p.status))}<span class="badge navy">${max} marks</span><span class="badge">${hoursMins(mins)}</span></div></div></div>
       ${lost ? raw('<div class="notice pp-timeup mb" role="status">A saved attempt at this paper could not be read, so it has been ignored and removed. Your completed attempts are not affected.</div>') : ""}
       ${raw(current)}
       ${raw(modes)}
       <div class="grid grid-2 mb pp-start">
         <section class="card" aria-labelledby="pp-ins"><h2 id="pp-ins">Instructions</h2>
+          ${p.instructions ? raw(h`<p class="pp-paper-ins"><strong>Instructions on the paper:</strong> ${p.instructions}</p>`) : ""}
           <ul class="pp-ins">
             <li>Time allowed in the exam: <strong>${hoursMins(mins)}</strong>. Choose Exam Mode to practise under that limit, or Practice Mode to work without a clock.</li>
-            <li>Answer <strong>all</strong> questions. The paper has ${max} marks${comp.length ? raw(h`: ${max - compMarks} marks of short-answer questions and a ${compMarks}-mark comprehension question based on a passage with numbered lines`) : ""}.</li>
+            <li>Answer <strong>all</strong> questions. The paper has ${max} marks${comp.length ? raw(h`: ${max - compMarks} marks of short-answer questions and a ${compMarks}-mark comprehension question based on a passage with numbered lines`) : prose.length ? raw(h`: ${max - proseMarks} marks of short-answer questions and a ${proseMarks}-mark structured question requiring continuous prose`) : ""}.</li>
             <li>The marks for each part are shown in brackets. Use them to judge how much to write.</li>
             <li>Have a calculator and a ruler ready. Show your working in calculations and give units.</li>
             <li>You can move between questions at any time. The overview shows which parts are answered.</li>
             <li>Your answers are saved in this browser as you work, so a reload or leaving the page does not lose them. You can have one attempt in progress per paper.</li>
             <li>${hasObj ? "Multiple-choice and other objective parts are marked automatically when you finish. " : ""}Written answers are marked by you, after you finish, against the mark scheme point by point. The mark scheme is not shown until you finish.</li>
           </ul></section>
-        <section class="card" aria-labelledby="pp-str"><h2 id="pp-str">Structure</h2>
+        <section class="card" aria-labelledby="pp-str"><h2 id="pp-str">Structure</h2>${unitExam(p) ? raw(h`<p class="small muted">${p.code || "This paper"} in the specification: ${unitExam(p)}</p>`) : ""}
           <table class="tbl"><caption class="sr-only">Questions in ${p.title}</caption><thead><tr><th scope="col">Question</th><th scope="col">Type</th><th scope="col">Parts</th><th scope="col">Marks</th></tr></thead><tbody>${raw(struct)}</tbody><tfoot><tr><th scope="row">Total</th><td></td><td>${partsOf(p).length}</td><td><strong>${max}</strong></td></tr></tfoot></table></section>
       </div>
-      ${raw(officialNote)}
+      ${raw(officialNote([p.code]))}
       <section class="card" aria-labelledby="pp-hist"><h2 id="pp-hist">Previous attempts</h2>${raw(runsTable(p))}</section>
     </div>`);
     B.app.render(html, { title: p.title, crumbs: crumbs(p) });
@@ -359,7 +389,7 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
     }
     return `<div class="pp-lines">${out.join("")}</div>`;
   }
-  const passageBox = (q, id) => h`<aside class="pp-passage" id="${id}" tabindex="0" role="region" aria-label="Passage for question ${q.num}, with numbered lines">${raw(q.passageTitle ? h`<h3 class="pp-ptitle">${q.passageTitle}</h3>` : "")}${raw(passageHTML(q))}${raw(q.passageSource ? h`<p class="tiny muted">${q.passageSource}</p>` : "")}</aside>`;
+  const passageBox = (q, id) => h`<aside class="pp-passage" id="${id}" tabindex="0" role="region" aria-label="Passage for question ${q.num}${/<br\s*\/?>/i.test(String(q.passage || "")) ? ", with numbered lines" : ""}">${raw(q.passageTitle ? h`<h3 class="pp-ptitle">${q.passageTitle}</h3>` : "")}${raw(passageHTML(q))}${raw(q.passageSource ? h`<p class="tiny muted">${q.passageSource}</p>` : "")}</aside>`;
 
   // ---------- run ----------
   function runView(p) {
@@ -380,9 +410,9 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
     };
     const panel = (q, qi) => {
       const partsHTML = (q.parts || []).map((pt) => partRun(q, pt)).join("");
-      const body = q.kind === "comprehension" && q.passage ? h`<div class="pp-comp">${raw(passageBox(q, "pp-pass-" + qi))}<div class="pp-comp-parts">${raw(partsHTML)}</div></div>` : partsHTML;
+      const body = q.passage ? h`<div class="pp-comp">${raw(passageBox(q, "pp-pass-" + qi))}<div class="pp-comp-parts">${raw(partsHTML)}</div></div>` : partsHTML;
       return h`<section class="pp-q" data-qi="${qi}" aria-labelledby="pq-${qi}" hidden>
-        <h2 class="pp-qh" id="pq-${qi}" tabindex="-1">Question ${q.num}${q.title ? ` · ${q.title}` : q.kind === "comprehension" ? " · comprehension" : ""} <span class="badge navy">${plural(qMax(q), "mark")}</span></h2>
+        <h2 class="pp-qh" id="pq-${qi}" tabindex="-1">Question ${q.num}${q.title ? ` · ${q.title}` : KIND_SHORT[kindOf(p, q)] ? ` · ${KIND_SHORT[kindOf(p, q)]}` : ""} <span class="badge navy">${plural(qMax(q), "mark")}</span></h2>
         ${q.intro ? raw(`<div class="pp-intro">${q.intro}</div>`) : ""}${raw(body)}</section>`;
     };
     const root = el(h`<div class="pp-run pp-page">
@@ -403,7 +433,7 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
       <section class="card pp-closed" id="pp-closed" ${closedOnArrival ? "" : "hidden"} aria-labelledby="pp-clh"><h2 id="pp-clh" class="pp-h3" tabindex="-1">Time is up</h2><p class="small">The ${hm(d.limit)} for this Exam Mode attempt ran out while you were away, so the paper is closed for answering. Your saved answers are being submitted for marking.</p></section>
       <div class="pp-stage" id="pp-stage" ${closedOnArrival ? "hidden" : ""}>${raw(p.questions.map(panel).join(""))}</div>
       <div class="row pp-foot"><button class="btn" id="pp-prev">← Previous question</button><button class="btn primary" id="pp-next">Next question →</button><a class="btn ghost" href="#/papers/${p.id}" id="pp-leave">${exam ? "Leave (the clock keeps running)" : "Save and leave"}</a></div>
-      <p class="tiny muted">${p.note || NOTE} ${exam ? "Exam Mode: the countdown runs continuously, even when this page is closed. Answers save automatically in this browser." : "Practice Mode: untimed. Answers save automatically in this browser; resume from the paper's page."}</p>
+      <p class="tiny muted">${noteOf(p)} ${exam ? "Exam Mode: the countdown runs continuously, even when this page is closed. Answers save automatically in this browser." : "Practice Mode: untimed. Answers save automatically in this browser; resume from the paper's page."}</p>
     </div>`);
     B.app.render(root, { title: p.title, crumbs: crumbs(p, "Paper") });
 
@@ -556,8 +586,8 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
     return "";
   }
   const yourAnswer = (txt) => String(txt || "").trim() ? h`<div class="pp-yours"><div class="tiny muted">Your answer</div><div class="pp-ans">${txt}</div></div>` : '<div class="pp-yours"><div class="tiny muted">Your answer</div><div class="pp-ans pp-empty">No answer given.</div></div>';
-  const extras = (pt) => [pt.alternatives ? h`<p class="small"><strong>Accept:</strong> ${pt.alternatives}</p>` : "", pt.levels ? h`<p class="small"><strong>Level descriptors:</strong> ${typeof pt.levels === "string" ? pt.levels : JSON.stringify(pt.levels)}</p>` : ""].join("");
-  const contextBlock = (q, qi, label) => (q.intro || q.passage) ? h`<details class="pp-ctx"><summary>${label}</summary>${q.intro ? raw(`<div class="pp-intro">${q.intro}</div>`) : ""}${q.kind === "comprehension" && q.passage ? raw(passageBox(q, "pp-mpass-" + qi)) : ""}</details>` : "";
+  const extras = (pt) => [pt.alternatives ? h`<p class="small"><strong>Marking notes:</strong> ${pt.alternatives}</p>` : "", pt.levels ? h`<p class="small"><strong>Level descriptors:</strong> ${typeof pt.levels === "string" ? pt.levels : JSON.stringify(pt.levels)}</p>` : ""].join("");
+  const contextBlock = (q, qi, label) => (q.intro || q.passage) ? h`<details class="pp-ctx"><summary>${label}</summary>${q.intro ? raw(`<div class="pp-intro">${q.intro}</div>`) : ""}${q.passage ? raw(passageBox(q, "pp-mpass-" + qi)) : ""}</details>` : "";
 
   // ---------- self-marking ----------
   function markView(p) {
@@ -578,7 +608,7 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
           ${raw(extras(pt))}${pt.commonErrors ? raw(h`<p class="small"><strong>Common errors:</strong> ${pt.commonErrors}</p>`) : ""}
           ${pt.model ? raw(`<details class="mt"><summary>Model answer</summary><p class="small">${pt.model}</p></details>`) : ""}</fieldset></article>`;
     };
-    const qs = p.questions.map((q, qi) => h`<section class="card mb pp-mq" aria-labelledby="mq-${qi}"><h2 id="mq-${qi}">Question ${q.num}${q.title ? ` · ${q.title}` : ""} <span class="badge">${plural(qMax(q), "mark")}</span></h2>${raw(contextBlock(q, qi, q.kind === "comprehension" ? "Show the passage and question context" : "Show the question context and figures"))}${raw((q.parts || []).map((pt) => partMark(q, pt)).join(""))}</section>`).join("");
+    const qs = p.questions.map((q, qi) => h`<section class="card mb pp-mq" aria-labelledby="mq-${qi}"><h2 id="mq-${qi}">Question ${q.num}${q.title ? ` · ${q.title}` : ""} <span class="badge">${plural(qMax(q), "mark")}</span></h2>${raw(contextBlock(q, qi, ctxLabel(q)))}${raw((q.parts || []).map((pt) => partMark(q, pt)).join(""))}</section>`).join("");
     const html = el(h`<div class="pp-page">
       ${d.timeUp ? raw(d.closedAway ? h`<div class="notice pp-timeup" role="alert"><strong>Time is up.</strong> The ${hm(d.limit)} ran out while you were away (at ${fmtDateTime(d.deadline)}), so the paper was closed and the answers you had saved were submitted for marking.</div>` : '<div class="notice pp-timeup" role="alert"><strong>Time is up.</strong> Your answers were submitted automatically when the clock reached zero.</div>') : ""}
       <div class="page-head"><div><div class="eyebrow">${p.title} · ${modeLabel(d)} · step 2 of 2</div><h1>Mark your answers</h1><p class="lede">${objective.length ? "Objective parts have been marked automatically. " : ""}For each written answer, compare what you wrote with the mark scheme and tick a point only if your answer makes it clearly. Equivalent wording that means the same thing earns the mark; a key word used wrongly does not. Your marks are saved as you tick.</p></div></div>
@@ -635,10 +665,10 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
   function reportView(p, ts) {
     const run = findRun(p, ts); if (!run) return notFoundRun(p);
     const pc = pctOf(run.score, run.max); const [gl, gc] = grade(pc); const weak = weakStmts(run);
-    const qrows = byNumFrom(p, run).map((x) => { const c = pctOf(x.score, x.max); return h`<tr><th scope="row"><a href="#/papers/${p.id}/review/${run.ts}#rq-${x.q.num}">Question ${x.q.num}</a>${x.q.kind === "comprehension" ? " (comprehension)" : ""}</th><td>${x.score} / ${x.max}</td><td>${c}%</td><td class="pp-barcol">${raw(bar(c))}</td></tr>`; }).join("");
-    const trows = byTopicFrom(run).map(([t, b]) => { const c = pctOf(b.score, b.max); return h`<tr><th scope="row"><a href="#/library/${p.unit}/${t}">${t} ${topicTitle(t)}</a><div class="tiny muted">${b.refs.sort(idCmp).join(", ")}</div></th><td>${b.score} / ${b.max}</td><td>${c}%</td><td class="pp-barcol">${raw(bar(c))}</td></tr>`; }).join("");
+    const qrows = byNumFrom(p, run).map((x) => { const c = pctOf(x.score, x.max); return h`<tr><th scope="row"><a href="#/papers/${p.id}/review/${run.ts}#rq-${x.q.num}">Question ${x.q.num}</a>${KIND_SHORT[kindOf(p, x.q)] ? ` (${KIND_SHORT[kindOf(p, x.q)]})` : ""}</th><td>${x.score} / ${x.max}</td><td>${c}%</td><td class="pp-barcol">${raw(bar(c))}</td></tr>`; }).join("");
+    const trows = byTopicFrom(run).map(([t, b]) => { const c = pctOf(b.score, b.max); return h`<tr><th scope="row"><a href="#/library/${unitOfRef(t)}/${t}">${t} ${topicTitle(t)}</a>${unitOfRef(t) !== p.unit ? raw(h` <span class="badge navy">Unit ${unitOfRef(t).split(".")[1]} principle</span>`) : ""}<div class="tiny muted">${b.refs.sort(idCmp).join(", ")}</div></th><td>${b.score} / ${b.max}</td><td>${c}%</td><td class="pp-barcol">${raw(bar(c))}</td></tr>`; }).join("");
     const aos = Object.keys(run.byAO || {}).sort();
-    const arows = aos.map((a) => { const b = run.byAO[a]; const c = pctOf(b.score, b.max); return h`<tr><th scope="row">${a}<div class="tiny muted">${aoText(a)}</div></th><td>${b.score} / ${b.max}${p.aoTargets && p.aoTargets[a] != null ? raw(h`<div class="tiny muted">BL01 guide: about ${p.aoTargets[a]}</div>`) : ""}</td><td>${c}%</td><td class="pp-barcol">${raw(bar(c))}</td></tr>`; }).join("");
+    const arows = aos.map((a) => { const b = run.byAO[a]; const c = pctOf(b.score, b.max); return h`<tr><th scope="row">${a}<div class="tiny muted">${aoText(a)}</div></th><td>${b.score} / ${b.max}${p.aoTargets && p.aoTargets[a] != null ? raw(h`<div class="tiny muted">${p.code || "Paper"} guide: about ${p.aoTargets[a]}</div>`) : ""}</td><td>${c}%</td><td class="pp-barcol">${raw(bar(c))}</td></tr>`; }).join("");
     const pauses = (run.pauses || []).length;
     const html = el(h`<div class="pp-page">
       <div class="page-head"><div><div class="eyebrow">${p.title} · ${fmtDateTime(run.ts)} · ${modeLabel(run)}</div><h1>Your results</h1><p class="lede">${gl}. Written answers were self-marked, so this is a guide to your standard rather than a grade.</p></div>
@@ -690,7 +720,7 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
         <div class="markscheme"><strong>Mark scheme</strong>${empty ? " (no answer given: 0 marks)" : ""}<ul class="pp-schl">${raw((pt.scheme || []).map((s, i) => { const got = !empty && ticks.includes(i); return h`<li class="${got ? "got" : ""}">${raw(got ? '<span class="pp-ok" aria-hidden="true">✓</span><span class="sr-only">Awarded: </span>' : '<span class="pp-miss" aria-hidden="true">○</span><span class="sr-only">Not awarded: </span>')}${s.point} <span class="badge">${s.marks}</span></li>`; }).join(""))}</ul>
         ${raw(extras(pt))}${pt.model ? raw(`<p class="small"><strong>Model answer.</strong> ${pt.model}</p>`) : ""}${pt.commonErrors ? raw(h`<p class="small"><strong>Common errors:</strong> ${pt.commonErrors}</p>`) : ""}</div></article>`;
     };
-    const qHTML = byNumFrom(p, run).map((x, qi) => h`<section class="card mb pp-mq" aria-labelledby="rq-${x.q.num}"><h3 id="rq-${x.q.num}" tabindex="-1">Question ${x.q.num}${x.q.title ? ` · ${x.q.title}` : ""} <span class="badge ${pctOf(x.score, x.max) < 50 ? "rose" : "navy"}">${x.score} / ${x.max}</span></h3>${raw(contextBlock(x.q, qi, x.q.kind === "comprehension" ? "Show the passage and question context" : "Show the question context and figures"))}${raw((x.q.parts || []).map(partReview).join(""))}</section>`).join("");
+    const qHTML = byNumFrom(p, run).map((x, qi) => h`<section class="card mb pp-mq" aria-labelledby="rq-${x.q.num}"><h3 id="rq-${x.q.num}" tabindex="-1">Question ${x.q.num}${x.q.title ? ` · ${x.q.title}` : ""} <span class="badge ${pctOf(x.score, x.max) < 50 ? "rose" : "navy"}">${x.score} / ${x.max}</span></h3>${raw(contextBlock(x.q, qi, ctxLabel(x.q)))}${raw((x.q.parts || []).map(partReview).join(""))}</section>`).join("");
     const html = el(h`<div class="pp-page">
       <div class="page-head"><div><div class="eyebrow">Exam Review · ${p.title} · ${fmtDateTime(run.ts)}</div><h1>Exam Review</h1><p class="lede">${run.score} / ${run.max} (${pc}%). <span class="pp-mode-line">${modeLabel(run)}: ${run.mode === "exam" ? `${clock(run.seconds)} used${run.timeUp ? ", time ran out" : ""}` : run.mode === "practice" ? `${clock(run.seconds)} spent, untimed` : `${clock(run.seconds)} (time with the paper open)`}.</span> Work through the weak statements first, then read each answer against the scheme and the model answer.</p></div>
         <div class="row"><a class="btn" href="#/papers/${p.id}/report/${run.ts}">Score report</a><a class="btn ghost" href="#/papers">All papers</a></div></div>

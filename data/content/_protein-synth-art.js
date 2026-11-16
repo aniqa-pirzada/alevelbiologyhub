@@ -65,19 +65,20 @@ window.BIO = window.BIO || {};
 
   // ================= 1. Base triplets → amino acids (3.1.8.1, 3.1.8.3) =================
   // coding: DNA coding strand 5′→3′ (multiple of 3).
+  // Release review 2026-11-15: the three-line in-figure caption and the author's note were removed (the figcaption says it);
+  // `title` is kept as an accepted option for compatibility and now has no effect. Labels at least 12 units.
   const tripletCode = ({ coding = "ATGTTCGGACATTGGTAA", title = true } = {}) => {
     uid(); const n = coding.length, w = 26, g = 2, x0 = 190, mr = codingToMrna(coding), tp = dnaComplement(coding), cs = codons(mr);
     const xe = x0 + n * (w + g) - g; const W = Math.max(760, xe + 60);
-    let s = svgOpen(W, 330, "a DNA coding strand and template strand, the mRNA transcribed from the template, the mRNA divided into codons, and the amino acid each codon codes for", `<defs>${marker("tc-a", GREY)}</defs>`);
-    const lab = (y, t, sub) => T(x0 - 12, y + 15, t, { a: "end", s: 12, w: 700 }) + (sub ? T(x0 - 12, y + 28, sub, { a: "end", s: 9.5, c: GREY }) : "");
-    s += lab(20, "DNA coding strand", "(not transcribed)") + row(x0, 20, coding, { w }) + T(x0 - 2, 14, "5′", { s: 9, c: GREY, a: "end" }) + T(xe + 4, 14, "3′", { s: 9, c: GREY, a: "start" });
+    let s = svgOpen(W, 236, "a DNA coding strand and template strand, the mRNA transcribed from the template, the mRNA divided into codons, and the amino acid each codon codes for", `<defs>${marker("tc-a", GREY)}</defs>`);
+    const lab = (y, t, sub) => T(x0 - 12, y + 15, t, { a: "end", s: 12, w: 700 }) + (sub ? T(x0 - 12, y + 28, sub, { a: "end", s: 12, c: GREY }) : "");
+    s += lab(20, "DNA coding strand", "(not transcribed)") + row(x0, 20, coding, { w }) + T(x0 - 2, 14, "5′", { s: 12, c: GREY, a: "end" }) + T(xe + 4, 14, "3′", { s: 12, c: GREY, a: "start" });
     for (let i = 0; i < n; i++) s += L(x0 + i * (w + g) + w / 2, 43, x0 + i * (w + g) + w / 2, 49, { c: "#9fb0bf", w: 1 });
-    s += lab(50, "DNA template strand") + row(x0, 50, tp, { w }) + T(x0 - 2, 84, "3′", { s: 9, c: GREY, a: "end" }) + T(xe + 4, 84, "5′", { s: 9, c: GREY, a: "start" });
-    s += L(x0 + 40, 80, x0 + 40, 112, { m: "tc-a", w: 1.6 }) + T(x0 + 50, 101, "transcription: mRNA is complementary to the template strand", { a: "start", s: 10.5, c: GREY });
-    s += lab(120, "mRNA") + row(x0, 120, mr, { w }) + T(x0 - 2, 114, "5′", { s: 9, c: GREY, a: "end" }) + T(xe + 4, 114, "3′", { s: 9, c: GREY, a: "start" });
-    cs.forEach((c, i) => { const xa = x0 + 3 * i * (w + g), xb = xa + 3 * (w + g) - g, xm = (xa + xb) / 2; s += `<path d="M${xa} 148 v6 H${xb} v-6" fill="none" stroke="${NAVY}" stroke-width="1.6"/>` + T(xm, 168, "codon " + (i + 1), { s: 9.5, c: NAVY }); const a = aa(c); s += L(xm, 172, xm, 192, { m: "tc-a" }); s += a === "STOP" ? `<rect x="${xm - 26}" y="196" width="52" height="26" rx="6" fill="#fff" stroke="${ROSE}" stroke-width="1.6"/>` + T(xm, 213, "stop", { s: 11, w: 700, c: ROSE }) : `<circle cx="${xm}" cy="209" r="17" fill="${MINT}" stroke="${TEAL}" stroke-width="1.6"/>` + T(xm, 213, a, { s: 11, w: 700 }); if (i < cs.length - 1 && aa(cs[i + 1]) !== "STOP") s += L(xm + 17, 209, xm + 3 * (w + g) - 17, 209, { c: INK, w: 2 }); });
+    s += lab(50, "DNA template strand") + row(x0, 50, tp, { w }) + T(x0 - 2, 84, "3′", { s: 12, c: GREY, a: "end" }) + T(xe + 4, 84, "5′", { s: 12, c: GREY, a: "start" });
+    s += L(x0 + 40, 80, x0 + 40, 112, { m: "tc-a", w: 1.6 }) + T(x0 + 50, 101, "transcription: mRNA is complementary to the template strand", { a: "start", s: 12, c: GREY });
+    s += lab(120, "mRNA") + row(x0, 120, mr, { w }) + T(x0 - 2, 114, "5′", { s: 12, c: GREY, a: "end" }) + T(xe + 4, 114, "3′", { s: 12, c: GREY, a: "start" });
+    cs.forEach((c, i) => { const xa = x0 + 3 * i * (w + g), xb = xa + 3 * (w + g) - g, xm = (xa + xb) / 2; s += `<path d="M${xa} 148 v6 H${xb} v-6" fill="none" stroke="${NAVY}" stroke-width="1.6"/>` + T(xm, 168, "codon " + (i + 1), { s: 12, c: NAVY }); const a = aa(c); s += L(xm, 172, xm, 192, { m: "tc-a" }); s += a === "STOP" ? `<rect x="${xm - 26}" y="196" width="52" height="26" rx="6" fill="#fff" stroke="${ROSE}" stroke-width="1.6"/>` + T(xm, 213, "stop", { s: 12, w: 700, c: ROSE }) : `<circle cx="${xm}" cy="209" r="17" fill="${MINT}" stroke="${TEAL}" stroke-width="1.6"/>` + T(xm, 213, a, { s: 12, w: 700 }); if (i < cs.length - 1 && aa(cs[i + 1]) !== "STOP") s += L(xm + 17, 209, xm + 3 * (w + g) - 17, 209, { c: INK, w: 2 }); });
     s += lab(195, "amino acids", "(from the table provided)") + lab(150, "triplets") ;
-    if (title) { s += T(40, 252, "Each base triplet (on mRNA, a codon) codes for one amino acid. Codons are read in sequence, from a fixed starting point, without overlapping.", { a: "start", s: 10.5, c: INK }); s += T(40, 268, "The mRNA has the same sequence as the coding strand, with uracil (U) in place of thymine (T).", { a: "start", s: 10.5, c: INK }); s += T(40, 284, "A stop codon codes for no amino acid: translation ends there.", { a: "start", s: 10.5, c: INK }); s += T(40, 312, "Strand ends (5′, 3′) are shown for completeness; the examined idea is complementary base pairing and reading in triplets.", { a: "start", s: 9.5, c: GREY }); }
     return s + "</svg>";
   };
 
@@ -86,22 +87,19 @@ window.BIO = window.BIO || {};
     uid(); const w = 24, g = 2; let s = svgOpen(760, 470, "three panels: the code is non-overlapping (nine bases give three codons, each base in one codon, compared with a hypothetical overlapping code giving seven triplets); degenerate (four codons all code for glycine); universal (the same codon codes for the same amino acid in a bacterium, a plant and a human)", `<defs>${marker("cp-a", GREY)}</defs>`);
     const seq = "AUGGCUAAA";
     // Panel A
-    s += `<rect x="8" y="8" width="744" height="170" rx="12" fill="#f7fbfb" stroke="#cfe3e0"/>` + T(22, 30, "Non-overlapping", { a: "start", s: 14, w: 700, c: TEAL }) + T(160, 30, "each base belongs to only one triplet", { a: "start", s: 11, c: GREY });
-    const xa = 40; s += T(xa, 54, "How the code is read", { a: "start", s: 11, w: 700 }) + row(xa, 62, seq, { w }); [0, 1, 2].forEach((i) => { const x1 = xa + 3 * i * (w + g), x2 = x1 + 3 * (w + g) - g, xm = (x1 + x2) / 2; s += `<path d="M${x1} 90 v6 H${x2} v-6" fill="none" stroke="${NAVY}" stroke-width="1.6"/>` + T(xm, 112, aa(seq.slice(3 * i, 3 * i + 3)), { s: 11, w: 700, c: NAVY }); }); s += T(xa, 136, "9 bases → 3 codons → 3 amino acids", { a: "start", s: 11 }) + T(xa, 152, "changing one base can change at most one codon", { a: "start", s: 10.5, c: GREY });
-    const xb = 420; s += T(xb, 54, "If the code overlapped (it does not)", { a: "start", s: 11, w: 700, c: ROSE }) + row(xb, 62, seq, { w, op: 0.85 }); for (let i = 0; i < 7; i++) { const x1 = xb + i * (w + g) + 2, x2 = x1 + 3 * (w + g) - g - 4, y = 92 + i * 6; s += `<path d="M${x1} ${y - 4} v4 H${x2} v-4" fill="none" stroke="${ROSE}" stroke-width="1.2" stroke-dasharray="3 2"/>`; } s += T(xb, 152, "9 bases → 7 overlapping triplets; one base in up to 3 triplets", { a: "start", s: 10.5, c: GREY }) + T(xb, 168, "(a hypothetical code, shown only for comparison)", { a: "start", s: 9.5, c: GREY, st: "italic" });
+    s += `<rect x="8" y="8" width="744" height="170" rx="12" fill="#f7fbfb" stroke="#cfe3e0"/>` + T(22, 30, "Non-overlapping", { a: "start", s: 14, w: 700, c: TEAL }) + T(160, 30, "each base belongs to only one triplet", { a: "start", s: 12, c: GREY });
+    const xa = 40; s += T(xa, 54, "How the code is read", { a: "start", s: 12, w: 700 }) + row(xa, 62, seq, { w }); [0, 1, 2].forEach((i) => { const x1 = xa + 3 * i * (w + g), x2 = x1 + 3 * (w + g) - g, xm = (x1 + x2) / 2; s += `<path d="M${x1} 90 v6 H${x2} v-6" fill="none" stroke="${NAVY}" stroke-width="1.6"/>` + T(xm, 112, aa(seq.slice(3 * i, 3 * i + 3)), { s: 12, w: 700, c: NAVY }); }); s += T(xa, 136, "9 bases → 3 codons → 3 amino acids", { a: "start", s: 12 }) + T(xa, 152, "changing one base can change at most one codon", { a: "start", s: 12, c: GREY });
+    const xb = 420; s += T(xb, 54, "If the code overlapped (it does not)", { a: "start", s: 12, w: 700, c: ROSE }) + row(xb, 62, seq, { w, op: 0.85 }); for (let i = 0; i < 7; i++) { const x1 = xb + i * (w + g) + 2, x2 = x1 + 3 * (w + g) - g - 4, y = 92 + i * 6; s += `<path d="M${x1} ${y - 4} v4 H${x2} v-4" fill="none" stroke="${ROSE}" stroke-width="1.2" stroke-dasharray="3 2"/>`; } s += T(xb, 143, "9 bases → 7 overlapping triplets;", { a: "start", s: 12, c: GREY }) + T(xb, 157, "one base in up to 3 triplets", { a: "start", s: 12, c: GREY }) + T(xb, 172, "(a hypothetical code, shown only for comparison)", { a: "start", s: 12, c: GREY, st: "italic" });
     // Panel B
-    s += `<rect x="8" y="188" width="744" height="140" rx="12" fill="#fbf7ee" stroke="#ecdcb5"/>` + T(22, 210, "Degenerate", { a: "start", s: 14, w: 700, c: AMBER }) + T(120, 210, "most amino acids are coded for by more than one triplet", { a: "start", s: 11, c: GREY });
-    ["GGU", "GGC", "GGA", "GGG"].forEach((c, i) => { s += row(40, 224 + i * 25, c, { w: 20, h: 20, fs: 11 }) + L(108, 234 + i * 25, 182, 270, { c: GREY, m: "cp-a" }); }); s += `<circle cx="205" cy="272" r="20" fill="${MINT}" stroke="${TEAL}" stroke-width="1.6"/>` + T(205, 276, "Gly", { s: 12, w: 700 });
-    s += row(330, 236, "AUG", { w: 20, h: 20, fs: 11 }) + L(398, 246, 446, 246, { m: "cp-a" }) + `<circle cx="468" cy="246" r="18" fill="${MINT}" stroke="${TEAL}" stroke-width="1.6"/>` + T(468, 250, "Met", { s: 11, w: 700 }) + row(330, 278, "UGG", { w: 20, h: 20, fs: 11 }) + L(398, 288, 446, 288, { m: "cp-a" }) + `<circle cx="468" cy="288" r="18" fill="${MINT}" stroke="${TEAL}" stroke-width="1.6"/>` + T(468, 292, "Trp", { s: 11, w: 700 });
-    s += T(505, 240, "64 possible triplets (4 × 4 × 4)", { a: "start", s: 11 }) + T(505, 256, "but only 20 amino acids, so most", { a: "start", s: 11 }) + T(505, 272, "have 2, 3, 4 or 6 codons; a few", { a: "start", s: 11 }) + T(505, 288, "(here Met and Trp) have only one.", { a: "start", s: 11 }) + T(505, 310, "Values from the table provided.", { a: "start", s: 9.5, c: GREY });
-    // Panel C
-    s += `<rect x="8" y="338" width="744" height="124" rx="12" fill="#f3f6fb" stroke="#d3deee"/>` + T(22, 360, "Universal", { a: "start", s: 14, w: 700, c: NAVY }) + T(105, 360, "the same triplet codes for the same amino acid in (almost) all organisms", { a: "start", s: 11, c: GREY });
-    const org = (x, name, shape) => shape + T(x, 450, name, { s: 11, w: 600 });
-    s += row(60, 396, "UGG", { w: 22 }) + L(136, 407, 196, 407, { m: "cp-a" }) + T(166, 398, "codes for", { s: 9.5, c: GREY }) + `<circle cx="220" cy="407" r="18" fill="${MINT}" stroke="${TEAL}" stroke-width="1.6"/>` + T(220, 411, "Trp", { s: 11, w: 700 }) + T(250, 411, "in:", { a: "start", s: 11 });
-    s += org(330, "bacterium", `<rect x="300" y="390" width="60" height="30" rx="15" fill="#e2efe6" stroke="${SAGE}" stroke-width="1.5"/>`);
-    s += org(450, "plant", `<path d="M450 425 v-30 M450 405 c-14 -4 -20 -14 -18 -22 c12 2 18 10 18 22 M450 400 c12 -4 18 -12 18 -20 c-12 0 -18 8 -18 20" fill="#e2efe6" stroke="${SAGE}" stroke-width="1.5"/>`);
-    s += org(570, "human", `<circle cx="570" cy="392" r="8" fill="#f6e6dc" stroke="#9c7b3a" stroke-width="1.5"/><path d="M570 400 v18 M558 408 h24 M570 418 l-8 12 M570 418 l8 12" stroke="#9c7b3a" stroke-width="1.8" fill="none"/>`);
-    s += T(650, 400, "so a human gene", { a: "start", s: 9.5, c: GREY }) + T(650, 413, "expressed in bacteria", { a: "start", s: 9.5, c: GREY }) + T(650, 426, "gives the same", { a: "start", s: 9.5, c: GREY }) + T(650, 439, "polypeptide", { a: "start", s: 9.5, c: GREY });
+    s += `<rect x="8" y="188" width="744" height="140" rx="12" fill="#fbf7ee" stroke="#ecdcb5"/>` + T(22, 210, "Degenerate", { a: "start", s: 14, w: 700, c: AMBER }) + T(120, 210, "most amino acids are coded for by more than one triplet", { a: "start", s: 12, c: GREY });
+    ["GGU", "GGC", "GGA", "GGG"].forEach((c, i) => { s += row(40, 224 + i * 25, c, { w: 20, h: 20, fs: 12 }) + L(108, 234 + i * 25, 182, 270, { c: GREY, m: "cp-a" }); }); s += `<circle cx="205" cy="272" r="20" fill="${MINT}" stroke="${TEAL}" stroke-width="1.6"/>` + T(205, 276, "Gly", { s: 12, w: 700 });
+    s += row(330, 236, "AUG", { w: 20, h: 20, fs: 12 }) + L(398, 246, 446, 246, { m: "cp-a" }) + `<circle cx="468" cy="246" r="18" fill="${MINT}" stroke="${TEAL}" stroke-width="1.6"/>` + T(468, 250, "Met", { s: 12, w: 700 }) + row(330, 278, "UGG", { w: 20, h: 20, fs: 12 }) + L(398, 288, 446, 288, { m: "cp-a" }) + `<circle cx="468" cy="288" r="18" fill="${MINT}" stroke="${TEAL}" stroke-width="1.6"/>` + T(468, 292, "Trp", { s: 12, w: 700 });
+    s += T(505, 240, "64 possible triplets (4 × 4 × 4)", { a: "start", s: 12 }) + T(505, 256, "but only 20 amino acids, so most", { a: "start", s: 12 }) + T(505, 272, "have 2, 3, 4 or 6 codons; a few", { a: "start", s: 12 }) + T(505, 288, "(here Met and Trp) have only one.", { a: "start", s: 12 }) + T(505, 310, "Values from the table provided.", { a: "start", s: 12, c: GREY });
+    // Panel C (release review 2026-11-15: plain labelled boxes instead of clip-art figures)
+    s += `<rect x="8" y="338" width="744" height="124" rx="12" fill="#f3f6fb" stroke="#d3deee"/>` + T(22, 360, "Universal", { a: "start", s: 14, w: 700, c: NAVY }) + T(105, 360, "the same triplet codes for the same amino acid in (almost) all organisms", { a: "start", s: 12, c: GREY });
+    s += row(40, 392, "UGG", { w: 22 }) + L(116, 403, 168, 403, { m: "cp-a" }) + `<circle cx="190" cy="403" r="18" fill="${MINT}" stroke="${TEAL}" stroke-width="1.6"/>` + T(190, 407, "Trp", { s: 12, w: 700 }) + T(218, 407, "in a", { a: "start", s: 12.5 });
+    [["bacterium", 256], ["plant", 396], ["human", 536]].forEach(([n, x], k) => { s += `<rect x="${x}" y="387" width="118" height="32" rx="8" fill="#fff" stroke="${NAVY}" stroke-width="1.5"/>` + T(x + 59, 408, n, { s: 13, w: 700, c: NAVY }); if (k < 2) s += T(x + 129, 408, ",", { s: 13 }); });
+    s += T(40, 446, "So a human gene expressed in bacteria gives the same polypeptide (for example human insulin).", { a: "start", s: 12.5, c: GREY });
     return s + "</svg>";
   };
 
@@ -132,7 +130,7 @@ window.BIO = window.BIO || {};
     s += `<path d="M${xe + 4} ${yc - 3} C ${xe + 40} ${yc - 3}, ${xe + 40} 132, ${xe + 70} 132 L 744 132" fill="none" stroke="${NAVY}" stroke-width="2"/><path d="M${xe + 4} ${yt + 25} C ${xe + 40} ${yt + 25}, ${xe + 40} 150, ${xe + 70} 150 L 744 150" fill="none" stroke="${ROSE}" stroke-width="2"/>`;
     for (let x = 48; x < x0 - 74; x += 10) s += L(x, 134, x, 148, { c: "#9fb0bf", w: 1 }); for (let x = xe + 76; x < 744; x += 10) s += L(x, 134, x, 148, { c: "#9fb0bf", w: 1 });
     if (phase === "run" && k > 0) { s += row(x0, ym, mr.slice(0, k), { w, fs }) + L(x0, ym - 3, X(k - 1) + w, ym - 3, { c: PLUM, w: 2 }); for (let i = 0; i < k; i++) s += L(X(i) + w / 2, ym + 22, X(i) + w / 2, yt, { c: "#9fb0bf", w: 1, d: "2 1" }); }
-    if (phase === "run") { const a = Math.max(0, k - 3), b = Math.min(n, k + 2); s += `<rect x="${X(a) - 6}" y="${ym - 30}" width="${(b - a) * step + 10}" height="${yt - ym + 62}" rx="16" fill="${TEAL}" fill-opacity=".14" stroke="${TEAL}" stroke-width="2"/>`; if (labels) s += T(X(a) - 6 + ((b - a) * step + 10) / 2, ym - 36, "RNA polymerase", { s: 11, w: 700, c: TEAL }); if (k < n && predict) s += `<rect x="${X(k) - 1}" y="${ym - 1}" width="${w + 2}" height="24" rx="3" fill="#fff" stroke="${AMBER}" stroke-width="2" stroke-dasharray="3 2"/>` + T(X(k) + w / 2, ym + 16, "?", { s: 13, w: 700, c: AMBER }); }
+    if (phase === "run") { const a = Math.max(0, k - 3), b = Math.min(n, k + 2); s += `<rect data-part="rna-polymerase" x="${X(a) - 6}" y="${ym - 30}" width="${(b - a) * step + 10}" height="${yt - ym + 62}" rx="16" fill="${TEAL}" fill-opacity=".14" stroke="${TEAL}" stroke-width="2"/>`; if (labels) s += T(X(a) - 6 + ((b - a) * step + 10) / 2, ym - 40, "RNA polymerase", { s: 12.5, w: 700, c: TEAL }); if (k < n && predict) s += `<rect x="${X(k) - 1}" y="${ym - 1}" width="${w + 2}" height="24" rx="3" fill="#fff" stroke="${AMBER}" stroke-width="2" stroke-dasharray="3 2"/>` + T(X(k) + w / 2, ym + 16, "?", { s: 13, w: 700, c: AMBER }); }
     if (free && phase === "run" && k < n) { const fx = Math.min(X(Math.min(n - 1, k + 1)) + 20, 640); ["A", "U", "G", "C", "U"].forEach((b, i) => { const x = fx + (i % 3) * 32, y = 98 + Math.floor(i / 3) * 34 + (i % 2) * 6; s += `<circle cx="${x - 4}" cy="${y + 11}" r="4" fill="#fff" stroke="${GREY}"/>` + box(x, y, b, { w: 20, h: 20, fs: 11 }); }); if (labels) s += T(Math.min(fx + 40, 690), 92, "free RNA nucleotides", { s: 10, c: GREY }); }
     if (labels) {
       s += T(x0, yc - 12, "5′   DNA coding strand (not transcribed)", { a: "start", s: 10.5, w: 700, c: NAVY }) + T(xe, yc - 12, "3′", { a: "end", s: 10.5, w: 700, c: NAVY }) + T(x0, yt + 42, "3′   DNA template strand", { a: "start", s: 10.5, w: 700, c: ROSE }) + T(xe, yt + 42, "5′", { a: "end", s: 10.5, w: 700, c: ROSE });
@@ -147,21 +145,21 @@ window.BIO = window.BIO || {};
   // ================= 4. Splicing (3.1.8.2) =================
   const splicing = () => {
     uid(); let s = svgOpen(760, 360, "eukaryote: a gene of exons and introns is transcribed to pre-mRNA containing both, then spliced so that introns are removed and exons joined to form mRNA; prokaryote: a gene without introns is transcribed directly to mRNA", `<defs>${marker("sp-a", GREY)}</defs>`);
-    const seg = (x, y, w, kind, t) => kind === "exon" ? `<rect x="${x}" y="${y}" width="${w}" height="26" rx="4" fill="${MINT}" stroke="${TEAL}" stroke-width="1.6"/>` + T(x + w / 2, y + 17, t, { s: 10.5, w: 700, c: TEAL }) : `<rect x="${x}" y="${y + 6}" width="${w}" height="14" rx="3" fill="#e6e8ec" stroke="#8d99a6" stroke-width="1.2"/>` + T(x + w / 2, y + 17, t, { s: 9, c: "#55606b" });
+    const seg = (x, y, w, kind, t) => kind === "exon" ? `<rect x="${x}" y="${y}" width="${w}" height="26" rx="4" fill="${MINT}" stroke="${TEAL}" stroke-width="1.6"/>` + T(x + w / 2, y + 17, t, { s: 12, w: 700, c: TEAL }) : `<rect x="${x}" y="${y + 6}" width="${w}" height="14" rx="3" fill="#e6e8ec" stroke="#8d99a6" stroke-width="1.2"/>` + T(x + w / 2, y + 17, t, { s: 12, c: "#55606b" });
     const gene = (x, y, kinds) => { let xx = x, out = ""; kinds.forEach(([k, w, t]) => { out += seg(xx, y, w, k, t); xx += w; }); return out; };
     const parts = [["exon", 70, "exon 1"], ["intron", 80, "intron"], ["exon", 70, "exon 2"], ["intron", 60, "intron"], ["exon", 70, "exon 3"]];
     s += T(220, 22, "Eukaryotic cell (in the nucleus)", { s: 13, w: 700, c: NAVY }) + T(620, 22, "Prokaryotic cell", { s: 13, w: 700, c: SAGE });
     s += L(470, 12, 470, 348, { c: "#d3dbe3", w: 1.5, d: "5 4" });
-    s += T(30, 58, "gene (DNA)", { a: "start", s: 10.5, w: 700 }) + gene(100, 40, parts) + T(100, 82, "introns are non-coding sections of the gene; they stay in the DNA", { a: "start", s: 9.5, c: GREY });
-    s += L(275, 90, 275, 118, { m: "sp-a", w: 1.6 }) + T(285, 108, "transcription (RNA polymerase)", { a: "start", s: 10, c: GREY });
-    s += T(30, 142, "pre-mRNA", { a: "start", s: 10.5, w: 700, c: PLUM }) + gene(100, 124, parts) + T(100, 166, "a complementary copy of the whole gene: exons and introns", { a: "start", s: 9.5, c: GREY });
-    s += L(275, 176, 275, 222, { m: "sp-a", w: 1.6 }) + T(285, 196, "splicing: introns removed,", { a: "start", s: 10, c: GREY }) + T(285, 209, "exons joined together", { a: "start", s: 10, c: GREY });
-    s += `<rect x="120" y="184" width="64" height="12" rx="3" fill="#e6e8ec" stroke="#8d99a6" transform="rotate(-6 152 190)"/><rect x="128" y="204" width="50" height="12" rx="3" fill="#e6e8ec" stroke="#8d99a6" transform="rotate(5 153 210)"/>` + T(118, 232, "introns cut out", { a: "start", s: 9.5, c: GREY });
-    s += T(30, 252, "mRNA", { a: "start", s: 10.5, w: 700, c: PLUM }) + gene(170, 234, [["exon", 70, "exon 1"], ["exon", 70, "exon 2"], ["exon", 70, "exon 3"]]);
-    s += T(100, 282, "shorter than the pre-mRNA; carries only the coding sequence", { a: "start", s: 9.5, c: GREY }) + L(275, 290, 275, 318, { m: "sp-a", w: 1.6 }) + T(265, 308, "leaves through a nuclear pore", { a: "end", s: 10, c: GREY }) + T(220, 340, "translated at a ribosome in the cytoplasm", { s: 10.5, w: 600 });
-    s += T(500, 58, "gene (DNA)", { a: "start", s: 10.5, w: 700 }) + gene(580, 40, [["exon", 150, "coding sequence"]]) + T(500, 82, "no introns", { a: "start", s: 9.5, c: GREY });
-    s += L(655, 90, 655, 222, { m: "sp-a", w: 1.6 }) + T(665, 140, "transcription", { a: "start", s: 10, c: GREY }) + T(665, 153, "gives mRNA", { a: "start", s: 10, c: GREY }) + T(665, 166, "directly:", { a: "start", s: 10, c: GREY }) + T(665, 179, "no splicing", { a: "start", s: 10, c: GREY });
-    s += T(500, 252, "mRNA", { a: "start", s: 10.5, w: 700, c: PLUM }) + gene(580, 234, [["exon", 150, "coding sequence"]]) + T(655, 282, "no nucleus: ribosomes can", { s: 9.5, c: GREY }) + T(655, 295, "start translating at once", { s: 9.5, c: GREY }) + T(655, 340, "Schematic; not to scale.", { s: 9.5, c: GREY });
+    s += T(30, 58, "gene (DNA)", { a: "start", s: 12, w: 700 }) + gene(100, 40, parts) + T(100, 82, "introns: non-coding; they stay in the DNA", { a: "start", s: 12, c: GREY });
+    s += L(275, 90, 275, 118, { m: "sp-a", w: 1.6 }) + T(285, 108, "transcription (RNA polymerase)", { a: "start", s: 12, c: GREY });
+    s += T(30, 142, "pre-mRNA", { a: "start", s: 12, w: 700, c: PLUM }) + gene(100, 124, parts) + T(100, 166, "a complementary copy of the whole gene: exons and introns", { a: "start", s: 12, c: GREY });
+    s += L(275, 176, 275, 222, { m: "sp-a", w: 1.6 }) + T(285, 196, "splicing: introns removed,", { a: "start", s: 12, c: GREY }) + T(285, 209, "exons joined together", { a: "start", s: 12, c: GREY });
+    s += `<rect x="120" y="184" width="64" height="12" rx="3" fill="#e6e8ec" stroke="#8d99a6" transform="rotate(-6 152 190)"/><rect x="128" y="204" width="50" height="12" rx="3" fill="#e6e8ec" stroke="#8d99a6" transform="rotate(5 153 210)"/>` + T(118, 232, "introns cut out", { a: "start", s: 12, c: GREY });
+    s += T(30, 252, "mRNA", { a: "start", s: 12, w: 700, c: PLUM }) + gene(170, 234, [["exon", 70, "exon 1"], ["exon", 70, "exon 2"], ["exon", 70, "exon 3"]]);
+    s += T(100, 282, "shorter than the pre-mRNA; carries only the coding sequence", { a: "start", s: 12, c: GREY }) + L(275, 290, 275, 318, { m: "sp-a", w: 1.6 }) + T(265, 308, "leaves through a nuclear pore", { a: "end", s: 12, c: GREY }) + T(220, 340, "translated at a ribosome in the cytoplasm", { s: 12, w: 600 });
+    s += T(500, 58, "gene (DNA)", { a: "start", s: 12, w: 700 }) + gene(580, 40, [["exon", 150, "coding sequence"]]) + T(500, 82, "no introns", { a: "start", s: 12, c: GREY });
+    s += L(655, 90, 655, 222, { m: "sp-a", w: 1.6 }) + T(665, 140, "transcription", { a: "start", s: 12, c: GREY }) + T(665, 153, "gives mRNA", { a: "start", s: 12, c: GREY }) + T(665, 166, "directly:", { a: "start", s: 12, c: GREY }) + T(665, 179, "no splicing", { a: "start", s: 12, c: GREY });
+    s += T(500, 252, "mRNA", { a: "start", s: 12, w: 700, c: PLUM }) + gene(580, 234, [["exon", 150, "coding sequence"]]) + T(655, 282, "no nucleus: ribosomes can", { s: 12, c: GREY }) + T(655, 295, "start translating at once", { s: 12, c: GREY }) + T(655, 340, "Schematic; not to scale.", { s: 12, c: GREY });
     return s + "</svg>";
   };
 
@@ -184,7 +182,7 @@ window.BIO = window.BIO || {};
     for (let i = 0; i < 3; i++) s += L(174 + i * 24, 308, 174 + i * 24, 312, { c: INK, w: 1.4 });
     const lab = (x1, y1, x2, y2, t, t2) => L(x1, y1, x2, y2) + T(x2 + 6, y2 + 4, t, { a: "start", s: 11, w: 700 }) + (t2 ? T(x2 + 6, y2 + 18, t2, { a: "start", s: 10, c: GREY }) : "");
     s += lab(226, 38, 380, 38, "amino-acid binding site", "a specific amino acid attaches here (energy from ATP)");
-    s += lab(206, 120, 380, 100, "single strand of RNA", "about 80 nucleotides, folded back on itself");
+    s += lab(206, 120, 380, 100, "single strand of RNA", "about 76 nucleotides, folded back on itself");
     s += lab(250, 180, 380, 162, "hydrogen bonds between paired bases", "hold the clover-leaf shape");
     s += lab(232, 296, 380, 244, "anticodon", "three bases complementary to one codon on mRNA");
     s += lab(240, 322, 380, 300, "complementary base pairing", "codon AUG pairs with anticodon UAC (A–U, U–A, G–C)");
@@ -196,7 +194,7 @@ window.BIO = window.BIO || {};
   // state: { codons: [...], p: first codon under the ribosome (null = no ribosome), trnas: [{ i, aas: [...] , arriving, leaving }],
   //          bond: highlight newest peptide bond, released: [aas] released chain, labels: false | "text" | "numbers" }
   const CW = 84;
-  const translationScene = ({ codons: cs = ["AUG", "UUC", "GGA", "CAU", "UGG", "UAA"], p = 0, trnas = [], bond = false, released = null, labels = false, x0 = null, anim = false, width = 760 } = {}) => {
+  const translationScene = ({ codons: cs = ["AUG", "UUC", "GGA", "CAU", "UGG", "UAA"], p = 0, trnas = [], bond = false, released = null, labels = false, x0 = null, anim = false, width = 760, crop = false } = {}) => {
     uid(); const X0 = x0 ?? Math.max(20, Math.round((width - cs.length * CW) / 2)), cxOf = (i) => X0 + i * CW + 38, my = 290;
     let s = svgOpen(width, 372, "translation: a ribosome on mRNA holding two tRNA molecules whose anticodons pair with adjacent codons; the amino acids they carry are joined by peptide bonds into a growing polypeptide", anim ? `<style>.ps-arrive${U}{animation:psArrive${U} .7s ease-out both}.ps-leave${U}{animation:psLeave${U} .7s ease-in both}@keyframes psArrive${U}{from{transform:translateY(-70px);opacity:0}to{transform:none;opacity:1}}@keyframes psLeave${U}{from{transform:translate(70px,70px);opacity:1}to{transform:none;opacity:.55}}</style>` : "");
     s += `<defs>${marker("tl-a", GREY)}${marker("tl-m", TEAL)}</defs>`;
@@ -204,18 +202,18 @@ window.BIO = window.BIO || {};
     if (p != null) { const c = cxOf(p) + CW / 2; s += `<g data-part="ribosome"><ellipse cx="${c}" cy="198" rx="112" ry="86" fill="#e9eef8" fill-opacity=".85" stroke="${NAVY}" stroke-width="1.8"/><ellipse cx="${c}" cy="322" rx="110" ry="26" fill="#e9eef8" stroke="${NAVY}" stroke-width="1.8"/></g>`; }
     // mRNA
     s += L(X0 - 14, my + 24, X0 + cs.length * CW, my + 24, { c: PLUM, w: 2.4 }); cs.forEach((c, i) => { s += row(X0 + i * CW, my, c, { w: 24, h: 22, fs: 12 }); });
-    if (labels !== "numbers") s += T(X0 - 10, my - 6, "5′", { s: 9, c: GREY }) + T(X0 + cs.length * CW - 2, my - 6, "3′", { s: 9, c: GREY });
+    if (labels !== "numbers") s += T(X0 - 10, my - 6, "5′", { s: 12, c: GREY }) + T(X0 + cs.length * CW - 2, my - 6, "3′", { s: 12, c: GREY });
     // tRNAs and chain
     const drawT = (t) => { const cx = cxOf(t.i), off = t.leaving ? "translate(-58 -96)" : ""; const cls = anim && t.arriving ? `ps-arrive${U}` : anim && t.leaving ? `ps-leave${U}` : ""; let o = `<g ${off ? `transform="${off}"` : ""}><g class="${cls}" ${t.leaving ? 'opacity=".55"' : ""}>`;
-      o += `<rect x="${cx - 30}" y="196" width="60" height="58" rx="14" fill="#f5e9f2" stroke="${PLUM}" stroke-width="1.8"/><circle cx="${cx - 30}" cy="220" r="9" fill="#f5e9f2" stroke="${PLUM}" stroke-width="1.6"/><circle cx="${cx + 30}" cy="220" r="9" fill="#f5e9f2" stroke="${PLUM}" stroke-width="1.6"/><rect x="${cx - 5}" y="184" width="10" height="12" fill="#f5e9f2" stroke="${PLUM}" stroke-width="1.4"/>` + T(cx, 230, "tRNA", { s: 10, c: PLUM, w: 700 });
+      o += `<rect x="${cx - 30}" y="196" width="60" height="58" rx="14" fill="#f5e9f2" stroke="${PLUM}" stroke-width="1.8"/><circle cx="${cx - 30}" cy="220" r="9" fill="#f5e9f2" stroke="${PLUM}" stroke-width="1.6"/><circle cx="${cx + 30}" cy="220" r="9" fill="#f5e9f2" stroke="${PLUM}" stroke-width="1.6"/><rect x="${cx - 5}" y="184" width="10" height="12" fill="#f5e9f2" stroke="${PLUM}" stroke-width="1.4"/>` + T(cx, 231, "tRNA", { s: 12, c: PLUM, w: 700 });
       o += row(cx - 38, 260, anticodon(cs[t.i]), { w: 24, h: 22, fs: 12 }) + [0, 1, 2].map((j) => L(cx - 26 + j * 26, 282, cx - 26 + j * 26, my, { c: INK, w: 1.2 })).join("");
-      const aas = t.aas || []; const pos = (k) => [cx - 30 * k, 166 - 32 * k];
+      const aas = t.aas || []; const pos = crop ? (k) => [cx - 32 * k, 166 - (k % 2) * 30] : (k) => [cx - 30 * k, 166 - 32 * k]; // animation: the chain zigzags sideways, so the drawing needs no empty space above the ribosome
       for (let k = aas.length - 1; k >= 0; k--) { const [x, y] = pos(aas.length - 1 - k); if (k < aas.length - 1) { const [x2, y2] = pos(aas.length - 2 - k); o += L(x + 10, y + 11, x2 - 10, y2 - 11, { c: bond && k === aas.length - 2 ? AMBER : INK, w: bond && k === aas.length - 2 ? 4.5 : 3 }); } }
       if (aas.length) o += L(cx, 182, cx, 184, { c: INK, w: 2 });
-      aas.forEach((a, k) => { const [x, y] = pos(aas.length - 1 - k); o += `<circle cx="${x}" cy="${y}" r="16" fill="${MINT}" stroke="${TEAL}" stroke-width="1.6"/>` + T(x, y + 4, a, { s: 10.5, w: 700 }); });
+      aas.forEach((a, k) => { const [x, y] = pos(aas.length - 1 - k); o += `<circle cx="${x}" cy="${y}" r="16" fill="${MINT}" stroke="${TEAL}" stroke-width="1.6"/>` + T(x, y + 4, a, { s: 12, w: 700 }); });
       return o + "</g></g>"; };
     trnas.filter((t) => t.leaving).forEach((t) => (s += drawT(t))); trnas.filter((t) => !t.leaving).forEach((t) => (s += drawT(t)));
-    if (released) { let x = width - 40 - released.length * 30, y = 40; s += T(x - 22, y + 4, "released polypeptide", { a: "end", s: 10.5, c: GREY }); released.forEach((a, k) => { if (k) s += L(x + (k - 1) * 30 + 13, y, x + k * 30 - 13, y, { c: INK, w: 2.2 }); s += `<circle cx="${x + k * 30}" cy="${y}" r="13" fill="${MINT}" stroke="${TEAL}" stroke-width="1.4"/>` + T(x + k * 30, y + 4, a, { s: 9, w: 700 }); }); }
+    if (released) { let x = width - 40 - released.length * 30, y = crop ? 160 : 40; s += T(x - 22, y + 4, "released polypeptide", { a: "end", s: 12, c: GREY }); released.forEach((a, k) => { if (k) s += L(x + (k - 1) * 30 + 13, y, x + k * 30 - 13, y, { c: INK, w: 2.2 }); s += `<circle cx="${x + k * 30}" cy="${y}" r="13" fill="${MINT}" stroke="${TEAL}" stroke-width="1.4"/>` + T(x + k * 30, y + 4, a, { s: 10.5, w: 700 }); }); }
     if (labels === "text" || labels === "numbers") {
       const N = labels === "numbers"; let n = 0; const lab = (x1, y1, x2, y2, t, t2) => { n++; return L(x1, y1, x2, y2) + (N ? numBadge(x2 + 10, y2, n) : T(x2 + 6, y2 + 4, t, { a: "start", s: 11, w: 700 }) + (t2 ? T(x2 + 6, y2 + 18, t2, { a: "start", s: 9.5, c: GREY }) : "")); };
       const cA = cxOf(p), cB = cxOf(p + 1), xr = X0 + cs.length * CW - 8, lx = 590;
@@ -228,6 +226,9 @@ window.BIO = window.BIO || {};
       s += lab(cA + 140, 332, lx, 330, "ribosome", "two subunits; holds two tRNAs");
       if (!N) s += T(20, 84, "a tRNA without its amino acid leaves to collect another", { a: "start", s: 9.5, c: GREY });
     }
+    // crop (the Translation Animation, unlabelled, 760 wide): the viewBox is cropped to the area the scene uses in every step
+    // of every sequence (measured: x 96 to 703, y 22 to 348), so the drawing is shown about a fifth larger
+    if (crop && !labels && width === 760) s = s.replace('viewBox="0 0 760 372"', 'viewBox="86 76 628 282"'); // release review round 2: top cropped (chain now zigzags sideways)
     return s + "</svg>";
   };
   const translationStatic = (labels = "text") => translationScene({ codons: ["AUG", "UUC", "GGA", "CAU", "UGG"], p: 1, x0: 150, trnas: [{ i: 0, aas: [], leaving: true }, { i: 1, aas: ["Met", "Phe"] }, { i: 2, aas: ["Gly"] }], labels });
@@ -235,48 +236,48 @@ window.BIO = window.BIO || {};
   // ================= 7. Overview: gene to functional protein =================
   const overview = () => {
     uid(); let s = svgOpen(760, 300, "flow diagram of protein synthesis in a eukaryotic cell: in the nucleus, DNA is transcribed by RNA polymerase into pre-mRNA, which is spliced into mRNA; mRNA leaves through a nuclear pore; in the cytoplasm ribosomes, tRNA and ATP translate it into a polypeptide, which folds, helped by chaperones, into a functional protein", `<defs>${marker("ov-a", INK)}</defs>`);
-    s += `<rect x="10" y="30" width="350" height="210" rx="40" fill="#eef3fa" stroke="${NAVY}" stroke-width="2.5" stroke-dasharray="10 5"/>` + T(30, 22, "nucleus (eukaryote)", { a: "start", s: 11, w: 700, c: NAVY }) + T(560, 22, "cytoplasm", { s: 11, w: 700, c: GREY });
-    const b = (x, y, w, t, sub, fill, stroke) => `<rect x="${x}" y="${y}" width="${w}" height="46" rx="10" fill="${fill}" stroke="${stroke}" stroke-width="1.8"/>` + T(x + w / 2, y + 20, t, { s: 12, w: 700 }) + T(x + w / 2, y + 36, sub, { s: 9.5, c: GREY });
-    const ar = (x1, y1, x2, y2, t, ty = -6) => L(x1, y1, x2, y2, { c: INK, w: 1.8, m: "ov-a" }) + (t ? T((x1 + x2) / 2, (y1 + y2) / 2 + ty, t, { s: 9.5, c: GREY, w: 600 }) : "");
+    s += `<rect x="10" y="30" width="350" height="210" rx="40" fill="#eef3fa" stroke="${NAVY}" stroke-width="2.5" stroke-dasharray="10 5"/>` + T(30, 22, "nucleus (eukaryote)", { a: "start", s: 12, w: 700, c: NAVY }) + T(560, 22, "cytoplasm", { s: 12, w: 700, c: GREY });
+    const b = (x, y, w, t, sub, fill, stroke) => `<rect x="${x}" y="${y}" width="${w}" height="46" rx="10" fill="${fill}" stroke="${stroke}" stroke-width="1.8"/>` + T(x + w / 2, y + 20, t, { s: 12, w: 700 }) + T(x + w / 2, y + 36, sub, { s: 12, c: GREY });
+    const ar = (x1, y1, x2, y2, t, ty = -6) => L(x1, y1, x2, y2, { c: INK, w: 1.8, m: "ov-a" }) + (t ? T((x1 + x2) / 2, (y1 + y2) / 2 + ty, t, { s: 12, c: GREY, w: 600 }) : "");
     s += b(40, 50, 120, "DNA (gene)", "exons + introns", "#fff", NAVY) + b(210, 50, 120, "pre-mRNA", "copy of whole gene", "#f5e9f2", PLUM) + b(210, 160, 120, "mRNA", "introns removed", "#f5e9f2", PLUM);
-    s += ar(160, 73, 208, 73, "") + T(185, 114, "transcription by RNA polymerase", { s: 9.5, c: TEAL, w: 600 }) + ar(270, 96, 270, 158, "") + T(282, 124, "splicing", { a: "start", s: 9.5, c: GREY, w: 600 });
-    s += `<rect x="352" y="170" width="16" height="26" fill="#fff" stroke="${NAVY}" stroke-width="1.5"/>` + T(360, 214, "nuclear pore", { s: 9, c: NAVY }) + ar(330, 183, 420, 183, "");
-    s += b(424, 160, 140, "ribosome", "+ tRNA + ATP", "#e9eef8", NAVY) + ar(494, 158, 494, 98, "") + T(504, 132, "translation", { a: "start", s: 9.5, c: GREY, w: 600 }) + b(424, 50, 140, "polypeptide", "amino-acid sequence", MINT, TEAL);
-    s += ar(564, 73, 610, 73, "") + T(587, 64, "folds", { s: 9.5, c: GREY, w: 600 }) + b(612, 50, 138, "functional protein", "specific 3D shape", MINT, TEAL) + T(681, 116, "chaperone proteins", { s: 9.5, c: AMBER, w: 600 }) + T(681, 129, "assist folding", { s: 9.5, c: AMBER, w: 600 });
-    s += T(380, 266, "In prokaryotes there is no nucleus and no splicing: transcription gives mRNA directly, and ribosomes can translate it straight away.", { s: 10.5, c: INK }) + T(380, 284, "Schematic flow, not to scale.", { s: 9.5, c: GREY });
+    s += ar(160, 73, 208, 73, "") + T(170, 112, "transcription", { s: 12, c: TEAL, w: 600 }) + T(170, 126, "(RNA polymerase)", { s: 12, c: TEAL, w: 600 }) + ar(270, 96, 270, 158, "") + T(282, 124, "splicing", { a: "start", s: 12, c: GREY, w: 600 });
+    s += `<rect x="352" y="170" width="16" height="26" fill="#fff" stroke="${NAVY}" stroke-width="1.5"/>` + T(368, 150, "nuclear pore", { s: 12, c: NAVY, a: "start" }) + ar(330, 183, 420, 183, "");
+    s += b(424, 160, 140, "ribosome", "+ tRNA + ATP", "#e9eef8", NAVY) + ar(494, 158, 494, 98, "") + T(504, 132, "translation", { a: "start", s: 12, c: GREY, w: 600 }) + b(424, 50, 140, "polypeptide", "amino-acid sequence", MINT, TEAL);
+    s += ar(564, 73, 610, 73, "") + T(587, 64, "folds", { s: 12, c: GREY, w: 600 }) + b(612, 50, 138, "functional protein", "specific 3D shape", MINT, TEAL) + T(681, 116, "chaperone proteins", { s: 12, c: AMBER, w: 600 }) + T(681, 129, "assist folding", { s: 12, c: AMBER, w: 600 });
+    s += T(380, 266, "In prokaryotes there is no nucleus and no splicing: transcription gives mRNA directly, and ribosomes can translate it straight away.", { s: 12, c: INK }) + T(380, 284, "Schematic flow, not to scale.", { s: 12, c: GREY });
     return s + "</svg>";
   };
 
   // ================= 8. Protein folding (3.1.8.3) =================
   const RCOL = { h: AMBER, p: TEAL, pos: NAVY, neg: ROSE, s: SAGE };
-  const bead = (x, y, k, r = 8) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${RCOL[k]}" fill-opacity=".85" stroke="#fff" stroke-width="1"/>` + (k === "pos" ? T(x, y + 4, "+", { s: 11, w: 700, c: "#fff" }) : k === "neg" ? T(x, y + 3, "−", { s: 11, w: 700, c: "#fff" }) : k === "s" ? T(x, y + 3.5, "S", { s: 9, w: 700, c: "#fff" }) : "");
+  const bead = (x, y, k, r = 8) => `<circle cx="${x}" cy="${y}" r="${Math.max(r, k === "pos" || k === "neg" || k === "s" ? 9 : r)}" fill="${RCOL[k]}" fill-opacity=".85" stroke="#fff" stroke-width="1"/>` + (k === "pos" ? T(x, y + 4.5, "+", { s: 13, w: 700, c: "#fff" }) : k === "neg" ? T(x, y + 4, "−", { s: 13, w: 700, c: "#fff" }) : k === "s" ? T(x, y + 4.2, "S", { s: 12, w: 700, c: "#fff" }) : "");
   const folding = () => {
     uid(); let s = svgOpen(760, 370, "three stages of protein folding: primary structure as a chain of amino acids with different R groups; secondary structure as an alpha helix and a beta pleated sheet held by hydrogen bonds; tertiary structure as a compact folded shape with hydrophobic R groups inside and ionic bonds, hydrogen bonds and a disulfide bridge between R groups", `<defs>${marker("fo-a", GREY)}</defs>`);
     s += T(125, 24, "Primary structure", { s: 13, w: 700 }) + T(385, 24, "Secondary structure", { s: 13, w: 700 }) + T(640, 24, "Tertiary structure", { s: 13, w: 700 });
-    // primary: wavy chain
-    const seq = ["pos", "h", "p", "h", "s", "neg", "p", "h", "h", "pos", "p", "h", "s", "neg", "h", "p"]; const ppos = (i) => i < 8 ? [30 + i * 26, 70 + (i % 2) * 12] : [30 + (15 - i) * 26, 140 + (i % 2) * 12];
-    seq.forEach((k, i) => { if (i && i !== 8) { const [a, b] = ppos(i - 1), [c, d] = ppos(i); s += L(a, b, c, d, { c: INK, w: 2 }); } }); { const [a, b] = ppos(7), [c, d] = ppos(8); s += `<path d="M${a} ${b} C ${a + 34} ${b}, ${c + 34} ${d}, ${c} ${d}" fill="none" stroke="${INK}" stroke-width="2"/>`; }
-    seq.forEach((k, i) => { const [x, y] = ppos(i); s += bead(x, y, k); }); s += T(30, 172, "N-terminus at top left; peptide bonds join each pair", { a: "start", s: 9, c: GREY });
-    s += T(125, 190, "the sequence of amino acids,", { s: 10.5 }) + T(125, 204, "joined by peptide bonds;", { s: 10.5 }) + T(125, 218, "set by the base sequence", { s: 10.5 }) + T(125, 232, "of the gene", { s: 10.5 });
+    // primary: a straight, gently wavy chain (release review 2026-11-15: no hairpin, which looked already folded)
+    const seq = ["pos", "h", "p", "h", "s", "neg", "p", "h"]; const ppos = (i) => [24 + i * 27, 110 + (i % 2 ? 7 : -7)];
+    seq.forEach((k, i) => { if (i) { const [a, b] = ppos(i - 1), [c, d] = ppos(i); s += L(a, b, c, d, { c: INK, w: 2 }); } }); s += L(ppos(7)[0], ppos(7)[1], ppos(7)[0] + 14, ppos(7)[1] - 4, { c: INK, w: 2, d: "3 3" });
+    seq.forEach((k, i) => { const [x, y] = ppos(i); s += bead(x, y, k); }); s += T(24, 140, "…a chain of amino acids", { a: "start", s: 12, c: GREY });
+    s += T(125, 190, "the sequence of amino acids,", { s: 12 }) + T(125, 204, "joined by peptide bonds;", { s: 12 }) + T(125, 218, "set by the base sequence", { s: 12 }) + T(125, 232, "of the gene", { s: 12 });
     s += L(240, 110, 268, 110, { c: GREY, w: 2, m: "fo-a" });
     // secondary: helix + sheet
     let d = "M285 60"; for (let i = 0; i < 6; i++) d += ` c 30 0, 30 16, 0 16 c -10 0, -10 0, 0 0`; s += `<path d="${d}" fill="none" stroke="${INK}" stroke-width="2.2"/>`; for (let i = 0; i < 5; i++) s += L(300, 68 + i * 16, 300, 82 + i * 16, { c: TEAL, w: 1.4, d: "2 2" });
-    s += T(300, 172, "α-helix", { s: 10.5, w: 700 });
+    s += T(300, 172, "α-helix", { s: 12, w: 700 });
     const zig = (y) => { let p = `M360 ${y}`; for (let i = 0; i < 6; i++) p += ` l 12 ${i % 2 ? -8 : 8}`; return `<path d="${p}" fill="none" stroke="${INK}" stroke-width="2.2"/>`; };
     s += zig(80) + zig(110) + zig(140); for (let i = 0; i < 6; i++) { s += L(366 + i * 12, 84 + (i % 2 ? 0 : 0), 366 + i * 12, 106, { c: TEAL, w: 1.4, d: "2 2" }) + L(366 + i * 12, 114, 366 + i * 12, 136, { c: TEAL, w: 1.4, d: "2 2" }); }
-    s += T(400, 172, "β-pleated sheet", { s: 10.5, w: 700 }) + T(385, 196, "hydrogen bonds (dashed) between", { s: 10.5 }) + T(385, 210, "groups in the polypeptide", { s: 10.5 }) + T(385, 224, "backbone, not the R groups", { s: 10.5 });
+    s += T(400, 172, "β-pleated sheet", { s: 12, w: 700 }) + T(385, 196, "hydrogen bonds (dashed) between", { s: 12 }) + T(385, 210, "groups in the polypeptide", { s: 12 }) + T(385, 224, "backbone, not the R groups", { s: 12 });
     s += L(486, 110, 514, 110, { c: GREY, w: 2, m: "fo-a" });
     // tertiary: globule
     s += `<path d="M560 70 C 600 40, 700 50, 720 90 C 745 140, 700 180, 650 175 C 600 172, 560 165, 548 130 C 538 100, 545 80, 560 70z" fill="#f4f7f7" stroke="${INK}" stroke-width="2.4"/>`;
     s += `<path d="M575 90 C 610 70, 680 75, 700 105 C 712 128, 680 150, 640 150 C 600 150, 580 130, 595 112 C 610 96, 650 100, 660 118" fill="none" stroke="${INK}" stroke-width="1.6" opacity=".6"/>`;
     s += bead(630, 110, "h") + bead(648, 124, "h") + bead(615, 128, "h") + bead(664, 104, "h") + bead(640, 92, "h");
-    s += bead(590, 70, "pos") + bead(606, 64, "neg") + `<line x1="598" y1="67" x2="598" y2="67"/>` + bead(705, 82, "p") + L(566, 104, 578, 130, { c: TEAL, w: 1.6, d: "3 2" }) + bead(566, 104, "p") + bead(578, 132, "p") + L(537, 146, 568, 124, { c: GREY }) + T(535, 150, "hydrogen bond", { a: "end", s: 9.5, c: GREY }) + bead(715, 140, "s") + bead(690, 168, "s") + L(711, 148, 694, 160, { c: SAGE, w: 3 });
-    s += T(640, 196, "further folding held by bonds", { s: 10.5 }) + T(640, 210, "between R groups: hydrogen,", { s: 10.5 }) + T(640, 224, "ionic and disulfide; hydrophobic", { s: 10.5 }) + T(640, 238, "R groups cluster inside", { s: 10.5 });
-    s += L(598, 52, 580, 40, { c: GREY }) + T(578, 40, "ionic bond", { a: "end", s: 9.5, c: GREY }) + L(724, 154, 740, 170, { c: GREY }) + T(740, 184, "disulfide", { a: "end", s: 9.5, c: GREY }) + T(740, 196, "", { s: 9.5 }) + T(640, 160, "hydrophobic core", { s: 9, c: AMBER, w: 700 });
+    s += bead(590, 70, "pos") + bead(606, 64, "neg") + `<line x1="598" y1="67" x2="598" y2="67"/>` + bead(705, 82, "p") + L(566, 104, 578, 130, { c: TEAL, w: 1.6, d: "3 2" }) + bead(566, 104, "p") + bead(578, 132, "p") + L(537, 146, 568, 124, { c: GREY }) + T(535, 150, "hydrogen bond", { a: "end", s: 12, c: GREY }) + bead(715, 140, "s") + bead(690, 168, "s") + L(711, 148, 694, 160, { c: SAGE, w: 3 });
+    s += T(640, 196, "further folding held by bonds", { s: 12 }) + T(640, 210, "between R groups: hydrogen,", { s: 12 }) + T(640, 224, "ionic and disulfide; hydrophobic", { s: 12 }) + T(640, 238, "R groups cluster inside", { s: 12 });
+    s += L(598, 52, 580, 40, { c: GREY }) + T(578, 40, "ionic bond", { a: "end", s: 12, c: GREY }) + L(724, 154, 740, 170, { c: GREY }) + T(740, 184, "disulfide", { a: "end", s: 12, c: GREY }) + T(740, 196, "", { s: 12 }) + T(640, 160, "hydrophobic core", { s: 12, c: AMBER, w: 700 });
     // key
     const key = [["h", "hydrophobic R group"], ["p", "polar R group"], ["pos", "positively charged R group"], ["neg", "negatively charged R group"], ["s", "cysteine (–SH)"]];
-    key.forEach(([k, t], i) => { const x = 30 + (i % 3) * 245, y = 280 + Math.floor(i / 3) * 24; s += bead(x, y, k, 7) + T(x + 14, y + 4, t, { a: "start", s: 10.5 }); });
-    s += T(380, 340, "The positions of the R groups are fixed by the amino-acid sequence, so the sequence decides which bonds can form, and where:", { s: 10.5, w: 600 }) + T(380, 356, "it determines the protein's characteristic 3D shape. Schematic; quaternary structure (more than one polypeptide) is in 3.1.1.4.", { s: 10.5, w: 600 });
+    key.forEach(([k, t], i) => { const x = 30 + (i % 3) * 245, y = 280 + Math.floor(i / 3) * 24; s += bead(x, y, k, 7) + T(x + 14, y + 4, t, { a: "start", s: 12 }); });
+    s += T(380, 340, "The positions of the R groups are fixed by the amino-acid sequence, so the sequence decides which bonds can form, and where:", { s: 12, w: 600 }) + T(380, 356, "it determines the protein's characteristic 3D shape. Schematic; quaternary structure (more than one polypeptide) is in 3.1.1.4.", { s: 12, w: 600 });
     return s + "</svg>";
   };
 
@@ -285,16 +286,18 @@ window.BIO = window.BIO || {};
     uid(); let s = svgOpen(760, 330, "left: newly made polypeptides with exposed hydrophobic regions stick to each other and form a non-functional clump; right: a chaperone protein binds a partly folded polypeptide, preventing incorrect interactions, and releases it once it has folded into its correct shape", `<defs>${marker("ch-a", GREY)}</defs>`);
     s += T(190, 24, "Without help (crowded cytoplasm)", { s: 13, w: 700, c: ROSE }) + T(570, 24, "With a chaperone", { s: 13, w: 700, c: TEAL }) + L(380, 12, 380, 300, { c: "#d3dbe3", w: 1.5, d: "5 4" });
     const chain = (x, y, flip = 1) => `<path d="M${x} ${y} c 20 -20, 40 20, 60 0 s 40 20, 60 0" fill="none" stroke="${INK}" stroke-width="2.2" transform="scale(1 ${flip})" transform-origin="${x} ${y}"/>` + bead(x + 50, y + 4, "h") + bead(x + 70, y - 4, "h");
-    s += chain(40, 70) + chain(40, 120) + T(60, 158, "new polypeptides with hydrophobic", { a: "start", s: 10, c: GREY }) + T(60, 171, "R groups still exposed", { a: "start", s: 10, c: GREY });
-    s += L(190, 180, 190, 212, { c: GREY, w: 1.6, m: "ch-a" }) + T(200, 200, "hydrophobic regions stick together", { a: "start", s: 10, c: GREY });
-    s += `<path d="M120 230 c 30 -20, 70 -10, 80 10 c 10 20, -20 40, -50 34 c -30 -6, -50 -28, -30 -44z M150 236 c 20 10, 40 4, 50 20 M135 255 c 10 -14, 40 -10, 55 0" fill="#f7e9e9" stroke="${INK}" stroke-width="2"/>` + bead(160, 248, "h") + bead(178, 252, "h") + bead(150, 260, "h") + T(190, 296, "misfolded, clumped (aggregated): not functional", { s: 10.5, w: 700, c: ROSE });
-    // right
-    s += `<path d="M450 70 c 20 -20, 40 20, 60 0" fill="none" stroke="${INK}" stroke-width="2.2"/>` + bead(480, 64, "h") + T(470, 100, "partly folded polypeptide", { s: 10, c: GREY });
-    s += L(530, 70, 560, 70, { c: GREY, w: 1.6, m: "ch-a" });
-    s += `<path d="M570 50 v60 a40 40 0 0 0 80 0 v-60" fill="#fbf0d8" stroke="${AMBER}" stroke-width="3"/><path d="M590 80 c 10 -14, 30 14, 40 0" fill="none" stroke="${INK}" stroke-width="2"/>` + bead(610, 88, "h") + T(610, 170, "chaperone binds it,", { s: 10.5, w: 700, c: AMBER }) + T(610, 184, "shielding exposed regions", { s: 10, c: GREY }) + T(610, 197, "while it folds", { s: 10, c: GREY });
-    s += L(660, 90, 690, 90, { c: GREY, w: 1.6, m: "ch-a" });
-    s += `<path d="M700 70 C 720 55, 745 70, 742 92 C 740 112, 715 118, 702 106 C 690 96, 690 80, 700 70z" fill="${MINT}" stroke="${TEAL}" stroke-width="2"/>` + bead(718, 90, "h", 6) + T(720, 140, "correctly", { s: 10.5, w: 700, c: TEAL }) + T(720, 154, "folded protein", { s: 10.5, w: 700, c: TEAL }) + T(720, 168, "released", { s: 10, c: GREY });
-    s += T(570, 236, "The chaperone does not supply the shape: the amino-acid", { s: 10.5 }) + T(570, 252, "sequence does. It stops wrong interactions so the chain", { s: 10.5 }) + T(570, 268, "can fold correctly. Many chaperones use energy from ATP.", { s: 10.5 }) + T(570, 296, "Schematic. Some chaperones (chaperonins) enclose the chain in a chamber.", { s: 9.5, c: GREY });
+    s += chain(40, 70) + chain(40, 120) + T(60, 158, "new polypeptides with hydrophobic", { a: "start", s: 12, c: GREY }) + T(60, 171, "R groups still exposed", { a: "start", s: 12, c: GREY });
+    s += L(190, 180, 190, 212, { c: GREY, w: 1.6, m: "ch-a" }) + T(200, 200, "hydrophobic regions stick together", { a: "start", s: 12, c: GREY });
+    s += `<path d="M120 230 c 30 -20, 70 -10, 80 10 c 10 20, -20 40, -50 34 c -30 -6, -50 -28, -30 -44z M150 236 c 20 10, 40 4, 50 20 M135 255 c 10 -14, 40 -10, 55 0" fill="#f7e9e9" stroke="${INK}" stroke-width="2"/>` + bead(160, 248, "h") + bead(178, 252, "h") + bead(150, 260, "h") + T(190, 296, "misfolded, clumped (aggregated): not functional", { s: 12, w: 700, c: ROSE });
+    // right (release review 2026-11-15): a chaperonin drawn as a barrel with a lid, like the GroEL–GroES photograph, with the
+    // hydrophobic patches marked; the folded protein is a compact globule with its hydrophobic R groups inside
+    s += `<path d="M412 72 c 16 -16, 32 16, 48 0 s 32 16, 48 0" fill="none" stroke="${INK}" stroke-width="2.2"/>` + bead(436, 70, "h") + bead(484, 74, "h") + T(460, 104, "partly folded polypeptide;", { s: 12, c: GREY }) + T(460, 118, "hydrophobic patches exposed", { s: 12, c: GREY });
+    s += L(516, 80, 548, 80, { c: GREY, w: 1.6, m: "ch-a" });
+    s += `<ellipse cx="610" cy="48" rx="50" ry="11" fill="#f3d9b5" stroke="${AMBER}" stroke-width="2.2"/><rect x="564" y="56" width="92" height="96" rx="12" fill="#fbf0d8" stroke="${AMBER}" stroke-width="2.6"/><line x1="564" y1="104" x2="656" y2="104" stroke="${AMBER}" stroke-width="1.6"/><path d="M584 90 c 10 -14, 22 12, 32 0 s 22 12, 32 -4" fill="none" stroke="${INK}" stroke-width="2"/>` + bead(600, 86, "h") + bead(626, 92, "h");
+    s += T(610, 172, "chaperonin", { s: 12, w: 700, c: AMBER }) + T(610, 186, "barrel with a lid; the chain", { s: 12, c: GREY }) + T(610, 200, "folds inside, shielded", { s: 12, c: GREY });
+    s += L(664, 100, 690, 100, { c: GREY, w: 1.6, m: "ch-a" });
+    s += `<path d="M700 82 C 712 66, 744 68, 748 92 C 752 116, 728 128, 712 120 C 696 112, 690 96, 700 82z" fill="${MINT}" stroke="${TEAL}" stroke-width="2"/>` + bead(718, 96, "h", 5) + bead(729, 102, "h", 5) + bead(722, 108, "h", 5) + T(754, 140, "folded protein:", { s: 12, w: 700, c: TEAL, a: "end" }) + T(754, 154, "hydrophobic", { s: 12, c: GREY, a: "end" }) + T(754, 168, "R groups inside", { s: 12, c: GREY, a: "end" });
+    s += T(570, 236, "The chaperone does not supply the shape: the amino-acid", { s: 12 }) + T(570, 252, "sequence does. It stops wrong interactions so the chain", { s: 12 }) + T(570, 268, "can fold correctly. Many chaperones use energy from ATP.", { s: 12 }) + T(570, 296, "Schematic.", { s: 12, c: GREY });
     return s + "</svg>";
   };
 

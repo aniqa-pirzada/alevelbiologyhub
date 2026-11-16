@@ -63,17 +63,16 @@ window.BIO = window.BIO || {}; window.BIO.labModels = window.BIO.labModels || {}
 
   B.views.bench = function (host, n, onRun) {
     host.innerHTML = `
-      <div class="bench-wrap">
+      <div class="bench-wrap ix-bench-full bench-cat">
         <div class="bench-steps" id="bsteps"></div>
-        <div class="bench-shelf" id="shelf" aria-label="Apparatus and reagents shelf" data-empty="Everything is on the bench. Set the conditions on the right, then add the catalase."></div>
-        <svg class="bench-svg" id="bench" viewBox="0 0 900 430" role="img" aria-label="Laboratory bench">
+        <div class="bench-stage"><p class="bench-say" aria-hidden="true"></p><svg class="bench-svg" id="bench" viewBox="0 0 900 430" role="img" aria-label="Laboratory bench">
           <defs><linearGradient id="bgw" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#eef6fb"/><stop offset="1" stop-color="#dde9f1"/></linearGradient><clipPath id="flaskclip"><path d="M258 190h44v38l54 100a6 6 0 0 1-5 9H209a6 6 0 0 1-5-9l54-100z"/></clipPath></defs>
           <rect x="0" y="380" width="900" height="50" fill="#d8cfc2"/><rect x="0" y="376" width="900" height="6" fill="#bfb3a3"/>
           <g id="zbath" class="zone" data-zone="zbath"><rect x="150" y="228" width="300" height="150" rx="8" class="zone-rect"/><text x="300" y="310" class="zone-label">drop the water bath here</text></g>
           <g id="g-bath" hidden><rect x="150" y="228" width="300" height="150" rx="8" fill="#dbe9f3" stroke="#5a7d96" stroke-width="2"/><rect x="158" y="246" width="284" height="124" fill="#bfe0f5" id="bathwater"/><rect x="150" y="228" width="300" height="12" fill="#8aa9bd"/><g id="heat" opacity="0"><rect x="158" y="356" width="284" height="14" fill="#ff8a65"/></g><text x="300" y="396" font-size="12" text-anchor="middle" fill="#3f5a6e">water bath · <tspan id="bathT">30</tspan> °C</text></g>
           <g id="zflask" class="zone" data-zone="zflask"><rect x="200" y="186" width="160" height="152" rx="10" class="zone-rect"/><text x="280" y="268" class="zone-label">flask</text></g>
           <g id="g-flask" hidden>
-            <g clip-path="url(#flaskclip)"><rect id="liquid" x="190" y="337" width="180" height="0" fill="#c3dcf6" opacity=".9"/><g id="discs"></g><g id="bubbles"></g></g>
+            <g clip-path="url(#flaskclip)"><rect id="liquid" x="190" y="337" width="180" height="0" fill="#8fbfe8" opacity=".95"/><g id="discs"></g><g id="bubbles"></g></g>
             <path d="M258 190h44v38l54 100a6 6 0 0 1-5 9H209a6 6 0 0 1-5-9l54-100z" fill="rgba(255,255,255,.35)" stroke="#476a85" stroke-width="2.5"/>
           </g>
           <g id="zthermo" class="zone" data-zone="zthermo"><rect x="380" y="150" width="40" height="200" rx="8" class="zone-rect"/><text x="400" y="255" class="zone-label" transform="rotate(-90 400 255)">thermometer</text></g>
@@ -83,9 +82,11 @@ window.BIO = window.BIO || {}; window.BIO.labModels = window.BIO.labModels || {}
           <g id="zbung" class="zone" data-zone="zbung"><rect x="246" y="150" width="68" height="40" rx="8" class="zone-rect"/><text x="280" y="175" class="zone-label">bung</text></g>
           <g id="g-bung" hidden><path d="M262 188h36l4 -22h-44z" fill="#8c6f4e" stroke="#5a4631" stroke-width="2"/><path id="tube" d="M280 166V130c0-14 10-14 24-14h260c12 0 16 4 16 16v42" fill="none" stroke="#476a85" stroke-width="3" stroke-dasharray="1000" stroke-dashoffset="1000"/></g>
           <g id="pour" hidden><g id="pourbottle"><rect x="190" y="90" width="28" height="60" rx="4" fill="#f7fbff" stroke="#476a85" stroke-width="2"/></g><path id="stream" d="M218 150q30 0 50 60" fill="none" stroke="#9ec9f0" stroke-width="5" stroke-linecap="round" opacity="0"/></g>
+          <g id="minigraph" aria-hidden="true"></g>
           <text id="msg" x="450" y="60" font-size="15" text-anchor="middle" fill="#1d3a52" font-weight="600"></text>
           <text id="clock" x="860" y="60" font-size="22" text-anchor="end" fill="#1d3a52" font-family="ui-monospace, monospace" font-weight="700">0 s</text>
-        </svg>
+        </svg></div>
+        <div class="bench-shelf" id="shelf" aria-label="Apparatus and reagents shelf" data-empty="Everything is on the bench. Set the conditions below, then add the catalase."></div>
         <div class="bench-controls">
           <label>Water-bath temperature: <strong><span id="tv">30</span> °C</strong><input type="range" id="temp" min="0" max="80" value="30" step="5"></label>
           <label>Hydrogen peroxide concentration: <strong><span id="sv">2.0</span> %</strong><input type="range" id="sub" min="0.25" max="6" value="2" step="0.25"></label>
@@ -94,18 +95,17 @@ window.BIO = window.BIO || {}; window.BIO.labModels = window.BIO.labModels || {}
           <div class="row"><button class="btn primary" id="start" disabled>Add catalase &amp; start clock</button><label class="small"><input type="checkbox" id="fast" checked> fast-forward (20×)</label><button class="btn" id="resetb">Reset bench</button></div>
           <div class="readout" id="readout">Set up the apparatus: drag or click each item on the shelf.</div>
         </div>
-      </div>
-      <div id="livechart" class="mt"></div>`;
+      </div>`;
 
     const svg = $("#bench", host), shelf = $("#shelf", host), msg = $("#msg", host), readout = $("#readout", host), start = $("#start", host);
     const placed = new Set(); let running = false, raf = null;
     const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches || document.documentElement.classList.contains("reduce-motion");
-    const say = (t) => { msg.textContent = t; };
+    const say = (t) => { msg.textContent = t; const bs = $(".bench-say", host); if (bs) bs.textContent = t; };
     const bind = (id, out, fmt = (v) => v) => { const i = $("#" + id, host); const o = $("#" + out, host); i.addEventListener("input", () => { o.textContent = fmt(i.value); if (id === "temp") bathTemp(); }); };
     bind("temp", "tv"); bind("ph", "pv", (v) => (+v).toFixed(1)); bind("sub", "sv", (v) => (+v).toFixed(2)); bind("enz", "ev", (v) => (+v).toFixed(2));
 
     // syringe scale
-    const scale = $("#scale", svg); for (let i = 0; i <= 10; i++) { const x = 582 + i * 22; scale.insertAdjacentHTML("beforeend", `<line x1="${x}" y1="196" x2="${x}" y2="${i % 5 ? 202 : 206}" stroke="#476a85" stroke-width="1"/>${i % 5 ? "" : `<text x="${x}" y="215" font-size="8" text-anchor="middle" fill="#476a85">${i * 10}</text>`}`); }
+    const scale = $("#scale", svg); for (let i = 0; i <= 10; i++) { const x = 582 + i * 22; scale.insertAdjacentHTML("beforeend", `<line x1="${x}" y1="196" x2="${x}" y2="${i % 5 ? 202 : 206}" stroke="#476a85" stroke-width="1"/>${i % 5 ? "" : `<text x="${x}" y="217" font-size="11" text-anchor="middle" fill="#476a85">${i * 10}</text>`}`); }
 
     function steps() {
       const done = (id) => placed.has(id);
@@ -116,6 +116,7 @@ window.BIO = window.BIO || {}; window.BIO.labModels = window.BIO.labModels || {}
       shelf.innerHTML = "";
       ITEMS.forEach((it) => { if (placed.has(it.id) || it.id === "catalase") return; const ready = !(it.needs || []).some((d) => !placed.has(d)); shelf.append(el(`<button class="shelf-item ${it.kind} ${ready ? "" : "locked"}" data-id="${it.id}" title="${ready ? "Drag onto the bench or press Enter to place" : "Needs: " + it.needs.map((d) => ITEMS.find((x) => x.id === d).name).join(", ")}"><svg viewBox="0 0 60 60" width="56" height="56" aria-hidden="true">${icon(it.id)}</svg><span>${esc(it.name)}</span></button>`)); });
       steps(); start.disabled = !(placed.has("bung") && placed.has("h2o2") && placed.has("thermo")) || running;
+      if (!start.disabled && !running && !placed.has("catalase")) readout.textContent = "Apparatus ready. Set the conditions, then add the catalase."; // P-05
     }
     function place(id) {
       const it = ITEMS.find((x) => x.id === id); if (!it || placed.has(id)) return false;
@@ -135,7 +136,7 @@ window.BIO = window.BIO || {}; window.BIO.labModels = window.BIO.labModels || {}
       const dur = reduce ? 0 : 1200; stream.style.transition = `opacity .2s`; stream.style.opacity = 1;
       liq.style.transition = reduce ? "none" : `height ${dur}ms linear, y ${dur}ms linear`; liq.setAttribute("height", "0"); liq.setAttribute("y", "337");
       requestAnimationFrame(() => { liq.style.height = "70px"; liq.style.y = "267px"; liq.setAttribute("height", "70"); liq.setAttribute("y", "267"); });
-      setTimeout(() => { stream.style.opacity = 0; p.setAttribute("hidden", ""); say(`${$("#sv", host).textContent}% hydrogen peroxide in the flask, equilibrating at ${$("#tv", host).textContent} °C.`); }, dur + 200);
+      setTimeout(() => { stream.style.opacity = 0; p.setAttribute("hidden", ""); if (!running) say(`${$("#sv", host).textContent}% hydrogen peroxide in the flask, equilibrating at ${$("#tv", host).textContent} °C.`); }, dur + 200);
     }
     function bathTemp() {
       const T = +$("#temp", host).value; $("#bathT", svg).textContent = T; $("#heat", svg).style.opacity = Math.max(0, (T - 20) / 60).toFixed(2);
@@ -159,23 +160,29 @@ window.BIO = window.BIO || {}; window.BIO.labModels = window.BIO.labModels || {}
       const T = +$("#temp", host).value, pH = +$("#ph", host).value, S = +$("#sub", host).value, E = +$("#enz", host).value;
       const res = B.labModels.catalaseRun(T, pH, S, E); const series = res.series;
       const discs = $("#discs", svg); discs.innerHTML = [0, 1, 2].map((i) => `<circle cx="${262 + i * 18}" cy="${330 - (i % 2) * 6}" r="7" fill="#e9d49a" stroke="#b89a4c" class="disc" style="animation-delay:${i * 0.12}s"/>`).join("");
-      say(`Catalase in: clock started. ${res.v0 < 1 ? "Barely any oxygen: the enzyme is denatured or conditions are far from optimum." : ""}`);
+      say(res.v0 < 1 ? "Catalase added: barely any oxygen. The enzyme is denatured or conditions are far from optimum." : "Catalase added: oxygen is collecting in the gas syringe.");
+      readout.textContent = `Running at ${T} °C, pH ${pH.toFixed(1)}, ${S}% hydrogen peroxide, catalase ×${E}…`;
+      // R9-15: a small volume–time graph draws itself on the bench, beside the syringe, so the bench and the graph are seen together
+      const ymax = Math.min(B.labModels.params.SYRINGE_MAX, Math.max(20, Math.ceil((Math.max(...res.fine) * 1.1) / 10) * 10)); const GX = (x) => 624 + (x / 180) * 252, GY = (y) => 340 - (Math.min(y, ymax) / ymax) * 92;
+      const mini = (t) => { const pts = []; for (let s2 = 0; s2 <= t; s2 += 3) pts.push(`${GX(s2).toFixed(1)},${GY(Math.min(maxV, res.fine[s2])).toFixed(1)}`); pts.push(`${GX(t).toFixed(1)},${GY(Math.min(maxV, volAt(t))).toFixed(1)}`);
+        $("#minigraph", svg).innerHTML = `<rect x="590" y="240" width="296" height="134" rx="8" fill="#fff" opacity=".92"/><line x1="624" y1="248" x2="624" y2="340" stroke="#16263a"/><line x1="624" y1="340" x2="876" y2="340" stroke="#16263a"/>${[0, 60, 120, 180].map((x) => `<text x="${GX(x)}" y="354" font-size="12" text-anchor="middle" fill="#3f5a6e">${x}</text>`).join("")}<text x="618" y="344" font-size="12" text-anchor="end" fill="#3f5a6e">0</text><text x="618" y="${GY(ymax) + 5}" font-size="12" text-anchor="end" fill="#3f5a6e">${ymax}</text><text x="750" y="369" font-size="12" text-anchor="middle" fill="#16263a">time / s</text><text x="600" y="294" font-size="12" text-anchor="middle" fill="#16263a" transform="rotate(-90 600 294)">O₂ / cm³</text><polyline points="${pts.join(" ")}" fill="none" stroke="#1f8a85" stroke-width="2.5"/>`; };
+      const maxV = B.labModels.params.SYRINGE_MAX;
       const bubbles = $("#bubbles", svg), gas = $("#gas", svg), plunger = $("#plunger", svg), vol = $("#vol", svg), clock = $("#clock", svg);
       const volAt = (t) => { const i = Math.min(179, Math.floor(t)); const a = res.fine[i], b = res.fine[i + 1]; return a + (b - a) * (t - i); };
-      const maxV = B.labModels.params.SYRINGE_MAX; const t0 = performance.now(); let lastBubble = 0, lastChart = -1;
+      const t0 = performance.now(); let lastBubble = 0, lastChart = -1;
       const speed = () => ($("#fast", host).checked ? 20 : 1);
       const tick = (now) => {
-        const t = Math.min(180, ((now - t0) / 1000) * speed()); const v = Math.min(maxV, volAt(t)); const px = (v / maxV) * 216;
+        const t = Math.max(0, Math.min(180, ((now - t0) / 1000) * speed())); /* a frame time can fall just before t0 */ const v = Math.min(maxV, volAt(t)); const px = (v / maxV) * 216;
         gas.setAttribute("width", px); plunger.setAttribute("transform", `translate(${px} 0)`); vol.textContent = v.toFixed(1); clock.textContent = `${Math.floor(t)} s`;
         const rate = (res.fine[Math.min(180, Math.ceil(t))] - res.fine[Math.max(0, Math.floor(t) - 1)]) * 60 / 2; // instantaneous model rate, cm3 min-1, drives the bubbling
         if (!reduce && now - lastBubble > 1000 / Math.max(1, Math.min(14, rate * 1.2)) && rate > 0.3) { lastBubble = now; const x = 232 + Math.random() * 96, y = 335; bubbles.insertAdjacentHTML("beforeend", `<circle cx="${x}" cy="${y}" r="${2 + Math.random() * 3}" fill="#fff" stroke="#9ec9f0" class="bubble"/>`); const b = bubbles.lastElementChild; setTimeout(() => b.remove(), 1600); if (bubbles.childElementCount > 40) bubbles.firstElementChild.remove(); }
-        if (Math.floor(t / 10) !== lastChart) { lastChart = Math.floor(t / 10); const pts = series.filter((p) => p.x <= t).concat(t % 30 ? [{ x: +t.toFixed(0), y: +v.toFixed(1) }] : []); $("#livechart", host).innerHTML = `<p class="small"><strong>Volume of O₂ against time</strong> at ${T} °C, pH ${pH.toFixed(1)}, ${S}% substrate, enzyme ×${E}</p>` + B.charts.line(pts.length > 1 ? pts : [{ x: 0, y: 0 }, { x: 1, y: 0 }], { xLabel: "time / s", yLabel: "volume of O₂ / cm³", width: 560, height: 240 }); }
+        if (Math.floor(t / 2) !== lastChart || t >= 180) { lastChart = Math.floor(t / 2); mini(t); }
         if (t < 180) raf = requestAnimationFrame(tick); else finish();
       };
       const finish = () => { running = false; $("#resetb", host).disabled = false; readout.textContent = `Initial rate (volume at 30 s × 2) ≈ ${res.init} cm³ min⁻¹.${res.full ? ` The syringe was full after ${res.full} s, so later readings are capped at ${maxV} cm³.` : ""} Result added to the table below. Reset the bench to repeat at another setting.`; say(res.full ? "Syringe full: the later readings are not usable." : "Run complete: record the volumes and repeat for a mean."); onRun({ T, pH, S, E, series, init: res.init, full: res.full, yieldMax: res.yieldMax, v0: res.v0 }); };
       raf = requestAnimationFrame(tick);
     });
-    $("#resetb", host).addEventListener("click", () => { if (raf) cancelAnimationFrame(raf); running = false; placed.clear(); ITEMS.forEach((it) => { const z = $("#" + it.zone, svg); z.removeAttribute("hidden"); const g = $("#g-" + it.id, svg); if (g) g.setAttribute("hidden", ""); }); $("#liquid", svg).setAttribute("height", "0"); $("#liquid", svg).style.height = "0px"; $("#liquid", svg).style.y = "337px"; $("#discs", svg).innerHTML = ""; $("#bubbles", svg).innerHTML = ""; $("#gas", svg).setAttribute("width", 0); $("#plunger", svg).setAttribute("transform", "translate(0 0)"); $("#vol", svg).textContent = "0.0"; $("#clock", svg).textContent = "0 s"; $("#tube", svg).style.transition = "none"; $("#tube", svg).style.strokeDashoffset = "1000"; say(""); readout.textContent = "Bench cleared. Set up the apparatus again for the next run (keep everything but the variable you are testing the same)."; drawShelf(); });
+    $("#resetb", host).addEventListener("click", () => { if (raf) cancelAnimationFrame(raf); running = false; placed.clear(); ITEMS.forEach((it) => { const z = $("#" + it.zone, svg); z.removeAttribute("hidden"); const g = $("#g-" + it.id, svg); if (g) g.setAttribute("hidden", ""); }); $("#liquid", svg).setAttribute("height", "0"); $("#liquid", svg).style.height = "0px"; $("#liquid", svg).style.y = "337px"; $("#discs", svg).innerHTML = ""; $("#bubbles", svg).innerHTML = ""; $("#gas", svg).setAttribute("width", 0); $("#plunger", svg).setAttribute("transform", "translate(0 0)"); $("#vol", svg).textContent = "0.0"; $("#clock", svg).textContent = "0 s"; $("#minigraph", svg).innerHTML = ""; $("#tube", svg).style.transition = "none"; $("#tube", svg).style.strokeDashoffset = "1000"; say(""); readout.textContent = "Bench cleared. Set up the apparatus again for the next run (keep everything but the variable you are testing the same)."; drawShelf(); });
     drawShelf(); say("Drag the water bath onto the bench to begin.");
     B.views.bench.place = place; // exposed for tests
   };

@@ -124,7 +124,8 @@ window.BIO = window.BIO || {};
   // ---------- Diagram labelling (accessible: numbered hotspots + select per hotspot) ----------
   // q.svg (string), q.labels = [{n, answer}] ; q.bank = all label strings
   function renderLabel(q, body) {
-    body.innerHTML = `<div class="figure"><div class="fig-view">${q.svg}</div></div>${q.drag ? '<p class="small muted">Drag a label onto a numbered box, or use the drop-down lists (keyboard friendly). Dropping a label sets the matching list.</p><div class="drag-bank" id="bank"></div><div class="drop-grid" id="drops"></div>' : ""}<div class="match-grid"></div>`;
+    // figure and answer lists side by side on wide screens (release review 2026-11-15), stacked on phones
+    body.innerHTML = `<div class="lbl-split"><div class="figure lbl-fig"><div class="fig-view">${q.svg}</div></div><div class="lbl-answers">${q.drag ? '<p class="small muted">Drag each label onto its numbered box.</p><div class="drag-bank" id="bank"></div><div class="drop-grid" id="drops"></div>' : ""}${q.drag ? '<details class="lbl-lists mt"><summary class="small">Answer with drop-down lists instead (keyboard friendly)</summary><div class="match-grid mt"></div></details>' : '<div class="match-grid"></div>'}</div></div>`;
     const grid = $(".match-grid", body); const bank = shuffle(q.bank || q.labels.map((l) => l.answer));
     q.labels.forEach((l) => { grid.append(el(h`<div>Label ${l.n}</div>`)); const sel = el(`<select data-n="${l.n}" aria-label="label ${l.n}"><option value="">choose…</option></select>`); bank.forEach((b) => sel.append(el(h`<option value="${b}">${b}</option>`))); grid.append(sel); });
     if (q.drag) wireDrag(q, body, bank);
@@ -167,7 +168,7 @@ window.BIO = window.BIO || {};
       revealed = true; reveal.disabled = true; ta.readOnly = true; schemeBox.hidden = false;
       schemeBox.innerHTML = h`<div class="markscheme"><strong>Mark scheme (${q.marks} marks).</strong> Tick each point your answer makes clearly.
         <div class="selfmark">${raw(q.scheme.map((p, i) => h`<label><input type="checkbox" data-m="${p.marks}" data-i="${i}"> <span>${p.point} <span class="badge">${p.marks}</span></span></label>`).join(""))}</div>
-        ${q.alternatives ? raw(`<p class="small mt"><strong>Accept:</strong> ${esc(q.alternatives)}</p>`) : ""}
+        ${q.alternatives ? raw(`<p class="small mt"><strong>Marking notes:</strong> ${esc(q.alternatives)}</p>`) : ""}
         ${q.commonErrors ? raw(`<p class="small"><strong>Common errors:</strong> ${esc(q.commonErrors)}</p>`) : ""}
         ${q.levels ? raw(`<p class="small"><strong>Level descriptors:</strong> ${esc(q.levels)}</p>`) : ""}
         <details class="mt"><summary>Model answer</summary><p class="small">${q.model}</p></details></div>`;

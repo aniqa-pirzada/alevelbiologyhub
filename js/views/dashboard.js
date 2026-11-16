@@ -49,14 +49,22 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
 
   B.views.dashboard = function () {
     const s = B.store.get(); const P = B.progress;
-    const cov = P.coverage(); const mas = P.mastery(); const ret = P.retention(); const streak = P.streak();
+    // Counts are scoped to the student's course (an AS student sees AS units only; release review 2026-11-16).
+    const inC = (ref) => (B.profile ? B.profile.inScope(ref) : true);
+    const cov = P.coverage((x) => inC(x.ref)); const mas = P.mastery((a) => inC(a.ref)); const ret = P.retention(); const streak = P.streak();
     const due = B.flashcards.dueCards(B.flashcards.all()).length;
     const recent = s.attempts.slice(-5).reverse();
-    const recs = P.recommendations(4);
+    const recs = (B.profile ? P.recommendations(12).filter((r) => B.profile.inScope(r.ref)) : P.recommendations(4)).slice(0, 4);
     const openMistakes = Object.values(s.mistakes).filter((m) => !m.resolved).length;
-    const authored = Object.values(B.content || {}).filter((c) => c.status !== "not_started").length;
+    const authored = Object.entries(B.content || {}).filter(([ref, c]) => c.status !== "not_started" && inC(ref)).length;
     const name = s.prefs.name ? ", " + esc(s.prefs.name) : "";
-    const noData = !s.attempts.length && !Object.keys(s.coverage).length;
+    // Flashcards: a manageable session, never the whole backlog (flashcard redesign 2026-11-09). B.flashcards.plan returns
+    // the cards a 15-card session would use; older builds without it fall back to the plain hub link.
+    const plan = B.flashcards.plan ? B.flashcards.plan({ size: 15 }) : null;
+    const fcN = plan ? plan.cards.length : 0;
+    const fcBtn = plan ? (fcN ? h`<a class="btn" href="#/flashcards/session" id="fc-start">Review ${fcN} flashcard${fcN === 1 ? "" : "s"}</a>` : h`<a class="btn" href="#/flashcards/new" id="fc-start">Practise 5 new flashcards</a>`) : '<a class="btn" href="#/flashcards">Review flashcards</a>';
+    const course = B.profile ? B.profile.course() : (s.prefs.level === "A2" ? "y13" : "y12");
+    const noData = !s.attempts.length && !Object.keys(s.coverage).length && !Object.values(s.cards || {}).some((c) => (c.history || []).length);
     const todayKey = B.util.dayKey(); const todayActions = (s.activity[todayKey] || { actions: 0 }).actions; const goal = s.prefs.dailyGoal || 10;
     const lastVisited = Object.entries(s.coverage).filter(([, c]) => c.visited).sort((x, y) => y[1].visited - x[1].visited)[0];
     const lastRef = lastVisited ? lastVisited[0] : null; const lastTitle = lastRef ? (B.views.lib.findSub(lastRef) || { s: { title: "" } }).s.title : "";
@@ -64,20 +72,21 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
     const journey = (title, sub, units, href) => h`<div class="card"><div class="eyebrow">${sub}</div><h3>${title}</h3><div class="units">${raw(units.map(unitRow).join(""))}</div><a class="btn primary" href="${href}">${lastRef && units.some((u) => lastRef.startsWith(u.ref + ".")) ? "Continue " + lastRef : "Start here"}</a></div>`;
     const AS = B.spec.units.filter((u) => u.level === "AS"), A2 = B.spec.units.filter((u) => u.level === "A2");
     const html = h`
-      <div class="hero mb"><div><div class="eyebrow">OxfordAQA 9610 · ${s.prefs.level === "A2" ? "A-level (Units 1–5)" : "AS (Units 1–2)"}</div><h1>${timeGreeting()}${raw(name)}</h1>
-        <p class="lede">Understand more. One subsection at a time. Everything you do here is saved privately in this browser.</p>
-        <div class="row"><a class="btn primary" href="${lastRef ? "#/topic/" + lastRef : "#/library"}">${lastRef ? "Continue " + lastRef : "Open the Revision Library"}</a><a class="btn" href="#/flashcards">Review flashcards${due ? ` (${due} due)` : ""}</a><button class="btn ghost" id="set-name">${s.prefs.name ? "Change name / level" : "Set your name and level"}</button></div></div>${raw(hero)}</div>
+      <div class="hero mb"><div><div class="eyebrow">OxfordAQA 9610 · ${B.profile ? B.profile.COURSES[course].short : ""}</div><h1>${timeGreeting()}${raw(name)}.</h1>
+        <p class="lede">Ready to make some progress? Continue where you left off or revise something that needs more practice.</p>
+        <div class="row"><a class="btn primary" href="${lastRef ? "#/topic/" + lastRef : "#/library"}">${lastRef ? "Continue learning: " + lastRef : "Start learning"}</a>${raw(fcBtn)}<a class="btn" href="#/progress">View progress</a>${recs.length ? raw(h`<a class="btn" href="#/topic/${recs[0].ref}">Recommended: ${recs[0].ref}</a>`) : ""}</div>
+        ${plan && plan.dueTotal > fcN ? raw(h`<p class="tiny muted fc-due-note">${plan.dueTotal} flashcards are due altogether. Short sessions work better than clearing them all at once.</p>`) : ""}</div>${raw(hero)}</div>
 
       ${noData ? raw(h`<div class="notice sage mb"><strong>Nothing recorded yet.</strong> Good places to start: read <a href="#/topic/3.1.1.1">3.1.1.1 Monomers and polymers</a>, then try its quick retrieval check, or run <a href="#/lab/1">Required practical 1</a> in the virtual lab.</div>`) : ""}
 
-      <div class="journey mb">
+      <div class="journey mb${course === "y12" ? " journey-one" : ""}">
         ${raw(journey("AS: The diversity of living organisms and Biological systems and disease", "Year 12 · BL01 and BL02", AS, lastRef && AS.some((u) => lastRef.startsWith(u.ref + ".")) ? "#/topic/" + lastRef : "#/library/3.1"))}
-        ${raw(journey("A2: Populations and genes, Control, and the synoptic paper", "Year 13 · BL03, BL04 and BL05", A2, lastRef && A2.some((u) => lastRef.startsWith(u.ref + ".")) ? "#/topic/" + lastRef : "#/library/3.3"))}
+        ${course === "y12" ? "" : raw(journey("A2: Populations and genes, Control, and the synoptic paper", "Year 13 · BL03, BL04 and BL05", A2, lastRef && A2.some((u) => lastRef.startsWith(u.ref + ".")) ? "#/topic/" + lastRef : "#/library/3.3"))}
       </div>
 
       <div class="grid grid-2 mb">
         <div class="card"><div class="today">${raw(ring(todayActions, goal, "actions today"))}<div><div class="eyebrow">Today</div><p class="small" style="margin:.2rem 0">${todayActions >= goal ? "Daily goal reached. Anything more is a bonus." : `${goal - todayActions} more question${goal - todayActions === 1 ? "" : "s"}, flashcards or pages to reach today's goal.`}</p><p class="tiny muted">Missed days are never penalised. Goal: ${goal} actions a day (<button class="btn sm ghost" id="set-goal" style="padding:0 .3rem">change</button>).</p></div></div></div>
-        <div class="card"><div class="grid grid-4" style="gap:.6rem"><div class="stat"><span class="v count" data-v="${cov.pct}" data-suffix="%">${cov.pct}%</span><span class="l">coverage</span></div><div class="stat"><span class="v">${mas.pct == null ? "–" : raw(`<span class="count" data-v="${mas.pct}" data-suffix="%">${mas.pct}%</span>`)}</span><span class="l">mastery</span></div><div class="stat"><span class="v">${ret.pct == null ? "–" : raw(`<span class="count" data-v="${ret.pct}" data-suffix="%">${ret.pct}%</span>`)}</span><span class="l">retention</span></div><div class="stat"><span class="v count" data-v="${streak}">${streak}</span><span class="l">day streak</span></div></div><p class="tiny muted mt">${cov.completed} of ${cov.total} subsections complete · ${mas.questions} distinct question${mas.questions === 1 ? "" : "s"} · ${due} flashcards due · ${openMistakes} open mistakes</p></div>
+        <div class="card"><div class="grid grid-4" style="gap:.6rem"><div class="stat"><span class="v count" data-v="${cov.pct}" data-suffix="%">${cov.pct}%</span><span class="l">coverage</span></div><div class="stat"><span class="v">${mas.pct == null ? "–" : raw(`<span class="count" data-v="${mas.pct}" data-suffix="%">${mas.pct}%</span>`)}</span><span class="l">mastery</span></div><div class="stat"><span class="v">${ret.pct == null ? "–" : raw(`<span class="count" data-v="${ret.pct}" data-suffix="%">${ret.pct}%</span>`)}</span><span class="l">retention</span></div><div class="stat"><span class="v count" data-v="${streak}">${streak}</span><span class="l">day streak</span></div></div><p class="tiny muted mt">${cov.completed} of ${cov.total} subsections complete · ${mas.questions} distinct question${mas.questions === 1 ? "" : "s"} · ${plan ? plan.dueTotal : due} flashcard${(plan ? plan.dueTotal : due) === 1 ? "" : "s"} due · ${openMistakes} open mistakes</p></div>
       </div>
 
       <div class="grid grid-2">
@@ -91,32 +100,31 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
       </div>
 
       <div class="card mt"><div class="card-head"><h3>Content available now</h3><span class="badge">${authored} authored subsections · ${Object.values(B.practicals).filter((p) => p.status !== "not_started").length} practical${Object.values(B.practicals).filter((p) => p.status !== "not_started").length === 1 ? "" : "s"}</span></div>
-        <p class="small muted">The platform is being built unit by unit. Subsections without authored notes still show their full specification requirements and can be ticked off in the checklist, but have no notes, diagrams or questions yet. See the <a href="#/library">library</a> for status badges.</p>
+        <p class="small muted">Browse every topic in the <a href="#/library">library</a>.</p>
       </div>`;
     B.app.render(html, { title: "Dashboard" });
     countUp($("#content"));
     $("#set-goal").addEventListener("click", () => { const g = parseInt(prompt("Daily goal (questions, flashcards and pages per day):", String(goal)) || goal, 10); if (g > 0) { s.prefs.dailyGoal = Math.min(100, g); B.store.save(); B.views.dashboard(); } });
-    $("#set-name").addEventListener("click", () => {
-      const name = prompt("Your first name (optional, stored only in this browser):", s.prefs.name || "") ?? s.prefs.name;
-      const level = (prompt("Are you studying AS or A2 this year? Type AS or A2:", s.prefs.level) || s.prefs.level).toUpperCase();
-      s.prefs.name = name.trim().slice(0, 40); s.prefs.level = level === "A2" ? "A2" : "AS"; B.store.save(); B.views.dashboard();
-    });
+
   };
 
   B.views.about = function () {
     const m = B.spec.meta;
     B.app.render(h`<div class="page-head"><div><div class="eyebrow">About</div><h1>About this platform, privacy and your data</h1></div></div>
       <div class="stack">
-      <div class="card"><h3>What this is</h3><p>An independent revision platform for Year 12 and 13 students of OxfordAQA International AS and A-level Biology (9610), specification version ${m.specVersion} (${m.validFrom}), created by Aniqa Pirzada. ${m.disclaimer}</p>
+      <div class="card"><h3>About Biology Lab</h3><p>Biology Lab is an independent revision platform for students studying OxfordAQA International AS and A-level Biology (9610). It provides specification-aligned revision notes, interactive activities, practical simulations and examination practice.</p><p>Created by Aniqa Pirzada.</p><p>${m.disclaimer}</p>
+      <p class="small muted"><strong>Specification:</strong> OxfordAQA International Biology (9610), Version ${m.specVersion} (${m.validFrom}).</p>
       <p>Official documents: <a href="${m.specPdfUrl}" target="_blank" rel="noopener">specification PDF</a> · <a href="${m.specPdfAltUrl}" target="_blank" rel="noopener">alternative link (oxfordaqa.com, v5.1)</a> · <a href="${m.sourceUrl}" target="_blank" rel="noopener">qualification page</a>.</p></div>
-      <div class="card"><h3>How questions and flashcards are scored</h3><p class="small">Objective questions: a wrong first attempt gets a "try again" without the answer; the answer and explanation appear after the second attempt or when you get it right. Both attempts are recorded; the immediate retry does not count towards mastery, so mastery reflects what you knew first time. Written answers are self-marked against the mark scheme.</p><p class="small">Flashcards use a transparent SM-2 schedule: Known: 1 day, then 3 days, then the previous interval × ease (ease starts at 2.5). Unsure: interval × 1.2. Not known: back to 1 day with ease reduced. Every review is timestamped so retention can be measured on the Progress page.</p></div>
+      <div class="card"><h3>How questions and flashcards are scored</h3><p class="small">Objective questions: a wrong first attempt gets a "try again" without the answer; the answer and explanation appear after the second attempt or when you get it right. Both attempts are recorded; the immediate retry does not count towards mastery, so mastery reflects what you knew first time. Written answers are self-marked against the mark scheme.</p><p class="small">Flashcards use a transparent SM-2 schedule, reviewed in short sessions (15 cards by default). Good: 1 day, then 3 days, then the previous interval × ease (ease starts at 2.5). Easy: a longer gap than Good (4 days for a first review) and a small ease increase. Hard: interval × 1.2. Again: back to 1 day with ease reduced, and the card returns once later in the same session. Only cards you have already reviewed can be due; new cards are added only when you choose. Every review is timestamped so retention can be measured on the Progress page.</p></div>
       <div class="card"><h3>Image credits</h3>${raw((() => { const av = Object.entries(B.images.slots).filter(([k, v]) => v.status === "available"); return av.length ? "<ul class='small'>" + av.map(([k, v]) => h`<li><strong>${v.alt || k}</strong>: ${v.credit || ""}${v.licence ? " (" + v.licence + ")" : ""}${v.page ? raw(h` · <a href="${v.page}" target="_blank" rel="noopener">source</a>`) : ""}</li>`).join("") + "</ul><p class='tiny muted'>Photographs were resized for the web; no other changes were made. All diagrams and animations are original.</p>" : "<p class='small muted'>No third-party photographs are included in this build. All diagrams are original.</p>"; })())}</div>
+      <div class="card"><h3>Your profile</h3><p class="small">${B.profile && B.profile.name() ? raw(h`Name: <strong>${B.profile.name()}</strong> · `) : ""}Course: <strong>${B.profile ? B.profile.COURSES[B.profile.course()].label : ""}</strong></p><button class="btn" type="button" id="about-profile">Change name or course</button><p class="tiny muted mt">Only a first name and course are stored, in this browser. Changing them never affects your progress.</p></div>
       <div class="card"><h3>Privacy</h3><p>No account is needed and nothing is sent to a server. Your progress, scores, flashcard history, planner and preferences are stored in this browser's local storage under the key <code>${B.store.KEY}</code>. Clearing site data in your browser deletes it. Progress does not synchronise between devices: use Export and Import below to move it.</p><p>No analytics, cookies or third-party tracking are used.</p></div>
       <div class="card"><h3>Your data</h3><div class="row"><button class="btn" id="exp">Export progress (JSON)</button><label class="btn">Import progress <input type="file" id="imp" accept="application/json" hidden></label><button class="btn danger" id="reset">Reset all progress</button></div><p class="small muted mt">Import validates the file structure before replacing your current data. Export files can be shared with your teacher for moderation of self-marked answers.</p></div>
       <div class="card"><h3>Accessibility</h3><p>All interactions work with a keyboard; sequencing and labelling tasks use buttons and selects rather than drag-and-drop; animations respect the system "reduce motion" setting; diagrams carry text descriptions.</p></div>
       </div>`, { title: "About", crumbs: [{ label: "About" }] });
     $("#exp").addEventListener("click", () => B.store.exportJSON());
     $("#imp").addEventListener("change", async (e) => { const f = e.target.files[0]; if (!f) return; const r = await B.store.importJSON(f); B.util.toast(r.ok ? "Progress imported." : "Import failed: " + r.errors.join("; ")); if (r.ok) B.views.about(); });
+    $("#about-profile").addEventListener("click", () => B.onboarding && B.onboarding.open({ mode: "edit" }));
     $("#reset").addEventListener("click", () => { if (confirm("This permanently deletes all progress stored in this browser. Export first if you want a backup. Continue?")) { B.store.reset(); B.util.toast("Progress reset."); location.hash = "#/dashboard"; } });
   };
 })(window.BIO);

@@ -73,3 +73,6 @@
 }
 @media (prefers-reduced-motion: reduce) { .uh-tabs a { transition: none; } }
 html.reduce-motion .uh-tabs a { transition: none; }
+/* dark theme: chart labels drawn with fixed colours stay readable (B4-RC2 finding 2) */
+html[data-theme="dark"] .uh-chart text[fill="#16263a"] { fill: var(--ink); }
+html[data-theme="dark"] .uh-chart text[fill="#166f70"] { fill: var(--teal); }

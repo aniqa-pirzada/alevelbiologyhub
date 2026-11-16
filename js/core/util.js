@@ -45,7 +45,13 @@ window.BIO = window.BIO || {};
     m = x.match(/^([+-])?10\s*\^\s*([+-]?\d+)(?:\s*[^\d.\s^].*)?$/); if (m) return (m[1] === "-" ? -1 : 1) * Math.pow(10, +m[2]);
     m = x.match(/^([+-]?(?:\d+\.?\d*|\.\d+))e([+-]?\d+)(?:\s*[^\d.\s].*)?$/i); if (m) return parseFloat(m[1]) * Math.pow(10, +m[2]); return null; };
   const num0 = (s) => { const m = String(s).trim().replace(/[−–—]/g, "-").replace(/(\d)[,\u0020\u00a0\u2009\u202f](?=\d{3}(?!\d))/g, "$1").match(/^([+-]?(?:\d+\.?\d*|\.\d+))(?:\s*[^\d.\s].*)?$/); return m ? parseFloat(m[1]) : null; };
-  const num = (s) => { const sf = stdForm(s); if (sf !== null) return sf; if (/\d\s*\^|[⁰¹²³⁴⁵⁶⁷⁸⁹]/.test(String(s))) return null; return num0(s); };
+  // Whole-answer powers and fractions are read as numbers (2^8 = 256, 2⁸ = 256, 24/120 = 0.2), so "28" never matches
+  // "2^8" through the text comparison (QA 2026-11-14). Standard form (a × 10^n) is still handled by stdForm.
+  const SUPD = { "⁰": "0", "¹": "1", "²": "2", "³": "3", "⁴": "4", "⁵": "5", "⁶": "6", "⁷": "7", "⁸": "8", "⁹": "9", "⁻": "-" };
+  const powFrac = (s) => { const x = String(s).trim().replace(/[−–—]/g, "-").replace(/([0-9.])([⁰¹²³⁴⁵⁶⁷⁸⁹⁻]+)$/, (m, d, e) => d + "^" + [...e].map((c) => SUPD[c]).join(""));
+    let m = x.match(/^([+-]?\d+(?:\.\d+)?)\s*\^\s*([+-]?\d+)$/); if (m && !/^[+-]?10$/.test(m[1])) return Math.pow(parseFloat(m[1]), parseInt(m[2], 10));
+    m = x.match(/^([+-]?\d+(?:\.\d+)?)\s*\/\s*(\d+(?:\.\d+)?)$/); if (m && parseFloat(m[2]) !== 0) return parseFloat(m[1]) / parseFloat(m[2]); return null; };
+  const num = (s) => { const pf = powFrac(s); if (pf !== null) return pf; const sf = stdForm(s); if (sf !== null) return sf; if (/\d\s*\^|[⁰¹²³⁴⁵⁶⁷⁸⁹]/.test(String(s))) return null; return num0(s); };
   const textKey = (s) => String(s ?? "").toLowerCase().replace(/α/g, "alpha").replace(/β/g, "beta").replace(/[‐‑‒–—-]/g, " ").replace(/[^\p{L}\p{N}\s+]/gu, "").replace(/\s+/g, " ").trim();
   const answerMatches = (given, expected) => { const ne = num(expected); if (ne !== null && /^\s*[+\-−]?[\d.]/.test(String(expected))) { const ng = num(given); return ng !== null && Math.abs(ng - ne) <= 1e-9 * Math.max(1, Math.abs(ne)); } return textKey(given) === textKey(expected) && textKey(given) !== ""; };
   B.util = { esc, h, raw, el, $, $$, fmtDate, fmtDateTime, pct, shuffle, uid, dayKey, toast, normalise, answerMatches, icons };

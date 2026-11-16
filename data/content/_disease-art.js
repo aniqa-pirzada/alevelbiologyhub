@@ -119,40 +119,105 @@ window.BIO = window.BIO || {};
 
   // 1. A mammal's interfaces with the environment. opts.hot: zones are focusable buttons (Pathogen Entry Explorer);
   //    opts.numbers: text labels removed and numbered markers added (labelling question).
+  //    Anatomical figure, anterior view, anatomical position (palms forward). The figure is drawn in its own units
+  //    (an 8-head figure, 60 units per head, midline x = 190) and placed with FIG (scale 1.2); px/py below are the
+  //    leader-line anchors already converted to viewBox units. Organ positions follow a standard anterior view: the
+  //    right lung (viewer's left) has three lobes, the left lung two lobes and a cardiac notch; the left main bronchus is
+  //    longer and more horizontal; the oesophagus lies behind the trachea and heart (dashed where hidden) and turns to the
+  //    body's left to join the stomach under the left dome of the diaphragm; the colon frames the small intestine.
+  //    Heart and liver are drawn faintly in grey for position only.
+  const FIG = { s: 1.2, x: -60, y: -12 }, fx = (x) => +(FIG.s * x + FIG.x).toFixed(1), fy = (y) => +(FIG.s * y + FIG.y).toFixed(1);
   const ZONES = {
-    gas: { name: "Gas-exchange system", sub: "nose, mouth, trachea, bronchi, alveoli", c: BLUE, lx: 330, ly: 112, px: 240, py: 150 },
-    dig: { name: "Digestive system", sub: "mouth, oesophagus, stomach, intestines", c: AMBER, lx: 330, ly: 206, px: 232, py: 210 },
-    rep: { name: "Reproductive system", sub: "e.g. vagina, cervix, penis, urethra", c: ROSE, lx: 330, ly: 300, px: 214, py: 292 },
-    skin: { name: "Skin (when broken)", sub: "cuts, bites, burns, needles", c: GREEN, lx: 330, ly: 384, px: 288, py: 262 },
+    gas: { name: "Gas-exchange system", sub: "nose, mouth, trachea, bronchi, alveoli", c: BLUE, lx: 330, ly: 130, px: fx(228), py: fy(132) },
+    dig: { name: "Digestive system", sub: "mouth, oesophagus, stomach, intestines", c: AMBER, lx: 330, ly: 238, px: fx(214), py: fy(198) },
+    rep: { name: "Reproductive system", sub: "e.g. vagina, cervix, penis, urethra", c: ROSE, lx: 330, ly: 352, px: fx(190), py: fy(251) },
+    skin: { name: "Skin (when broken)", sub: "cuts, bites, burns, needles", c: GREEN, lx: 330, ly: 478, px: fx(231), py: fy(378) },
   };
+  const INTERFACE_NOTES = ["Schematic; organs simplified and not to scale.", "Dashed: oesophagus where it passes behind.", "Grey outlines: heart and liver, for position."];
   function interfacesFig(opts = {}) {
     const id = uid();
-    const body = `<g fill="#f3ede4" stroke="#8a7a68" stroke-width="2">
-      <circle cx="190" cy="58" r="30"/><rect x="178" y="86" width="24" height="20" stroke="none"/>
-      <path d="M130 106 Q190 96 250 106 L244 300 Q190 312 136 300 Z"/></g>
-      <g stroke="#8a7a68" stroke-width="18" stroke-linecap="round" fill="none"><path d="M136 116 L104 262"/><path d="M244 116 L276 262"/><path d="M162 304 L156 410"/><path d="M218 304 L224 410"/></g>
-      <g stroke="#f3ede4" stroke-width="14" stroke-linecap="round" fill="none"><path d="M136 116 L104 262"/><path d="M244 116 L276 262"/><path d="M162 304 L156 410"/><path d="M218 304 L224 410"/></g>`;
+    const LINE = "#8f7d6b"; // skin outline
+    const mir = (d) => d.replace(/(-?\d+(?:\.\d+)?) (-?\d+(?:\.\d+)?)/g, (m, x, y) => `${+(380 - x).toFixed(1)} ${y}`); // mirror about the midline
+    const tube = (d, c, w, f, wi, extra = "") => `<path d="${d}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"${extra}/><path d="${d}" fill="none" stroke="${f}" stroke-width="${wi}" stroke-linecap="round" stroke-linejoin="round"${extra}/>`;
+    // ---- body surface (skin): outline drawn under the fills, so overlapping parts merge into one silhouette ----
+    const HEAD = "M190 20 C209 20 215 34 214 49 C214 60 211 69 206 75 C201 81 196 84 190 84 C184 84 179 81 174 75 C169 69 166 60 166 49 C165 34 171 20 190 20 Z";
+    const NECK = "M180 70 L200 70 C200 80 201 88 203 97 L177 97 C179 88 180 80 180 70 Z";
+    const TORSO = "M201 92 C203 100 213 103 226 105 C238 107 248 110 252 120 C256 130 254 142 246 150 C242 168 234 186 232 200 C232 216 238 232 239 250 C240 262 233 270 222 272 L158 272 C147 270 140 262 141 250 C142 232 148 216 148 200 C146 186 138 168 134 150 C126 142 124 130 128 120 C132 110 142 107 154 105 C167 103 177 100 179 92 Z";
+    const ARM = "M245 114 C255 114 260 126 259 142 L264 204 C266 214 270 226 273 240 L281 282 L268 285 L259 244 C254 232 251 220 250 208 L240 154 C238 140 238 120 245 114 Z";
+    const HAND = "M268 284 C264 293 263 303 264 312 C265 322 268 331 273 336 C277 340 283 339 285 333 C287 326 288 318 287 310 C290 314 292 318 294 318 C296 317 295 311 293 305 C291 298 287 290 282 282 Z";
+    const LEG = "M239 248 C242 280 237 330 231 372 C229 388 233 404 230 432 C228 452 222 468 221 476 C222 480 221.5 484 220.5 487 C226 493 232 499 232 504 C232 508 227 509 215 509 L204 509 C200 508 199 498 200.5 489 C200 485 200 480 201 476 C199 462 197 448 196 430 C194 410 197 390 198 372 C196 330 194 296 190 268 L190 252 Z";
+    const EAR = "M214 46 C219 45 220 52 219 57 C218 62 216 64 213 63 Z";
+    const trunk = [HEAD, NECK, TORSO, LEG, mir(LEG), EAR, mir(EAR)], limbs = [ARM, mir(ARM), HAND, mir(HAND)];
+    const P = (d, a) => `<path d="${d}" ${a}/>`;
+    const defs = `<defs>
+      <linearGradient id="sk-${id}" gradientUnits="userSpaceOnUse" x1="120" y1="0" x2="260" y2="0"><stop offset="0" stop-color="#ddcdbd"/><stop offset=".2" stop-color="#ebe1d5"/><stop offset=".5" stop-color="#f5efe8"/><stop offset=".8" stop-color="#ebe1d5"/><stop offset="1" stop-color="#ddcdbd"/></linearGradient>
+      <linearGradient id="sa-${id}"><stop offset="0" stop-color="#e2d4c5"/><stop offset=".45" stop-color="#f1e9e0"/><stop offset="1" stop-color="#dccbba"/></linearGradient>
+      <radialGradient id="lu-${id}" cx=".45" cy=".4" r=".7"><stop offset="0" stop-color="#e9f1f9"/><stop offset="1" stop-color="#c3d6ea"/></radialGradient>
+      <linearGradient id="st-${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f7ead0"/><stop offset="1" stop-color="#e8cb98"/></linearGradient>
+      <mask id="mk-${id}" maskUnits="userSpaceOnUse" x="0" y="0" width="400" height="520"><rect width="400" height="520" fill="#fff"/>
+        <path d="M184.5 87 L195.5 87 L195.5 133 L184.5 133 Z" fill="#000"/><path d="M188 132 L176 147 M192 132 C198 138 204 142 212 149" stroke="#000" stroke-width="9" fill="none"/>
+        <path d="M184 154 C186 146 198 144 208 150 C218 156 224 172 218 186 C208 190 192 186 184 178 C178 172 180 162 184 154 Z" fill="#000"/></mask></defs>`;
+    const body = `<g>${[...trunk, ...limbs].map((d) => P(d, `fill="${LINE}" stroke="${LINE}" stroke-width="2.6" stroke-linejoin="round"`)).join("")}
+      ${trunk.map((d) => P(d, `fill="url(#sk-${id})"`)).join("")}${limbs.map((d) => P(d, `fill="url(#sa-${id})"`)).join("")}
+      <g fill="none" stroke="${LINE}" stroke-width=".9" stroke-linecap="round" opacity=".55">
+        ${["M271 319 L273 334", "M276 320 L278 337", "M281 319 L282 335", "M287 306 C286 300 284 294 281 290"].map((d) => `<path d="${d}"/><path d="${mir(d)}"/>`).join("")}
+        <path d="M152 111 C162 107 176 111 186 107"/><path d="${mir("M152 111 C162 107 176 111 186 107")}"/>
+        <path d="M184 76 C188 78 192 78 196 76"/></g>
+      <g fill="#ece3d8" stroke="#bfae9b" stroke-width=".9" opacity=".9">
+        <path d="M147 196 C154 188 172 186 192 190 C204 192 212 194 214 198 C206 204 190 210 176 214 C162 218 150 214 147 206 C145 202 145 199 147 196 Z"/>
+        <path d="M184 154 C186 146 198 144 208 150 C218 156 224 172 218 186 C208 190 192 186 184 178 C178 172 180 162 184 154 Z" fill="#efe2df" stroke="#c4aaa6"/></g>
+      <path d="M145 193 C160 181 180 182 190 189 C200 183 220 181 235 195" fill="none" stroke="#bfae9b" stroke-width=".9" stroke-dasharray="3 2" opacity=".8"/></g>`;
+    const bronchTree = `<g fill="none" stroke="${BLUE}" stroke-linecap="round" opacity=".85"><g stroke-width="1.7">
+        <path d="M176 147 C171 140 167 132 163 122"/><path d="M176 147 C173 158 169 168 163 178"/><path d="M204 143 C214 136 220 128 224 120"/><path d="M212 149 C218 160 222 170 226 180"/></g>
+        <g stroke-width="1.1"><path d="M169 164 L155 171"/><path d="M172 157 L179 175"/><path d="M167 134 L156 136"/><path d="M219 164 L229 169"/><path d="M217 132 L228 138"/><path d="M215 156 L208 176"/></g></g>
+      <g fill="${BLUE}" opacity=".45">${[[163, 121], [224, 119], [163, 179], [226, 181], [154, 171], [230, 169], [155, 136], [229, 138], [179, 176], [208, 177]].map(([x, y]) => `<circle cx="${x - 1.6}" cy="${y}" r="1.5"/><circle cx="${x + 1.6}" cy="${y}" r="1.5"/><circle cx="${x}" cy="${y - 2.2}" r="1.5"/>`).join("")}</g>`;
     const organ = {
-      gas: `<path d="M185 70 L185 126 M185 126 L170 140 M185 126 L200 136 L206 142" stroke="${BLUE}" stroke-width="5" fill="none" stroke-linecap="round"/><ellipse cx="160" cy="162" rx="19" ry="36" fill="#cfe0f2" stroke="${BLUE}" stroke-width="2"/><ellipse cx="220" cy="162" rx="19" ry="36" fill="#cfe0f2" stroke="${BLUE}" stroke-width="2"/>`,
-      dig: `<path d="M193 76 L193 150 Q193 190 200 196" stroke="${AMBER}" stroke-width="4" fill="none"/><ellipse cx="212" cy="204" rx="20" ry="12" fill="#f6e4c2" stroke="${AMBER}" stroke-width="2"/><path d="M200 214 C150 222 152 236 198 238 C240 240 236 254 186 256 C148 258 150 270 182 272 L182 288" stroke="${AMBER}" stroke-width="7" fill="none" stroke-linecap="round"/>`,
-      rep: `<path d="M206 280 Q214 270 222 280 L214 300 Z" fill="#f4d6d4" stroke="${ROSE}" stroke-width="2"/>`,
-      skin: `<path d="M282 250 l8 6 m-12 2 l10 6" stroke="${GREEN}" stroke-width="3" stroke-linecap="round"/>`,
+      gas: `${tube("M190 52 L190 90", BLUE, 9, "#dde8f3", 7)}
+        <path d="M190 41 C184 45 181 53 182 62 L198 62 C199 53 196 45 190 41 Z" fill="#dde8f3" stroke="${BLUE}" stroke-width="1.3"/><path d="M190 43 L190 62" stroke="${BLUE}" stroke-width="1"/>
+        <path d="M162 104 C153 106 146 122 145 140 C144 160 144 176 146 188 C152 185 166 182 182 186 C184 172 184 150 182 128 C180 114 172 104 162 104 Z" fill="url(#lu-${id})" stroke="${BLUE}" stroke-width="1.5"/>
+        <path d="M218 104 C229 106 235 122 236 140 C237 158 237 174 235 188 C228 186 218 186 208 190 C206 185 208 181 212 177 C204 175 200 166 202 154 C200 140 200 124 202 116 C206 108 212 104 218 104 Z" fill="url(#lu-${id})" stroke="${BLUE}" stroke-width="1.5"/>
+        <g fill="none" stroke="${BLUE}" stroke-width=".9" opacity=".7"><path d="M180 149 C168 151 156 153 145 156"/><path d="M145 158 C154 166 161 176 165 186"/><path d="M236 138 C229 154 219 170 215 187"/></g>
+        ${bronchTree}
+        <path d="M184 87 L196 87 L195.5 97 L184.5 97 Z" fill="#d3e2f1" stroke="${BLUE}" stroke-width="1.2"/>
+        <rect x="185.5" y="96" width="9" height="37" rx="2" fill="#dde8f3" stroke="${BLUE}" stroke-width="1.2"/>
+        <g stroke="${BLUE}" stroke-width=".8" opacity=".75">${[100, 104.5, 109, 113.5, 118, 122.5, 127].map((y) => `<path d="M186.5 ${y} L193.5 ${y}"/>`).join("")}</g>
+        ${tube("M188 132 C184 137 180 142 176 147", BLUE, 6.4, "#dde8f3", 4.2)}${tube("M192 132 C198 138 204 142 212 149", BLUE, 5.4, "#dde8f3", 3.3)}`,
+      dig: `${tube("M191 217 C184 217 179 222 179 228 C179 234 186 236 194 234", AMBER, 5.5, "#f3e2c0", 3.6)}
+        ${tube("M194 234 C206 230 218 234 214 240 C210 246 196 238 184 240 C172 242 168 248 176 250 C186 252 202 244 212 250 C219 255 210 260 198 258 C186 256 176 258 170 256 C166 255 163 253 161 251", AMBER, 6, "#f5e6c9", 4)}
+        ${tube("M160 258 C163 262 165 264 169 265", AMBER, 3, "#ecd3a6", 1.6)}<circle cx="157" cy="253" r="6.2" fill="#ecd3a6" stroke="${AMBER}" stroke-width="1"/>
+        ${tube("M156 254 L156 217 C156 213 159 211 163 212 C178 222 202 225 219 211 C222 207 225 207 225 212 L225 245 C225 255 212 252 204 255 C197 257 193 260 191 267", AMBER, 10, "#ecd3a6", 8)}
+        <path d="M156 254 L156 217 C156 213 159 211 163 212 C178 222 202 225 219 211 C222 207 225 207 225 212 L225 245" fill="none" stroke="${AMBER}" stroke-width="8" stroke-dasharray="1.1 4.5" opacity=".4"/>
+        <path d="M193 88 C194 110 195 140 196 160 C197 176 200 186 204 193" fill="none" stroke="${AMBER}" stroke-width="6" stroke-dasharray="4 3" opacity=".45"/>
+        <g mask="url(#mk-${id})">${tube("M193 88 C194 110 195 140 196 160 C197 176 200 186 204 193", AMBER, 7, "#f3e2c0", 5)}</g>
+        <path d="M203 194 C204 186 210 182 216 184 C223 186 226 195 225 205 C224 215 219 222 210 224 C203 225 196 224 190 220 L191 214 C196 216 202 215 205 210 C208 205 207 199 204 196 Z" fill="url(#st-${id})" stroke="${AMBER}" stroke-width="1.4" stroke-linejoin="round"/>
+        <g fill="none" stroke="${AMBER}" stroke-width=".7" opacity=".55"><path d="M212 192 C217 198 219 206 216 214"/><path d="M208 202 C213 208 213 214 208 219"/></g>
+        <path d="M181 69 C184 66 196 66 199 69 C196 73 184 73 181 69 Z" fill="#f3dcc0" stroke="${AMBER}" stroke-width="1.2"/>`,
+      rep: `${tube("M190 252 L190 266", ROSE, 4.4, "#f2d6d4", 2.6)}<ellipse cx="190" cy="249" rx="6.5" ry="5" fill="#f2d6d4" stroke="${ROSE}" stroke-width="1.3"/>
+        <circle cx="190" cy="267.5" r="1.8" fill="#fff" stroke="${ROSE}" stroke-width="1.1"/>`,
+      skin: `<g transform="translate(231 378) rotate(35)"><path d="M0 0 L17 0" stroke="#6e7c89" stroke-width="1.1"/><rect x="16" y="-2.2" width="4.5" height="4.4" fill="#cfd8df" stroke="#6e7c89" stroke-width=".8"/>
+          <rect x="20.5" y="-3.6" width="22" height="7.2" rx="1" fill="#eef3f6" stroke="#6e7c89" stroke-width=".9"/><rect x="21.5" y="-2.6" width="10" height="5.2" fill="#d7e6dc"/>
+          <g stroke="#6e7c89" stroke-width=".6">${[25, 29, 33, 37].map((x) => `<path d="M${x} -3.6 L${x} -1.6"/>`).join("")}</g><path d="M42.5 0 L51 0" stroke="#6e7c89" stroke-width="1.6"/><rect x="51" y="-4.5" width="2" height="9" fill="#6e7c89"/></g>
+        <path d="M211 419 C214 421 219 424 223 428 C219 427 214 424 211 419 Z" fill="#9c4a42" stroke="#7a3530" stroke-width=".6"/>
+        <g fill="none" stroke="${GREEN}" stroke-width="1.2" stroke-dasharray="2.5 2"><circle cx="231" cy="378" r="6.5"/><circle cx="217" cy="423.5" r="9"/></g>`,
     };
+    const F = (k) => `<g transform="translate(${FIG.x} ${FIG.y}) scale(${FIG.s})">${organ[k]}</g>`;
     // Hot (Explorer) labels are larger and the detail wraps onto two lines, so they stay legible when the diagram is
-    // scaled down to fit a 390 px screen.
-    const hotSub = (s) => { const p = s.split(", "), h = Math.ceil(p.length / 2); return [p.slice(0, h).join(", ") + (p.length > 1 ? "," : ""), p.slice(h).join(", ")]; };
-    const hotLabel = (z) => { const [a, b2] = hotSub(z.sub); return `<line x1="${z.px}" y1="${z.py}" x2="${z.lx - 6}" y2="${z.ly - 10}" stroke="${z.c}" stroke-width="2"/><circle cx="${z.px}" cy="${z.py}" r="4" fill="${z.c}"/>${T(z.lx, z.ly - 4, z.name, { a: "start", s: 23, w: 700, c: z.c })}${T(z.lx, z.ly + 18, a, { a: "start", s: 17, c: GREY })}${b2 ? T(z.lx, z.ly + 37, b2, { a: "start", s: 17, c: GREY }) : ""}`; };
-    const label = (k, z) => opts.numbers ? "" : opts.hot ? hotLabel(z) : `<line x1="${z.px}" y1="${z.py}" x2="${z.lx - 6}" y2="${z.ly - 4}" stroke="${z.c}" stroke-width="1.5"/><circle cx="${z.px}" cy="${z.py}" r="3" fill="${z.c}"/>${T(z.lx, z.ly - 6, z.name, { a: "start", s: 14, w: 700, c: z.c })}${T(z.lx, z.ly + 12, z.sub, { a: "start", s: 11.5, c: GREY })}`;
-    const num = (z, n) => `<line x1="${z.px}" y1="${z.py}" x2="${z.lx}" y2="${z.ly - 4}" stroke="${INK}" stroke-width="1.5"/><circle cx="${z.lx + 12}" cy="${z.ly - 4}" r="12" fill="#1e3a5f"/>${T(z.lx + 12, z.ly, String(n), { s: 12, w: 700, c: "#fff" })}`;
+    // scaled down to fit a 390 px screen. The static figure uses the same layout slightly smaller.
+    const subLines = (s) => { const p = s.split(", "), h = Math.ceil(p.length / 2); return [p.slice(0, h).join(", ") + (p.length > 1 ? "," : ""), p.slice(h).join(", ")]; };
+    const lead = (z, y2) => `<line x1="${z.px}" y1="${z.py}" x2="${z.lx - 6}" y2="${y2}" stroke="${z.c}" stroke-width="1.6"/><circle cx="${z.px}" cy="${z.py}" r="3.6" fill="${z.c}" stroke="#fff" stroke-width="1.2"/>`;
+    const textLabel = (z, big) => { const [a, b2] = subLines(z.sub), s1 = big ? 23 : 21, s2 = big ? 17 : 16, g = big ? 19 : 18;
+      return `${lead(z, z.ly - 10)}${T(z.lx, z.ly - 4, z.name, { a: "start", s: s1, w: 700, c: z.c })}${T(z.lx, z.ly + g - 1, a, { a: "start", s: s2, c: GREY })}${b2 ? T(z.lx, z.ly + 2 * g - 1, b2, { a: "start", s: s2, c: GREY }) : ""}`; };
+    const num = (z, n) => `<line x1="${z.px}" y1="${z.py}" x2="${z.lx}" y2="${z.ly - 4}" stroke="${INK}" stroke-width="1.5"/><circle cx="${z.px}" cy="${z.py}" r="3.6" fill="${INK}" stroke="#fff" stroke-width="1.2"/><circle cx="${z.lx + 14}" cy="${z.ly - 4}" r="14" fill="#1e3a5f"/>${T(z.lx + 14, z.ly + 1, String(n), { s: 15, w: 700, c: "#fff" })}`;
     const keys = opts.keys || ["gas", "dig", "rep", "skin"];
-    const zones = keys.map((k, i) => { const z = ZONES[k]; const inner = organ[k] + (opts.numbers ? num(z, i + 1) : label(k, z));
+    const zones = keys.map((k, i) => { const z = ZONES[k]; const inner = F(k) + (opts.numbers ? num(z, i + 1) : textLabel(z, opts.hot));
       return opts.hot ? `<g data-zone="${k}" tabindex="0" role="button" aria-label="${z.name}: ${z.sub}" class="dis-zone" style="cursor:pointer">${inner}<rect x="${z.lx - 4}" y="${z.ly - 26}" width="306" height="70" fill="transparent"/></g>` : `<g>${inner}</g>`; }).join("");
     // The hot (Explorer) version contains focusable buttons, so it is a labelled group, not an image (children of
-    // role="img" are hidden from assistive technology). Its labels are drawn larger (see hotLabel) so they stay legible at 390 px.
-    const role = opts.hot ? 'role="group" aria-label="Body diagram: choose an interface with the environment"' : 'role="img" aria-label="Outline of a human body showing the gas-exchange, digestive and reproductive systems and the skin as interfaces with the environment"';
-    return `<svg viewBox="0 0 640 430" width="640" ${role} style="max-width:100%;height:auto" data-fig="${id}">
-      <rect width="640" height="430" fill="#fff"/>${body}${zones}
-      ${opts.numbers ? "" : T(190, 425, "Schematic; organs not to scale", { s: 10.5, c: GREY })}</svg>`;
+    // role="img" are hidden from assistive technology).
+    const role = opts.hot ? 'role="group" aria-label="Body diagram: choose an interface with the environment"' : 'role="img" aria-label="Front view of a human body. Blue: nasal cavity, pharynx, trachea, bronchi and lungs (gas-exchange system). Amber: mouth, oesophagus passing behind the trachea and heart, stomach on the body\'s left, small and large intestine (digestive system). Rose: the reproductive tract opening in the pelvis. Green: a needle entering the skin of the thigh and a cut on the shin (skin when broken)."';
+    // opts.notes === false (the Pathogen Entry Explorer): the three notes are shown as HTML text under the drawing instead
+    const notes = opts.numbers || opts.notes === false ? "" : INTERFACE_NOTES.map((n, i) => T(330, 572 + 18 * i, n, { a: "start", s: 13, c: GREY })).join("");
+    return `<svg viewBox="0 0 640 620" width="640" ${role} style="max-width:100%;height:auto" data-fig="${id}">
+      ${defs}<rect width="640" height="620" fill="#fff"/><g transform="translate(${FIG.x} ${FIG.y}) scale(${FIG.s})">${body}</g>${zones}${notes}</svg>`;
   }
 
   // 2. Bacterium and virus compared (schematic, not to scale)
@@ -175,7 +240,7 @@ window.BIO = window.BIO || {};
       ${bact}${vir}
       ${lab(120, 142, 60, 70, "cell wall", "end")}${lab(160, 150, 160, 70, "cell-surface membrane")}${lab(150, 205, 90, 296, "circular DNA (free in cytoplasm)")}${lab(245, 201, 262, 96, "plasmid (some)")}${lab(110, 205, 40, 260, "ribosomes", "start")}${lab(352, 192, 356, 246, "flagellum (some)")}
       ${lab(500, 180, 430, 124, "capsid (protein coat)", "end")}<line x1="555" y1="200" x2="555" y2="292" stroke="${GREY}" stroke-width="1.2"/>${T(555, 306, "genetic material: DNA or RNA", { s: 11.5 })}<line x1="614.5" y1="136.9" x2="640" y2="74" stroke="${GREY}" stroke-width="1.2"/>${T(712, 66, "attachment proteins", { s: 11.5, a: "end" })}${lab(495, 240, 474, 272, "envelope (some viruses only)", "end")}
-      ${T(360, 330, "Not to scale. A typical bacterium is about 1–5 µm long; most viruses are about 20–300 nm across.", { s: 11.5, c: GREY })}</svg>`;
+      ${T(360, 330, "Not to scale. A typical bacterium is about 0.5 to 5 µm long; most viruses are about 20–300 nm across.", { s: 11.5, c: GREY })}</svg>`;
   }
 
   // 3. Two ways pathogens cause disease
@@ -187,13 +252,13 @@ window.BIO = window.BIO || {};
       <line x1="122" y1="120" x2="146" y2="120" stroke="${INK}" stroke-width="2" marker-end="url(#${m})"/>
       ${cell(196, 120)}${[[180, 108], [198, 98], [212, 112], [186, 132], [204, 136], [222, 128], [172, 122]].map(([x, y]) => vp(x, y)).join("")}${T(196, 178, "2. Host cell makes", { s: 11 })}${T(196, 192, "new virus particles", { s: 11 })}
       <line x1="248" y1="120" x2="272" y2="120" stroke="${INK}" stroke-width="2" marker-end="url(#${m})"/>
-      ${cell(322, 120, true)}${[[296, 84], [348, 80], [362, 132], [300, 158], [340, 166], [370, 100]].map(([x, y]) => vp(x, y)).join("")}${T(322, 178, "3. Cell bursts (lysis):", { s: 11 })}${T(322, 192, "it dies; viruses released", { s: 11 })}`;
+      ${cell(322, 120, true)}${[[296, 76], [348, 74], [368, 128], [280, 146], [364, 154], [372, 98]].map(([x, y]) => vp(x, y)).join("")}${T(322, 178, "3. Cell bursts (lysis):", { s: 11 })}${T(322, 192, "it dies; viruses released", { s: 11 })}`;
     const b = `<rect x="420" y="70" width="280" height="40" fill="#eef4fa" stroke="none"/>${T(610, 64, "lumen of the small intestine", { s: 10.5, c: GREY })}
       <rect x="442" y="78" width="40" height="18" rx="9" fill="#e8f2ea" stroke="${GREEN}" stroke-width="2"/>${T(462, 72, "bacterium", { s: 10.5, c: GREEN })}
       ${[[498, 90], [512, 98], [526, 92], [540, 102], [556, 96]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="3.5" fill="#8a4fb0"/>`).join("")}${T(600, 92, "toxin", { s: 11, w: 700, c: "#8a4fb0", a: "start" })}
       ${[0, 1, 2, 3, 4].map((k) => `<rect x="${430 + k * 54}" y="112" width="50" height="62" rx="4" fill="#fbeee7" stroke="${ROSE}" stroke-width="2"/>`).join("")}
-      <circle cx="557" cy="114" r="4" fill="#8a4fb0"/>
-      <line x1="557" y1="150" x2="557" y2="96" stroke="${TEAL}" stroke-width="2" marker-end="url(#${m})"/>${T(574, 136, "Cl⁻", { s: 10.5, w: 700, c: TEAL })}${T(574, 149, "out", { s: 10.5, w: 700, c: TEAL })}
+      <circle cx="577" cy="120" r="4" fill="#8a4fb0"/>
+      <line x1="548" y1="166" x2="548" y2="96" stroke="${TEAL}" stroke-width="2.4" marker-end="url(#${m})"/>${T(555, 146, "Cl⁻", { s: 12.5, w: 700, c: TEAL, a: "start" })}${T(555, 161, "out", { s: 12.5, w: 700, c: TEAL, a: "start" })}
       ${T(560, 194, "The toxin alters what epithelial cells do", { s: 11 })}${T(560, 208, "(e.g. cholera toxin: more Cl⁻ secreted, water", { s: 11 })}${T(560, 222, "follows, diarrhoea); the cells are not destroyed", { s: 11 })}`;
     return `<svg viewBox="0 0 720 290" width="720" role="img" aria-label="Two panels. Left: a virus enters a host cell, the cell makes new virus particles and then bursts, releasing them. Right: a bacterium in the intestine releases toxin molecules that bind to epithelial cells and change their function." style="max-width:100%;height:auto" data-fig="${id}">
       <defs>${arrowDef(m)}</defs><rect width="720" height="290" fill="#fff"/>
@@ -205,19 +270,24 @@ window.BIO = window.BIO || {};
 
   // 4. Risk factors for CHD and cancer (main associations; a simplification)
   function riskWebFig() {
+    // Release review (R6-42, teacher example 10): headings sit above the ovals as plain titles; the ovals are larger so
+    // every list item is at least 16 px inside the outlines; all text 13 px or more at its natural width (760 px).
+    // Geometry checked by hand: left-only list x 75–205, overlap list x 307–453, right-only list x 535–705, y 160–280.
     const id = uid();
-    const list = (x, y, items, c) => items.map((s, i) => T(x, y + i * 19, s, { s: 12, c: s.endsWith("*") ? GREY : c, it: s.endsWith("*") })).join("");
-    return `<svg viewBox="0 0 720 360" width="720" role="img" aria-label="Two overlapping ovals. Left, coronary heart disease only: high blood pressure, high blood cholesterol, diabetes, male sex. Overlap, both: smoking, unhealthy diet, overweight and obesity, physical inactivity, excess alcohol, increasing age, inherited factors. Right, cancer only: UV radiation, some infections, ionising radiation, some workplace chemicals." style="max-width:100%;height:auto" data-fig="${id}">
-      <rect width="720" height="360" fill="#fff"/>
-      <ellipse cx="260" cy="180" rx="230" ry="122" fill="${ROSE}" fill-opacity=".08" stroke="${ROSE}" stroke-width="2"/>
-      <ellipse cx="460" cy="180" rx="230" ry="122" fill="${BLUE}" fill-opacity=".08" stroke="${BLUE}" stroke-width="2"/>
-      ${T(150, 112, "Coronary heart disease", { s: 13.5, w: 700, c: ROSE })}${T(580, 112, "Cancers", { s: 14, w: 700, c: BLUE })}${T(360, 112, "Both", { s: 14, w: 700 })}
-      ${list(148, 142, ["high blood pressure", "high LDL cholesterol", "diabetes", "being male*"], ROSE)}
-      ${list(360, 136, ["smoking", "unhealthy diet", "overweight and obesity", "physical inactivity", "excess alcohol", "increasing age*", "inherited factors*"], INK)}
-      ${list(582, 142, ["UV radiation (skin)", "some infections (e.g. HPV)", "ionising radiation", "some workplace chemicals"], BLUE)}
-      ${T(360, 326, "* not modifiable. Main associations only: e.g. diabetes is also linked with some cancers, and alcohol raises blood pressure.", { s: 11, c: GREY })}
-      ${T(360, 346, "Each disease has many risk factors; a risk factor increases the probability of disease, it does not make it certain.", { s: 11, c: GREY })}</svg>`;
+    const list = (x, y, items, c) => items.map((s, i) => T(x, y + i * 20, s, { s: 13, c: s.endsWith("*") ? GREY : c, it: s.endsWith("*") })).join("");
+    return `<svg viewBox="0 0 760 420" width="760" role="img" aria-label="Two overlapping ovals. Left, coronary heart disease only: high blood pressure, high blood cholesterol, diabetes, male sex. Overlap, both: smoking, unhealthy diet, overweight and obesity, physical inactivity, excess alcohol, increasing age, inherited factors. Right, cancer only: UV radiation, some infections, ionising radiation, some workplace chemicals." style="max-width:100%;min-width:700px;height:auto" data-fig="${id}">
+      <rect width="760" height="420" fill="#fff"/>
+      ${T(140, 40, "Coronary heart disease", { s: 15, w: 700, c: ROSE })}${T(380, 40, "Both", { s: 15, w: 700 })}${T(620, 40, "Cancers", { s: 15, w: 700, c: BLUE })}
+      <path d="M140 48 L140 62 M380 48 L380 62 M620 48 L620 62" stroke="#c3ccd3" stroke-width="1.5"/>
+      <ellipse cx="270" cy="220" rx="250" ry="150" fill="${ROSE}" fill-opacity=".08" stroke="${ROSE}" stroke-width="2"/>
+      <ellipse cx="490" cy="220" rx="250" ry="150" fill="${BLUE}" fill-opacity=".08" stroke="${BLUE}" stroke-width="2"/>
+      ${list(140, 190, ["high blood pressure", "high LDL cholesterol", "diabetes", "being male*"], ROSE)}
+      ${list(380, 160, ["smoking", "unhealthy diet", "overweight and obesity", "physical inactivity", "excess alcohol", "increasing age*", "inherited factors*"], INK)}
+      ${list(620, 190, ["UV radiation (skin)", "some infections (e.g. HPV)", "ionising radiation", "some workplace chemicals"], BLUE)}
+      ${T(380, 394, "* not modifiable. Main associations only: e.g. diabetes is also linked with some cancers, and alcohol raises blood pressure.", { s: 12, c: GREY })}
+      ${T(380, 412, "Each disease has many risk factors; a risk factor increases the probability of disease, it does not make it certain.", { s: 12, c: GREY })}</svg>`;
   }
+
 
   // 5. Generic bar chart (single series) with value labels; cats may contain "|" for a second line
   function barChart(o) {
@@ -288,5 +358,5 @@ window.BIO = window.BIO || {};
       ${T((L + W - R) / 2, H - 10, "mean salt intake (g per person per day)", { s: 14 })}<text transform="translate(17 ${(Tp + H - Bt) / 2}) rotate(-90)" text-anchor="middle" font-size="14" fill="${INK}">CHD deaths per 100,000 per year</text>${pts}</svg>`;
   }
 
-  B.diseaseArt = { uid, ZONES, interfacesFig, pathogenCompareFig, mechanismsFig, riskWebFig, barChart, dollChart, petoChart, orChart, confoundFig, relAbsFig, saltScatter, colours: { INK, GREY, BLUE, AMBER, ROSE, GREEN, TEAL } };
+  B.diseaseArt = { uid, ZONES, INTERFACE_NOTES, interfacesFig, pathogenCompareFig, mechanismsFig, riskWebFig, barChart, dollChart, petoChart, orChart, confoundFig, relAbsFig, saltScatter, colours: { INK, GREY, BLUE, AMBER, ROSE, GREEN, TEAL } };
 })(window.BIO);

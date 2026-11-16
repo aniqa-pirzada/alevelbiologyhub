@@ -38,7 +38,7 @@ window.BIO = window.BIO || {};
     const s = B.store.get(); let ok = 0, n = 0;
     for (const [id, c] of Object.entries(s.cards)) {
       if (!filterFn(id, c)) continue; const hist = c.history || [];
-      for (let i = 1; i < hist.length; i++) { const gap = (hist[i].ts - hist[i - 1].ts) / 864e5; if (gap >= 2) { n++; if (hist[i].grade === "known") ok++; } }
+      for (let i = 1; i < hist.length; i++) { if (hist[i].relearn) continue; const gap = (hist[i].ts - hist[i - 1].ts) / 864e5; if (gap >= 2) { n++; if (hist[i].grade === "known" || hist[i].grade === "easy") ok++; } }
     }
     return { reviews: n, pct: n ? Math.round((100 * ok) / n) : null };
   }

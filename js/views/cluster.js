@@ -38,7 +38,7 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
   .cl-node.g-digest .box { fill: var(--sage-soft); stroke: var(--sage); }
   .cl-node.g-cholera .box { fill: var(--amber-soft); stroke: var(--amber); }
   .cl-node.concept .box { stroke-dasharray: 6 4; }
-  .cl-node .kick { fill: var(--ink-3); font-size: 11.5px; font-weight: 600; }
+  .cl-node .kick { fill: var(--ink-3); font-size: 12px; font-weight: 600; }
   .cl-node .lab { fill: var(--ink); font-size: 14.5px; font-weight: 700; }
   .cl-node .ring, .cl-link .ring { fill: none; stroke: transparent; }
   .cl-node:focus-visible .ring, .cl-link:focus-visible .ring { stroke: var(--focus); stroke-width: 4; }
@@ -60,6 +60,11 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
   .cl-legend .g-disease { background: var(--rose-soft); border-color: var(--rose); }
   .cl-legend .g-digest { background: var(--sage-soft); border-color: var(--sage); }
   .cl-legend .g-cholera { background: var(--amber-soft); border-color: var(--amber); }
+  .cl-node .box { fill: var(--surface-2); stroke: var(--line-strong); }
+  .cl-node.tone-rose .box { fill: var(--rose-soft); stroke: var(--rose); } .cl-node.tone-sage .box { fill: var(--sage-soft); stroke: var(--sage); }
+  .cl-node.tone-amber .box { fill: var(--amber-soft); stroke: var(--amber); } .cl-node.tone-teal .box { fill: var(--teal-soft); stroke: var(--teal); } .cl-node.tone-slate .box { fill: #eceff3; stroke: #5f6b7a; }
+  .cl-legend .tone-rose { background: var(--rose-soft); border-color: var(--rose); } .cl-legend .tone-sage { background: var(--sage-soft); border-color: var(--sage); }
+  .cl-legend .tone-amber { background: var(--amber-soft); border-color: var(--amber); } .cl-legend .tone-teal { background: var(--teal-soft); border-color: var(--teal); } .cl-legend .tone-slate { background: #eceff3; border-color: #5f6b7a; }
   .cl-legend .dash { border-style: dashed; border-color: var(--ink-3); }
   .cl-small-note { display: none; }
   .cl-detail { scroll-margin-top: calc(var(--topbar-h) + 12px); }
@@ -155,7 +160,12 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
       for (const t of new Set(q.stmts.map(topicOf))) { const r = topics[t] || (topics[t] = { ref: t, score: 0, max: 0, n: 0 }); r.score += sc; r.max += q.marks; r.n++; }
       for (const s of q.stmts) { const r = stmts[s] || (stmts[s] = { id: s, score: 0, max: 0, n: 0 }); r.score += sc; r.max += q.marks; r.n++; }
     }
-    const fin = (r) => Object.assign(r, { pct: r.max ? Math.round((100 * r.score) / r.max) : 0, band: !r.max ? "none" : (100 * r.score) / r.max < cfg.weakBelowPct ? "weak" : (100 * r.score) / r.max >= cfg.strongAtPct ? "strong" : "developing" });
+    // "Secure" also needs enough evidence: at least 60 % of the questions on that topic or statement answered (learning audit
+    // 2026-11-09), so skipping the hard questions (e.g. the cardiac cycle) cannot make a topic look secure.
+    const avail = {}; for (const q of questions) { for (const t of new Set(q.stmts.map(topicOf))) avail[t] = (avail[t] || 0) + 1; for (const s of q.stmts) avail[s] = (avail[s] || 0) + 1; }
+    const fin = (r) => { const key = r.ref || r.id; const need = Math.ceil(0.6 * (avail[key] || 0)); const pctv = r.max ? (100 * r.score) / r.max : 0;
+      const band = !r.max ? "none" : pctv < cfg.weakBelowPct ? "weak" : pctv >= cfg.strongAtPct ? (r.n >= need ? "strong" : "developing") : "developing";
+      return Object.assign(r, { pct: r.max ? Math.round(pctv) : 0, band, avail: avail[key] || 0, needMore: pctv >= cfg.strongAtPct && r.n < need }); };
     return { answered: Object.keys(latest).length, total: questions.length, score, max, pct: max ? Math.round((100 * score) / max) : null, topics: Object.values(topics).map(fin).sort((a, b) => a.ref.localeCompare(b.ref)), stmts: Object.values(stmts).map(fin).sort((a, b) => a.pct - b.pct || a.id.localeCompare(b.id)) };
   }
   B.clusterDiagnose = diagnose;
@@ -188,7 +198,7 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
       <div class="card-head"><h3 id="cl-rd-${r.t.ref}">${r.t.ref} ${r.t.title}</h3></div>
       <p class="small"><span class="cl-dot ${r.state}" aria-hidden="true"></span><strong>${r.label}</strong></p>
       <ul>${raw(r.subs.map((s) => h`<li><a href="#/topic/${s.ref}">${s.ref} ${s.title}</a> ${raw(B.views.lib.statusBadge(s.status))}</li>`).join(""))}</ul>
-      <div class="row"><a class="btn sm" href="#/library/3.2/${r.t.ref}">Topic page</a>${r.cons ? raw(h`<a class="btn sm" href="#/consolidate/${r.t.ref}">Topic consolidation</a>${r.deckN ? raw(h`<a class="btn sm ghost" href="#/flashcards/deck:${r.t.ref}">Deck (${r.deckN})</a>`) : ""}`) : raw('<span class="badge">Topic consolidation not built yet</span>')}</div>
+      <div class="row"><a class="btn sm" href="#/library/${r.t.ref.split(".").slice(0, 2).join(".")}/${r.t.ref}">Topic page</a>${r.cons ? raw(h`<a class="btn sm" href="#/consolidate/${r.t.ref}">Topic consolidation</a>${r.deckN ? raw(h`<a class="btn sm ghost" href="#/flashcards/deck:${r.t.ref}">Deck (${r.deckN})</a>`) : ""}`) : raw('<span class="badge">Topic consolidation not built yet</span>')}</div>
     </section>`).join("");
     const allReady = ready.every((r) => r.state === "ready");
 
@@ -206,7 +216,8 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
     const edgesSVG = links.map((l) => `<path class="cl-edge" data-link="${l.id}" d="${geom(l).d}" marker-end="url(#cl-arrow)"/>`).join("");
     const nodesSVG = M.nodes.map((n) => {
       const lines = wrap(n.label, 21); const ty = lines.length === 1 ? n.y + 13 : n.y + 5;
-      return h`<g class="cl-node g-${n.group} ${n.kind || ""}" data-node="${n.id}" tabindex="0" role="button" aria-label="${n.label}, specification ${n.ref}. Show its connections.">
+      const tone = ((M.groups || []).find((g) => g.id === n.group) || {}).tone;
+      return h`<g class="cl-node g-${n.group} ${tone ? "tone-" + tone : ""} ${n.kind || ""}" data-node="${n.id}" tabindex="0" role="button" aria-label="${n.label}, specification ${n.ref}. Show its connections.">
         <rect class="ring" x="${n.x - NW / 2 - 5}" y="${n.y - NH / 2 - 5}" width="${NW + 10}" height="${NH + 10}" rx="15"/>
         <rect class="box" x="${n.x - NW / 2}" y="${n.y - NH / 2}" width="${NW}" height="${NH}" rx="${n.kind === "concept" ? 26 : 11}"/>
         <text class="kick" x="${n.x}" y="${n.y - 13}" text-anchor="middle">${n.kind === "concept" ? "Key idea · " : ""}${n.ref}</text>
@@ -230,22 +241,20 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
 
     const page = el(h`<div class="cl-root">${raw(STYLE)}
       <div class="page-head"><div><div class="eyebrow">${unit.code} · ${unit.short} · cross-topic consolidation</div><h1>${C.topics.join(", ")}: ${C.title}</h1>
-        <p class="lede">One chain runs through these three topics: pathogens, how they cause disease, the structure of the intestine, absorption, cholera and oral rehydration. This page tests whether you can use ideas from one topic to explain another, rather than recall each on its own.</p>
+        <p class="lede">${C.lede || "One chain runs through these three topics: pathogens, how they cause disease, the structure of the intestine, absorption, cholera and oral rehydration. This page tests whether you can use ideas from one topic to explain another, rather than recall each on its own."}</p>
         <div class="row">${raw(B.views.lib.statusBadge(C.status))}<span class="badge">${allQs.length} questions</span></div></div></div>
       <div class="tabs" role="tablist" aria-label="Consolidation sections">${raw(TABS.map(([k, label]) => h`<button role="tab" id="cl-tab-${k}" aria-controls="cl-pane-${k}" aria-selected="${k === initial}" tabindex="${k === initial ? 0 : -1}" data-tab="${k}">${label}</button>`).join(""))}</div>
       <div class="tabpanes">
         <section class="pane cl-pane" id="cl-pane-overview" role="tabpanel" aria-labelledby="cl-tab-overview" data-pane="overview" tabindex="0" ${initial === "overview" ? "" : "hidden"}>
-          <div class="card mb"><h2>The chain</h2><p class="small muted">Each link builds on the one before. The numbers under each link open the subsection notes (a green dot means the notes are written).</p><ol class="cl-chain">${raw(chainHTML)}</ol></div>
-          <h2 class="mt">Which topics are ready</h2>
-          ${allReady ? "" : raw('<p class="notice small">Some topic pages are still being written. Everything on this page works now; the links and the combined deck fill in as each topic is published.</p>')}
-          <div class="cl-ready mb">${raw(readyHTML)}</div>
+          <div class="card mb"><h2>The chain</h2><p class="small muted">Each link builds on the one before. The numbers under each link open the subsection notes${allReady ? "" : " (a green dot means the notes are written)"}.</p><ol class="cl-chain">${raw(chainHTML)}</ol></div>
+          ${allReady ? "" : raw(`<h2 class="mt">Which topics are ready</h2><p class="notice small">Some topic pages are still being written. Everything on this page works now; the links and the combined deck fill in as each topic is published.</p><div class="cl-ready mb">${readyHTML}</div>`)}
           <div class="card pad-l mb"><div class="notes">${raw(typeof C.summaryHTML === "function" ? C.summaryHTML() : C.summaryHTML)}</div></div>
           <div class="card"><h2>Where to go next</h2><div class="row"><button class="btn primary" type="button" data-go="map">Explore the concept map (${links.length} links)</button><button class="btn" type="button" data-go="cases">Work through ${C.caseStudies.length} case studies</button><button class="btn" type="button" data-go="exam">Try ${examQs.length} exam questions (${examMarks} marks)</button><button class="btn ghost" type="button" data-go="deck">Review the combined deck</button></div></div>
         </section>
         <section class="pane cl-pane" id="cl-pane-map" role="tabpanel" aria-labelledby="cl-tab-map" data-pane="map" tabindex="0" ${initial === "map" ? "" : "hidden"}>
           <div class="card mb cl-figure"><h2>Concept map</h2><p class="cl-caption" id="cl-caption" aria-hidden="true">Hover over or tab to a box or numbered circle; press Enter to open it. Press Escape to clear the selection.</p>
             <div class="figure"><div class="fig-view">${raw(svg)}</div></div>
-            <div class="cl-legend" aria-hidden="true"><span><i class="g-disease"></i>3.2.1 Causes of disease</span><span><i class="g-digest"></i>3.2.2 Digestion and absorption</span><span><i class="g-cholera"></i>3.2.3 Cholera</span><span><i class="dash"></i>Dashed: key idea</span></div>
+            <div class="cl-legend" aria-hidden="true">${raw(M.groups ? M.groups.map((g) => h`<span><i class="tone-${g.tone}"></i>${g.label}</span>`).join("") : `<span><i class="g-disease"></i>3.2.1 Causes of disease</span><span><i class="g-digest"></i>3.2.2 Digestion and absorption</span><span><i class="g-cholera"></i>3.2.3 Cholera</span>`)}<span><i class="dash"></i>Dashed: key idea</span></div>
             <p class="small muted mt">${links.length} questions, ${mapMarks} marks. Answers count towards your mastery. <a href="#cl-list" data-skip>Skip to the list of connections</a>.</p></div>
           <p class="cl-small-note notice small">On a small screen the map is shown as a list. Choose <strong>Explain and practise</strong> on any connection below.</p>
           <section class="card mb cl-detail" id="cl-detail" aria-labelledby="cl-detail-h" hidden></section>
@@ -260,7 +269,7 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
         </section>
         <section class="pane cl-pane" id="cl-pane-exam" role="tabpanel" aria-labelledby="cl-tab-exam" data-pane="exam" tabindex="0" ${initial === "exam" ? "" : "hidden"}>
           <div class="card mb"><div class="card-head"><h2>Cross-topic exam questions</h2><span class="badge navy">${examQs.length} questions · ${examMarks} marks</span></div>
-            <p class="small muted">Original questions in the OxfordAQA style. Every question draws on at least two of the three topics. Objective questions are marked automatically; written answers are self-marked against the mark scheme. Your latest attempt at each question counts, as everywhere on the site; attempts made after a hint or as an immediate retry do not count.</p>
+            <p class="small muted">Original questions in the OxfordAQA style. ${C.examNote || "Every question draws on at least two of the three topics."} Objective questions are marked automatically; written answers are self-marked against the mark scheme. Your latest attempt at each question counts, as everywhere on the site; attempts made after a hint or as an immediate retry do not count.</p>
             <div class="cl-score"><div class="stat"><span class="v" id="cl-escore">–</span><span class="l" id="cl-edone"></span></div></div></div>
           <div id="cl-eqs"></div>
           <section class="card mt cl-diag" id="cl-diag" aria-labelledby="cl-diag-h" aria-live="polite"></section>
@@ -362,7 +371,7 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
       const bar = (r) => h`<div class="cl-bar" role="img" aria-label="${r.pct}%"><span class="${r.band}" style="width:${r.pct}%"></span></div>`;
       const scopeHTML = h`<fieldset class="cl-scope"><legend>Based on</legend><label><input type="radio" name="cl-scope" value="exam" ${scope === "exam" ? "checked" : ""}> Exam questions only</label><label><input type="radio" name="cl-scope" value="all" ${scope === "all" ? "checked" : ""}> Every question on this page (map, cases and exam: ${allQs.length})</label></fieldset>`;
       if (!d.answered) { box.innerHTML = h`<h2 id="cl-diag-h">Diagnostic panel</h2>${raw(scopeHTML)}<div class="empty">${raw(icons.progress)}<h3>No answers yet</h3><p>Answer some questions and this panel shows how secure you are on each topic and each specification statement, with links to the notes to revisit.</p></div>`; wireScope(box); return; }
-      const tRows = d.topics.map((r) => h`<tr><td data-h="Topic"><a href="#/library/3.2/${r.ref}">${r.ref} ${(S.topic[r.ref] || {}).title || ""}</a></td><td data-h="Questions">${r.n}</td><td data-h="Marks">${r.score} / ${r.max}</td><td data-h="Score">${raw(bar(r))} ${r.pct}%</td><td>${raw(bandBadge(r))}</td></tr>`).join("");
+      const tRows = d.topics.map((r) => h`<tr><td data-h="Topic"><a href="#/library/${r.ref.split(".").slice(0, 2).join(".")}/${r.ref}">${r.ref} ${(S.topic[r.ref] || {}).title || ""}</a></td><td data-h="Questions">${r.n}</td><td data-h="Marks">${r.score} / ${r.max}</td><td data-h="Score">${raw(bar(r))} ${r.pct}%</td><td>${raw(bandBadge(r))}</td></tr>`).join("");
       const sRows = d.stmts.map((r) => h`<tr><td data-h="Statement"><a class="mono" href="#/topic/${subOfStmt(r.id)}">${r.id}</a> <span class="stx">${S.stmt[r.id] || ""}</span></td><td data-h="Questions">${r.n}${r.n < 2 ? raw(' <span class="badge" title="Fewer than two questions: treat this as a rough guide">limited evidence</span>') : ""}</td><td data-h="Marks">${r.score} / ${r.max}</td><td data-h="Score">${raw(bar(r))} ${r.pct}%</td><td>${raw(bandBadge(r))}</td></tr>`).join("");
       const weakSubs = [...new Set(d.stmts.filter((r) => r.band === "weak").map((r) => subOfStmt(r.id)))];
       const recs = weakSubs.length ? weakSubs.map((ref) => h`<li><a href="#/topic/${ref}">${ref} ${(S.sub[ref] || {}).title || ""}</a>: re-read the notes on ${d.stmts.filter((r) => r.band === "weak" && subOfStmt(r.id) === ref).map((r) => r.id).join(", ")}, then return here and retry the questions you missed.</li>`).join("") : "<li>No statement is below the threshold on the questions you have answered. Keep it secure with the combined deck, and try the questions you have not answered yet.</li>";
@@ -370,7 +379,7 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
         <h3>By topic</h3><table><thead><tr><th scope="col">Topic</th><th scope="col">Questions</th><th scope="col">Marks</th><th scope="col">Score</th><th scope="col">Status</th></tr></thead><tbody>${raw(tRows)}</tbody></table>
         <h3 class="mt">By specification statement</h3><table><thead><tr><th scope="col">Statement</th><th scope="col">Questions</th><th scope="col">Marks</th><th scope="col">Score</th><th scope="col">Status</th></tr></thead><tbody>${raw(sRows)}</tbody></table>
         <h3 class="mt">What to revisit</h3><ul>${raw(recs)}</ul>
-        <p class="tiny muted">Revisit = below ${cfg.weakBelowPct}%; secure = ${cfg.strongAtPct}% or above. Uses your latest attempt at each question (hinted and immediate-retry attempts excluded). A question tagged with several statements counts towards each of them, and a question spanning topics counts towards each topic. Written answers are self-marked.</p>`;
+        <p class="tiny muted">Revisit = below ${cfg.weakBelowPct}%; secure = ${cfg.strongAtPct}% or above with at least 60 % of that topic's questions answered. Uses your latest attempt at each question (hinted and immediate-retry attempts excluded). A question tagged with several statements counts towards each of them, and a question spanning topics counts towards each topic. Written answers are self-marked.</p>`;
       wireScope(box);
     }
     function wireScope(box) { $$('input[name="cl-scope"]', box).forEach((r) => r.addEventListener("change", () => { scope = r.value; renderDiag(); })); }

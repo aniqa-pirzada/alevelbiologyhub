@@ -4,9 +4,7 @@
 // Embedded questions are rendered with B.questions.render (marked, recorded and counted towards mastery).
 // Accessibility: every control is a native button, radio, checkbox or <details>; tab rows use a roving tab stop (arrow
 // keys, Home, End); the mechanism figure also steps with the left and right arrow keys; step changes are announced in
-// a polite live region. Motion: the optional water-flow animation is off by default, cannot be switched on when
-// reduced motion is requested (system setting or site preference), and the SVG's own CSS also stops it under
-// prefers-reduced-motion. UI text uses CSS tokens only; SVG drawings sit on the light panel the site gives
+// a polite live region. Motion: only a short fade when a figure changes, skipped when reduced motion is requested. UI text uses CSS tokens only; SVG drawings sit on the light panel the site gives
 // .interactive-host svg in dark mode. Layouts wrap, and SVGs scale (max-width: 100%), so nothing scrolls sideways at 390 px.
 window.BIO = window.BIO || {}; window.BIO.interactives = window.BIO.interactives || {};
 (function (B) {
@@ -31,40 +29,47 @@ window.BIO = window.BIO || {}; window.BIO.interactives = window.BIO.interactives
 
   // ======================================== 1. Cholera Mechanism Simulator ========================================
   B.interactives.choMechanism = function (spec, host) {
-    const uid = uidOf(); const st = { mode: "normal", step: 1, anim: false, ext: false };
+    // Release review (R5-07, R5-29): the controls sit in one row above the drawing, which is capped so that the controls,
+    // the drawing and the current step fit on a laptop screen together; the steps list and the fluid-balance bars sit
+    // side by side under it. No animation option (it added nothing to the arrows). The molecular detail is in the notes.
+    const uid = uidOf(); const st = { mode: "normal", step: 1 };
+    // Round 2 (R5-07): split layout. The drawing is pinned on the left, capped to the screen height; the controls, the
+    // current step, the list of steps and the fluid-balance bars are in the column beside it, so a click and its effect
+    // are on one screen at 1280 x 800. Small labels in the drawing are enlarged a little because it is drawn narrower.
     host.innerHTML = head(spec, "qualitative model") + `
-      <div class="row mt" style="flex-wrap:wrap;gap:.75rem;align-items:center">
-        <fieldset style="border:0;padding:0;margin:0"><legend class="small" style="font-weight:600">Intestine</legend>
-          <label class="small"><input type="radio" name="cm-mode-${uid}" value="normal" checked> Normal</label>
-          <label class="small" style="margin-left:.6rem"><input type="radio" name="cm-mode-${uid}" value="cholera"> After cholera toxin</label></fieldset>
-        <div class="row" style="flex-wrap:wrap;gap:.4rem"><button type="button" class="btn sm" data-a="prev">◀ Previous step</button><button type="button" class="btn sm primary" data-a="next">Next step ▶</button><button type="button" class="btn sm" data-a="all">Show all steps</button><button type="button" class="btn sm" data-a="reset">Start again</button></div>
-      </div>
-      <div class="row mt" style="flex-wrap:wrap;gap:1rem">
-        <label class="small"><input type="checkbox" data-a="anim"> Animate the water arrows</label>
-        <label class="small"><input type="checkbox" data-a="ext"> Show the molecular detail (extension)</label>
-      </div>
-      <p class="tiny muted" data-r="animnote" hidden>Animation is unavailable because reduced motion is switched on.</p>
-      <div class="figure mt"><div class="fig-view" data-r="fig" tabindex="0" role="group" aria-label="mechanism diagram; use the left and right arrow keys to step" aria-describedby="cm-live-${uid}"></div></div>
-      <p class="small" id="cm-live-${uid}" aria-live="polite" data-r="live"></p>
-      <div class="grid grid-2 mt" style="gap:1rem">
-        <div><h4>Steps</h4><ol class="small" data-r="steps" style="padding-left:1.2rem;margin:0"></ol></div>
-        <div><h4>Fluid balance across the epithelium</h4><div data-r="bal"></div><p class="tiny muted">Bar lengths are qualitative: they compare the two directions, not measured volumes.</p></div>
-      </div>
-      <div data-r="ext" class="mt" hidden>${spec.extension || ""}</div>
+      <div class="ix ix-wide-stage"><div class="ix-body"><div class="ix-stage">
+        <div class="figure"><div class="fig-view" data-r="fig" tabindex="0" role="group" aria-label="mechanism diagram; use the left and right arrow keys to step" aria-describedby="cm-live-${uid}"></div></div></div>
+        <div class="ix-panel">
+          <fieldset><legend>Intestine</legend>
+            <label class="small"><input type="radio" name="cm-mode-${uid}" value="normal" checked> Normal</label>
+            <label class="small"><input type="radio" name="cm-mode-${uid}" value="cholera"> After cholera toxin</label></fieldset>
+          <div class="row" style="flex-wrap:wrap;gap:.35rem"><button type="button" class="btn sm" data-a="prev">◀ Previous</button><button type="button" class="btn sm primary" data-a="next">Next step ▶</button><button type="button" class="btn sm" data-a="all">Show all steps</button><button type="button" class="btn sm" data-a="reset">Start again</button></div>
+          <p class="small" id="cm-live-${uid}" aria-live="polite" data-r="live" style="margin:0"></p>
+          <p class="small" data-r="lad" style="margin:0"></p>
+          <details class="small"><summary>All steps</summary><ol class="small" data-r="steps" style="padding-left:1.2rem;margin:.3rem 0 0"></ol></details>
+          <div><p class="small" style="margin:0 0 .2rem;font-weight:700">Fluid balance across the epithelium</p><div data-r="bal"></div><p class="tiny muted" style="margin:.2rem 0 0">Bar lengths are qualitative: they compare the two directions, not measured volumes.</p></div>
+        </div></div></div>
       <h4 class="mt">Questions</h4><div data-r="q"></div>`;
+    // the drawing is shown without its water-potential ladder (that ranking is given as text in the panel) and without
+    // its caption (the panel says the same), cropped to 590 x 410, with every label at least 12.4 units so that it
+    // renders at 12 px or more beside the panel at 1280 px
+    const bump = (svg) => svg.replace('viewBox="0 0 760 440"', 'viewBox="0 0 590 410"').replace(/width="760"/, 'width="590"').replace(/font-size="([\d.]+)"/g, (m, f) => (+f < 12 ? `font-size="${Math.min(13.5, Math.max(12.4, +f * 1.3)).toFixed(1)}"` : m));
+    const NM = { L: "lumen", C: "epithelial cells", B: "tissue fluid and blood" };
     const q = (k) => $(`[data-r="${k}"]`, host);
     const steps = () => spec.steps[st.mode];
     const bar = (label, pct, colour) => `<div class="small" style="margin:.35rem 0"><div style="display:flex;justify-content:space-between;gap:.5rem;flex-wrap:wrap"><span>${label}</span></div><div style="height:12px;border-radius:6px;background:var(--surface-3);overflow:hidden" aria-hidden="true"><div style="height:100%;width:${pct}%;background:${colour}"></div></div></div>`;
     const draw = () => {
       const list = steps(); const n = list.length; st.step = Math.max(1, Math.min(n, st.step));
-      const fig = q("fig"); fig.innerHTML = A().epithelium(st.mode, { step: st.step, animate: st.anim && !reduced() }); fade(fig.firstElementChild);
+      const fig = q("fig"); fig.innerHTML = bump(A().epithelium(st.mode, { step: st.step, ladder: false })); fade(fig.firstElementChild);
       q("steps").innerHTML = list.map((t, i) => `<li ${i + 1 === st.step ? 'aria-current="step" style="font-weight:700"' : i + 1 > st.step ? 'class="muted"' : ""}>${esc(t)}</li>`).join("");
-      q("live").textContent = `${st.mode === "normal" ? "Normal intestine" : "After cholera toxin"}, step ${st.step} of ${n}: ${list[st.step - 1]}`;
+      q("live").innerHTML = `<strong>${st.mode === "normal" ? "Normal intestine" : "After cholera toxin"}, step ${st.step} of ${n}:</strong> ${esc(list[st.step - 1])}`;
+      const ladAt = st.mode === "normal" ? 3 : 5, ord = A().MODES[st.mode].order.split("");
+      q("lad").innerHTML = st.step >= ladAt ? `<strong>Water potential</strong> (qualitative ranking), highest first: ${ord.map((k) => NM[k]).join(" &gt; ")}. Water moves by osmosis from ${NM[ord[0]]} towards ${NM[ord[2]]}.` : "";
       const b = spec.balance[st.mode]; const done = st.step >= b.at;
       // absorption and secretion bars: normal absorption dominates; after toxin, nothing changes until the chloride
       // channels open at step 3, when secretion rises and absorption falls (the toxin also reduces NaCl absorption)
       let abs = 80, sec = 12; if (st.mode === "cholera" && st.step >= 3) { abs = 35; sec = 90; }
-      q("bal").innerHTML = bar("Absorption: lumen → cells → blood", abs, "var(--sage)") + bar("Secretion: blood → cells → lumen", sec, "var(--rose)") + `<p class="small mt"><strong>${done ? "Net effect" : "Net effect so far"}:</strong> ${done ? esc(b.text) : "keep stepping to see the overall effect on the water balance."}</p>`;
+      q("bal").innerHTML = bar("Absorption: lumen → cells → blood", abs, "var(--sage)") + bar("Secretion: blood → cells → lumen", sec, "var(--rose)") + `<p class="small" style="margin:.3rem 0 0"><strong>${done ? "Net effect" : "Net effect so far"}:</strong> ${done ? esc(b.text) : "keep stepping to see the overall effect on the water balance."}</p>`;
       $('[data-a="prev"]', host).disabled = st.step <= 1; $('[data-a="next"]', host).disabled = st.step >= n;
     };
     $$(`input[name="cm-mode-${uid}"]`, host).forEach((r) => r.addEventListener("change", () => { st.mode = r.value; st.step = 1; draw(); }));
@@ -73,10 +78,6 @@ window.BIO = window.BIO || {}; window.BIO.interactives = window.BIO.interactives
     $('[data-a="all"]', host).addEventListener("click", () => { st.step = steps().length; draw(); });
     $('[data-a="reset"]', host).addEventListener("click", () => { st.step = 1; draw(); });
     q("fig").addEventListener("keydown", (e) => { if (e.key === "ArrowRight") { st.step++; draw(); e.preventDefault(); } else if (e.key === "ArrowLeft") { st.step--; draw(); e.preventDefault(); } });
-    const animBox = $('[data-a="anim"]', host);
-    if (reduced()) { animBox.disabled = true; q("animnote").hidden = false; }
-    animBox.addEventListener("change", () => { st.anim = animBox.checked; draw(); });
-    $('[data-a="ext"]', host).addEventListener("change", (e) => { q("ext").hidden = !e.target.checked; });
     draw();
     (spec.items || []).forEach((it) => renderQs(it.questions, q("q")));
   };
@@ -126,7 +127,7 @@ window.BIO = window.BIO || {}; window.BIO.interactives = window.BIO.interactives
       design: () => `<div class="card"><h4>${esc(T.title)}</h4><p class="small"><strong>Participants:</strong> ${esc(T.population)}.</p><p class="small"><strong>Design:</strong> ${esc(T.design)}</p><div class="figure"><div class="fig-view">${A().trialFlow()}</div></div></div>`,
       results: () => `<div class="card"><h4>Results (hypothetical)</h4><div style="overflow-x:auto;max-width:100%">${A().trialTable()}</div><div class="figure mt"><div class="fig-view">${A().trialBars()}</div></div>
         ${work("Show the working: percentage needing IV fluids", `Standard: ${g.std.iv} ÷ ${g.std.analysed} × 100 = ${f1(ST.ivS)} %. ORS-R: ${g.imp.iv} ÷ ${g.imp.analysed} × 100 = ${f1(ST.ivM)} %. Use the number analysed, not the number randomised.`)}
-        ${work("Show the working: absolute and relative reduction in IV fluids", `Percentages to 2 decimal places, so that rounding does not change the answer. Absolute difference: ${f2(ST.ivS)} − ${f2(ST.ivM)} = ${f2(ST.ivAbs)} percentage points. Relative reduction: ${f2(ST.ivAbs)} ÷ ${f2(ST.ivS)} × 100 = ${f1(ST.ivRel)} % (about ${M().fix(ST.ivRel, 0)} %). <span class="badge amber">extension</span> 100 ÷ ${f2(ST.ivAbs)} = ${f1(ST.nnt)}, so about 1 in ${M().fix(ST.nnt, 0)} children given ORS-R instead of standard ORS avoided IV fluids.`)}
+        ${work("Show the working: absolute and relative reduction in IV fluids", `Percentages to 2 decimal places, so that rounding does not change the answer. Absolute difference: ${f2(ST.ivS)} − ${f2(ST.ivM)} = ${f2(ST.ivAbs)} percentage points. Relative reduction: ${f2(ST.ivAbs)} ÷ ${f2(ST.ivS)} × 100 = ${f1(ST.ivRel)} % (about ${M().fix(ST.ivRel, 0)} %). <span class="badge amber">stretch</span> 100 ÷ ${f2(ST.ivAbs)} = ${f1(ST.nnt)}, so about 1 in ${M().fix(ST.nnt, 0)} children given ORS-R instead of standard ORS avoided IV fluids.`)}
         ${work("Show the working: percentage reduction in stool output", `(${g.std.stoolMean} − ${g.imp.stoolMean}) ÷ ${g.std.stoolMean} × 100 = ${ST.stoolDiff} ÷ ${g.std.stoolMean} × 100 = ${f1(ST.stoolRel)} %.`)}
         ${work("Show the working: vomiting and low blood sodium", `Vomiting: ${g.std.vomit} ÷ ${g.std.analysed} = ${f1(ST.vS)} % v ${g.imp.vomit} ÷ ${g.imp.analysed} = ${f1(ST.vM)} %. Low blood sodium: ${g.std.lowNa} ÷ ${g.std.analysed} = ${f1(ST.nS)} % v ${g.imp.lowNa} ÷ ${g.imp.analysed} = ${f1(ST.nM)} %.`)}
         <p class="small mt"><strong>Reading the statistics.</strong> "Significant" means a difference this large would be unlikely if the two solutions really had the same effect; "not significant" means chance cannot be ruled out, not that there is no effect.</p></div>`,

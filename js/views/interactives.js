@@ -13,15 +13,15 @@ window.BIO = window.BIO || {}; window.BIO.interactives = window.BIO.interactives
   B.interactives.condensation = function (spec, host) {
     host.innerHTML = head(spec) + `
       <div class="row"><button class="btn primary" id="anim-cond">Condensation →</button><button class="btn" id="anim-hyd">← Hydrolysis</button></div>
-      <svg id="anim" viewBox="0 0 600 180" style="width:100%;max-width:600px;display:block;margin:1rem auto" role="img" aria-label="animation of condensation and hydrolysis">
+      <svg id="anim" viewBox="0 0 600 200" style="width:100%;max-width:600px;display:block;margin:1rem auto" role="img" aria-label="animation of condensation and hydrolysis">
         <g id="mA"><rect x="60" y="60" width="130" height="60" rx="12" fill="#d6efec" stroke="#1f8a8a" stroke-width="2"/><text x="125" y="96" text-anchor="middle" font-size="14" font-weight="600" fill="#16263a">monomer</text><text x="197" y="96" font-size="14" font-weight="700" fill="#166f70" id="hA">H</text></g>
         <g id="mB"><text x="300" y="96" font-size="14" font-weight="700" fill="#166f70" id="ohB" text-anchor="end">OH</text><rect x="305" y="60" width="130" height="60" rx="12" fill="#e2efe6" stroke="#6b9a7f" stroke-width="2"/><text x="370" y="96" text-anchor="middle" font-size="14" font-weight="600" fill="#16263a">monomer</text></g>
         <g id="bond" opacity="0"><rect x="240" y="80" width="22" height="20" fill="#16263a"/><text x="251" y="140" text-anchor="middle" font-size="12" fill="#16263a">covalent bond</text></g>
         <g id="water" opacity="0"><circle cx="250" cy="30" r="14" fill="#e4ebf5" stroke="#1e3a5f" stroke-width="2"/><text x="250" y="35" text-anchor="middle" font-size="12" font-weight="700" fill="#1e3a5f">H₂O</text></g>
-        <text id="label" x="300" y="170" text-anchor="middle" font-size="13" fill="#3c4f63">Two monomers, each with a reactive group facing the other.</text>
+        <text id="label" text-anchor="middle" font-size="13" fill="#3c4f63"><tspan id="label1" x="300" y="168">Two monomers, each with a reactive group facing the other.</tspan><tspan id="label2" x="300" y="186"></tspan></text>
       </svg>`;
-    const svg = $("#anim", host); const mA = $("#mA", svg), mB = $("#mB", svg), bond = $("#bond", svg), water = $("#water", svg), label = $("#label", svg), hA = $("#hA", svg), ohB = $("#ohB", svg);
-    const set = (joined) => { const dx = joined ? 50 : 0; const r = reduced(); mA.style.transition = mB.style.transition = r ? "none" : "transform .8s ease"; mA.style.transform = `translate(${dx}px,0)`; mB.style.transform = `translate(${-dx}px,0)`; hA.style.opacity = ohB.style.opacity = joined ? 0 : 1; bond.style.transition = water.style.transition = r ? "none" : "opacity .6s ease .6s"; bond.style.opacity = joined ? 1 : 0; water.style.opacity = joined ? 1 : 0; label.textContent = joined ? "Condensation: a covalent bond forms and one molecule of water is released (H from one monomer, OH from the other)." : "Hydrolysis: a molecule of water is used to break the bond, restoring H and OH to the two monomers."; };
+    const svg = $("#anim", host); const mA = $("#mA", svg), mB = $("#mB", svg), bond = $("#bond", svg), water = $("#water", svg), label1 = $("#label1", svg), label2 = $("#label2", svg), hA = $("#hA", svg), ohB = $("#ohB", svg);
+    const set = (joined) => { const dx = joined ? 50 : 0; const r = reduced(); mA.style.transition = mB.style.transition = r ? "none" : "transform .8s ease"; mA.style.transform = `translate(${dx}px,0)`; mB.style.transform = `translate(${-dx}px,0)`; hA.style.opacity = ohB.style.opacity = joined ? 0 : 1; bond.style.transition = water.style.transition = r ? "none" : "opacity .6s ease .6s"; bond.style.opacity = joined ? 1 : 0; water.style.opacity = joined ? 1 : 0; label1.textContent = joined ? "Condensation: a covalent bond forms and one water molecule is released" : "Hydrolysis: a molecule of water is used to break the bond,"; label2.textContent = joined ? "(H from one monomer, OH from the other)." : "restoring H and OH to the two monomers."; };
     $("#anim-cond", host).onclick = () => set(true); $("#anim-hyd", host).onclick = () => set(false);
   };
 
@@ -29,7 +29,7 @@ window.BIO = window.BIO || {}; window.BIO.interactives = window.BIO.interactives
   // ONE of the three esterifications in a triglyceride with real connectivity: glycerol C–O–H + HO–C(=O)–R → C–O–C(=O)–R + H2O.
   B.interactives.ester = function (spec, host) {
     const C = (x, y) => `<circle cx="${x}" cy="${y - 4}" r="9" fill="#fff"/>` + T(x, y, "C", { w: 700 });
-    host.innerHTML = head(spec, "schematic, real connectivity") + `
+    host.innerHTML = head(spec) + `
       <div class="row"><button class="btn primary" id="e-cond">Condensation →</button><button class="btn" id="e-hyd">← Hydrolysis</button><span class="small muted">Shown for one of the three fatty acids; the other two react in the same way.</span></div>
       <svg id="esvg" viewBox="0 0 720 230" style="width:100%;max-width:720px;display:block;margin:1rem auto" role="img" aria-label="animation of ester bond formation between glycerol and a fatty acid">
         <g id="gly">
@@ -49,59 +49,58 @@ window.BIO = window.BIO || {}; window.BIO.interactives = window.BIO.interactives
           ${C(304, 70)}
           <line x1="301" y1="56" x2="301" y2="38" stroke="#16263a" stroke-width="2"/><line x1="307" y1="56" x2="307" y2="38" stroke="#16263a" stroke-width="2"/>${T(304, 34, "O", { w: 700 })}
           <line x1="314" y1="66" x2="340" y2="66" stroke="#16263a" stroke-width="2"/>
-          <path d="M340 66 l16 -9 l16 9 l16 -9 l16 9 l16 -9 l16 9 l16 -9 l16 9 l16 -9 l16 9 l16 -9" fill="none" stroke="#16263a" stroke-width="2"/>${T(552, 61, "CH₃", { w: 700 })}
+          <path d="M340 66 l16 -9 l16 9 l16 -9 l16 9 l16 -9 l16 9 l16 -9 l16 9 l16 -9 l16 9 l7.2 -4" fill="none" stroke="#16263a" stroke-width="2"/>${T(525, 62, "CH₃", { w: 700, a: "start" })}
           ${T(440, 95, "hydrocarbon tail (R)", { s: 11, c: "#6b7d8f" })}
         </g>
-        <g id="ebond" opacity="0"><line x1="143" y1="66" x2="166" y2="66" stroke="#c8902a" stroke-width="3"/><rect x="122" y="30" width="66" height="54" rx="6" fill="none" stroke="#c8902a" stroke-width="2"/>${T(155, 100, "ester bond", { s: 12, w: 700, c: "#8a5f12" })}</g>
+        <g id="ebond" opacity="0"><line x1="144" y1="66" x2="157" y2="66" stroke="#c8902a" stroke-width="3"/><rect x="121" y="16" width="70" height="70" rx="6" fill="none" stroke="#c8902a" stroke-width="2"/>${T(156, 102, "ester bond", { s: 12, w: 700, c: "#8a5f12" })}</g>
         <g id="ewater" opacity="0"><circle cx="330" cy="150" r="16" fill="#e4ebf5" stroke="#1e3a5f" stroke-width="2"/>${T(330, 155, "H₂O", { s: 12, w: 700, c: "#1e3a5f" })}</g>
         <text id="elabel" x="400" y="222" text-anchor="middle" font-size="12" fill="#3c4f63">Glycerol's –OH faces the fatty acid's –COOH.</text>
-      </svg>
-      <p class="tiny muted">Limitation: bond angles and the 3D shape are not shown; the hydrocarbon tail is drawn as a zigzag of CH₂ units and shortened. The connectivity (C–O–C(=O)–R) is correct.</p>`;
+      </svg>`;
     const svg = $("#esvg", host); const fa = $("#fa", svg), gH = $("#gH", svg), fOH = $("#fOH", svg), eb = $("#ebond", svg), w = $("#ewater", svg), lbl = $("#elabel", svg);
     const set = (joined) => { const r = reduced(); fa.style.transition = r ? "none" : "transform .8s ease"; fa.style.transform = joined ? "translate(-138px,0)" : "translate(0,0)"; gH.style.opacity = fOH.style.opacity = joined ? 0 : 1; eb.style.transition = w.style.transition = r ? "none" : "opacity .5s ease .7s"; eb.style.opacity = w.style.opacity = joined ? 1 : 0; lbl.textContent = joined ? "Condensation: H (from glycerol –OH) and OH (from –COOH) leave as water; an ester bond forms." : "Hydrolysis: water is added across the ester bond, restoring –OH on glycerol and –COOH on the acid."; };
     $("#e-cond", host).onclick = () => set(true); $("#e-hyd", host).onclick = () => set(false);
   };
 
   // ---------- Phospholipid behaviour in water (3.1.1.3) ----------
+  // Two states only: phospholipids just added to water (random) and, after "Arrange", the bilayer. Positions in the
+  // random state come from a fixed jittered grid, so every head and tail stays inside the drawing.
   B.interactives.bilayer = function (spec, host) {
     host.innerHTML = head(spec) + `
-      <div class="row"><label class="small">Environment: <select id="env"><option value="scatter">Phospholipids just added to water</option><option value="closed">Water all round: micelle and vesicle (self-assembled)</option><option value="water">Section through a cell membrane (bilayer)</option><option value="surface">Water below, air above (surface monolayer)</option></select></label><button class="btn sm" id="arrange">Arrange</button></div>
-      <svg id="bsvg" viewBox="0 0 720 300" style="width:100%;max-width:720px;display:block;margin:1rem auto" role="img" aria-label="phospholipid arrangement in water">
-        <rect id="top" x="0" y="0" width="720" height="150" fill="#e4ebf5"/><rect x="0" y="150" width="720" height="150" fill="#e4ebf5"/>
-        <text id="topL" x="12" y="22" font-size="12" fill="#1e3a5f">water (aqueous, polar)</text><text x="12" y="292" font-size="12" fill="#1e3a5f">water (aqueous, polar)</text>
+      <div class="row"><button class="btn primary" id="arrange" aria-pressed="false">Arrange</button><button class="btn" id="mixup" aria-pressed="true">Just added to water</button></div>
+      <svg id="bsvg" viewBox="0 0 720 300" style="width:100%;max-width:720px;display:block;margin:1rem auto" role="img" aria-label="phospholipids in water: at random, or arranged as a bilayer">
+        <rect x="0" y="0" width="720" height="300" fill="#e4ebf5"/>
+        <text x="12" y="22" font-size="13" font-weight="600" fill="#1e3a5f">water</text><text x="12" y="290" font-size="13" font-weight="600" fill="#1e3a5f">water</text>
         <g id="lipids"></g>
-        <g id="blabels" font-size="12" fill="#1e3a5f" text-anchor="middle" style="opacity:0;transition:opacity .4s ease .8s"><text x="160" y="76">micelle (one-tailed lipids,</text><text x="160" y="92" font-size="10" fill="#3c4f63">e.g. fatty acids)</text><text x="160" y="212" font-size="10" fill="#3c4f63">tails meet in the centre</text><text x="490" y="32">vesicle (liposome)</text><text x="490" y="272" font-size="10" fill="#3c4f63">closed bilayer: water inside and outside</text></g>
-        <text id="note" x="360" y="290" text-anchor="middle" font-size="12" fill="#3c4f63"></text>
+        <g id="blabels" font-size="13" font-weight="600" style="opacity:0;transition:opacity .4s ease .8s">
+          <path d="M556 69 h12 M556 231 h12 M562 69 V231" stroke="#16263a" stroke-width="1.5" fill="none"/>
+          <text x="578" y="85" fill="#166f70">hydrophilic heads</text><text x="578" y="146" fill="#8a5f12">hydrophobic tails</text><text x="578" y="164" font-weight="500" fill="#3c4f63">bilayer ≈ 7 nm</text><text x="578" y="225" fill="#166f70">hydrophilic heads</text>
+        </g>
       </svg>
-      <div class="small" id="bexpl"></div>`;
-    const svg = $("#bsvg", host), g = $("#lipids", svg), note = $("#note", svg), expl = $("#bexpl", host), labels = $("#blabels", svg);
-    const N = 21; const lip = (i) => { const grp = document.createElementNS("http://www.w3.org/2000/svg", "g"); grp.innerHTML = `<circle cx="0" cy="0" r="11" fill="#1f8a8a"/><path d="M-5 10 q-4 14 0 28 q-4 14 0 28" fill="none" stroke="#c8902a" stroke-width="3"/><path class="t2" d="M5 10 q4 14 0 28 q4 14 0 28" fill="none" stroke="#c8902a" stroke-width="3"/>`; grp.dataset.i = i; g.appendChild(grp); return grp; };
-    // tails(list, n): show two tails (phospholipid) or one tail (fatty acid, used only for the micelle)
-    const tails = (list, n) => list.forEach((it) => { const t = it.querySelector(".t2"); if (t) t.style.opacity = n === 1 ? 0 : 1; });
-    const items = Array.from({ length: N * 2 }, (_, i) => lip(i));
+      <p class="small" id="bexpl" aria-live="polite"></p>`;
+    const svg = $("#bsvg", host), g = $("#lipids", svg), expl = $("#bexpl", host), labels = $("#blabels", svg);
+    const N = 16; // per layer
+    const lip = () => { const grp = document.createElementNS("http://www.w3.org/2000/svg", "g"); grp.innerHTML = `<circle cx="0" cy="0" r="11" fill="#1f8a8a"/><path d="M-5 10 q-4 14 0 28 q-4 14 0 28" fill="none" stroke="#c8902a" stroke-width="3"/><path d="M5 10 q4 14 0 28 q4 14 0 28" fill="none" stroke="#c8902a" stroke-width="3"/>`; g.appendChild(grp); return grp; };
+    const items = Array.from({ length: N * 2 }, lip);
+    // Head at the group origin; tails extend along local +y (about 66 units), so a head at least 70 units from every edge
+    // keeps the whole molecule inside the drawing whatever its rotation.
     const place = (grp, x, y, rot, sc = 1) => { grp.style.transition = reduced() ? "none" : "transform .9s ease"; grp.style.transform = `translate(${x}px,${y}px) rotate(${rot}deg) scale(${sc})`; };
-    const water = () => { $("#top", svg).setAttribute("fill", "#e4ebf5"); $("#topL", svg).textContent = "water (aqueous, polar)"; labels.style.opacity = 0; tails(items, 2); };
-    // Head sits at the group origin and the tails extend along local +y (66 px at scale 1). To point the tails at a
-    // centre from a head placed at angle a, rotate by a + 90°; to point them away, a − 90°.
-    const ring = (list, cx, cy, R, inward, sc) => list.forEach((it, k) => { const a = (k / list.length) * 360; const rad = a * Math.PI / 180; it.style.opacity = 1; place(it, cx + R * Math.cos(rad), cy + R * Math.sin(rad), inward ? a + 90 : a - 90, sc); });
+    const btnA = $("#arrange", host), btnM = $("#mixup", host);
     const layouts = {
-      closed() { water(); const sc = 0.55; tails(items.slice(0, 14), 1); ring(items.slice(0, 14), 160, 150, 36, true, sc); ring(items.slice(14, 32), 490, 150, 100, true, sc); ring(items.slice(32, 42), 490, 150, 28, false, sc); labels.style.opacity = 1; note.textContent = "Every tail is shielded from water; every head touches water."; expl.innerHTML = "<strong>Self-assembly.</strong> Lipids with a polar head added to water spontaneously form closed structures, not flat sheets, because a sheet would leave tails exposed at its edges. Phospholipids, with two tails, pack as a <strong>bilayer</strong> that closes on itself into a <strong>vesicle</strong> (liposome) with water inside and outside (right). A cell membrane is a vesicle on a cellular scale; the flat bilayer drawn in textbooks is a small section of it. For comparison, lipids with only <em>one</em> tail, such as fatty acids, pack into a <strong>micelle</strong> (left): a single layer curled into a ball with the tails meeting in the centre. Phospholipids do not usually form micelles."; },
-      water() { water(); items.forEach((it, i) => { it.style.opacity = 1; const row = i < N ? 0 : 1; const x = 40 + (i % N) * 32; place(it, x, row === 0 ? 84 : 216, row === 0 ? 0 : 180); }); note.textContent = ""; expl.innerHTML = "<strong>Bilayer (a section through a membrane).</strong> With water on both sides, the hydrophilic phosphate heads face the water on each surface and the hydrophobic fatty acid tails point inwards, away from water. This is the arrangement in all cell membranes (see 3.1.4.1); in a real membrane the sheet continues and closes round the cell, so there are no exposed edges."; },
-      surface() { tails(items, 2); items.forEach((it, i) => { if (i < N) { place(it, 40 + i * 32, 170, 180); it.style.opacity = 1; } else { it.style.opacity = 0; place(it, 40 + (i - N) * 32, 400, 0); } }); $("#top", svg).setAttribute("fill", "#f6f8f7"); $("#topL", svg).textContent = "air (non-polar)"; labels.style.opacity = 0; note.textContent = ""; expl.innerHTML = "<strong>Monolayer.</strong> At a water–air surface a single layer forms: heads in the water, tails pointing up into the air. This shows that it is the water, not the lipid, that drives the arrangement."; },
-      scatter() { water(); items.forEach((it, i) => { it.style.opacity = 1; place(it, 40 + ((i * 97) % 640), 40 + ((i * 53) % 220), (i * 67) % 360); }); note.textContent = "Tails in contact with water: unstable."; expl.innerHTML = "<strong>Random.</strong> Hydrophobic tails are exposed to water. Press <em>Arrange</em> to see them spontaneously self-assemble into a closed bilayer (a vesicle), shown beside a micelle of one-tailed lipids for comparison. These are the lowest-energy arrangements because every tail is shielded from water and every head interacts with it."; },
+      bilayer() { items.forEach((it, i) => { const top = i < N; place(it, 50 + (i % N) * 32, top ? 80 : 220, top ? 0 : 180); }); labels.style.opacity = 1; expl.innerHTML = "<strong>Bilayer.</strong> With water on both sides, the hydrophilic phosphate heads face the water on each surface and the hydrophobic fatty acid tails point inwards, away from the water. This happens spontaneously. The bilayer, about 7 nm thick, is the basis of every cell membrane (3.1.4.1)."; },
+      random() { items.forEach((it, i) => { const c = i % 8, r = Math.floor(i / 8); place(it, 80 + c * 80 + ((i * 29) % 21) - 10, 74 + r * 51 + ((i * 17) % 13) - 6, (i * 67) % 360, 0.85); }); labels.style.opacity = 0; expl.innerHTML = "<strong>Just added to water.</strong> The phospholipids are mixed at random, so many hydrophobic tails are in contact with water. This arrangement is unstable. Press <em>Arrange</em>."; },
     };
-    $("#env", host).addEventListener("change", (e) => layouts[e.target.value]());
-    $("#arrange", host).addEventListener("click", () => { $("#env", host).value = "closed"; layouts.closed(); });
-    layouts.scatter();
+    const set = (k) => { layouts[k](); btnA.setAttribute("aria-pressed", k === "bilayer"); btnM.setAttribute("aria-pressed", k === "random"); btnA.classList.toggle("primary", k === "random"); btnM.classList.toggle("primary", k === "bilayer"); };
+    btnA.addEventListener("click", () => set("bilayer")); btnM.addEventListener("click", () => set("random"));
+    set("random");
   };
 
   // ---------- Peptide bond (3.1.1.4) ----------
   B.interactives.peptide = function (spec, host) {
-    host.innerHTML = head(spec, "schematic, real connectivity") + `
-      <div class="row"><button class="btn primary" id="p-cond">Condensation →</button><button class="btn" id="p-hyd">← Hydrolysis</button><label class="small"><input type="checkbox" id="p-step"> step by step (no animation)</label></div>
+    host.innerHTML = head(spec) + `
+      <div class="row"><button class="btn primary" id="p-cond">Condensation →</button><button class="btn" id="p-hyd">← Hydrolysis</button></div>
       <svg id="psvg" viewBox="0 0 760 210" style="width:100%;max-width:760px;display:block;margin:1rem auto" role="img" aria-label="animation of peptide bond formation between two amino acids">
         <g id="aa1">
-          ${T(130, 30, "amino acid 1", { s: 12, c: "#6b7d8f" })}
+          ${T(130, 24, "amino acid 1", { s: 12, c: "#6b7d8f" })}
           ${T(40, 100, "H₂N", { w: 700 })}<line x1="62" y1="96" x2="86" y2="96" stroke="#16263a" stroke-width="2"/>
           ${T(96, 100, "C", { w: 700 })}<line x1="96" y1="84" x2="96" y2="66" stroke="#16263a" stroke-width="2"/>${T(96, 62, "H", {})}<line x1="96" y1="106" x2="96" y2="124" stroke="#16263a" stroke-width="2"/>${T(96, 140, "R₁", { w: 700, c: "#6b9a7f" })}
           <line x1="106" y1="96" x2="130" y2="96" stroke="#16263a" stroke-width="2"/>${T(140, 100, "C", { w: 700 })}
@@ -109,7 +108,7 @@ window.BIO = window.BIO || {}; window.BIO.interactives = window.BIO.interactives
           <g id="oh1"><line x1="150" y1="96" x2="170" y2="96" stroke="#166f70" stroke-width="2"/>${T(186, 100, "OH", { w: 700, c: "#166f70" })}</g>
         </g>
         <g id="aa2">
-          ${T(470, 30, "amino acid 2", { s: 12, c: "#6b7d8f" })}
+          ${T(470, 24, "amino acid 2", { s: 12, c: "#6b7d8f" })}
           <g id="h2">${T(342, 100, "H", { w: 700, c: "#166f70" })}<line x1="352" y1="96" x2="370" y2="96" stroke="#166f70" stroke-width="2"/></g>
           ${T(382, 100, "N", { w: 700 })}<line x1="382" y1="106" x2="382" y2="124" stroke="#16263a" stroke-width="2"/>${T(382, 140, "H", {})}
           <line x1="392" y1="96" x2="416" y2="96" stroke="#16263a" stroke-width="2"/>${T(426, 100, "C", { w: 700 })}<line x1="426" y1="84" x2="426" y2="66" stroke="#16263a" stroke-width="2"/>${T(426, 62, "H", {})}<line x1="426" y1="106" x2="426" y2="124" stroke="#16263a" stroke-width="2"/>${T(426, 140, "R₂", { w: 700, c: "#6b9a7f" })}
@@ -117,17 +116,18 @@ window.BIO = window.BIO || {}; window.BIO.interactives = window.BIO.interactives
           <line x1="467" y1="86" x2="467" y2="66" stroke="#16263a" stroke-width="2"/><line x1="473" y1="86" x2="473" y2="66" stroke="#16263a" stroke-width="2"/>${T(470, 62, "O", { w: 700 })}
           <line x1="480" y1="96" x2="500" y2="96" stroke="#16263a" stroke-width="2"/>${T(516, 100, "OH", { w: 700 })}
         </g>
-        <g id="pbond" opacity="0"><line x1="150" y1="96" x2="172" y2="96" stroke="#c8902a" stroke-width="3"/><rect x="124" y="50" width="70" height="62" rx="8" fill="none" stroke="#c8902a" stroke-width="2"/>${T(159, 128, "peptide bond", { s: 12, w: 700, c: "#8a5f12" })}</g>
+        <g id="pbond" opacity="0"><line x1="150" y1="96" x2="173" y2="96" stroke="#c8902a" stroke-width="3"/><rect x="124" y="46" width="72" height="100" rx="8" fill="none" stroke="#c8902a" stroke-width="2"/>${T(160, 164, "peptide bond", { s: 12, w: 700, c: "#8a5f12" })}</g>
         <g id="pwater" opacity="0"><circle cx="300" cy="170" r="16" fill="#e4ebf5" stroke="#1e3a5f" stroke-width="2"/>${T(300, 175, "H₂O", { s: 12, w: 700, c: "#1e3a5f" })}</g>
         <text id="plabel" x="380" y="202" text-anchor="middle" font-size="12" fill="#3c4f63">Carboxyl group of amino acid 1 faces the amino group of amino acid 2.</text>
-      </svg>
-      <p class="tiny muted">Limitation: the zwitterion forms, bond angles and the planar geometry of the peptide group are not shown. Connectivity C(=O)–N(H) is correct.</p>`;
+      </svg>`;
     const svg = $("#psvg", host); const aa2 = $("#aa2", svg), oh1 = $("#oh1", svg), h2 = $("#h2", svg), pb = $("#pbond", svg), w = $("#pwater", svg), lbl = $("#plabel", svg);
-    const set = (joined) => { const r = reduced() || $("#p-step", host).checked; aa2.style.transition = r ? "none" : "transform .9s ease"; aa2.style.transform = joined ? "translate(-200px,0)" : "translate(0,0)"; oh1.style.opacity = h2.style.opacity = joined ? 0 : 1; pb.style.transition = w.style.transition = r ? "none" : "opacity .5s ease .8s"; pb.style.opacity = w.style.opacity = joined ? 1 : 0; lbl.textContent = joined ? "Condensation: OH (carboxyl of 1) + H (amino of 2) leave as water; a C–N peptide bond forms: a dipeptide." : "Hydrolysis: water is added across the peptide bond, restoring –COOH and –NH₂."; };
+    const set = (joined) => { const r = reduced(); aa2.style.transition = r ? "none" : "transform .9s ease"; aa2.style.transform = joined ? "translate(-200px,0)" : "translate(0,0)"; oh1.style.opacity = h2.style.opacity = joined ? 0 : 1; pb.style.transition = w.style.transition = r ? "none" : "opacity .5s ease .8s"; pb.style.opacity = w.style.opacity = joined ? 1 : 0; lbl.textContent = joined ? "Condensation: OH (carboxyl of 1) + H (amino of 2) leave as water; a C–N peptide bond forms: a dipeptide." : "Hydrolysis: water is added across the peptide bond, restoring –COOH and –NH₂."; };
     $("#p-cond", host).onclick = () => set(true); $("#p-hyd", host).onclick = () => set(false);
   };
 
   // ---------- Protein structure explorer (3.1.1.4) ----------
+  // One picture and one short text at a time. The four level tabs and the two "What if" buttons share the row above the
+  // picture, so a result is always shown in the same place as the picture it changes.
   B.interactives.proteinExplorer = function (spec, host) {
     // Side view of ONE chain coiled into a right-handed helix (same drawing as miniHelix in data/content/3.1.1.4.js):
     // front half of each turn bold, back half faint. Hydrogen bonds are drawn parallel to the axis between successive turns.
@@ -137,47 +137,61 @@ window.BIO = window.BIO || {}; window.BIO.interactives = window.BIO.interactives
       for (let k = 0; k < turns; k++) { const t0 = k * 2 * Math.PI; s += `<path d="${pts(t0 + Math.PI, t0 + 2 * Math.PI)}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linecap="round" opacity=".35"/><path d="${pts(t0, t0 + Math.PI)}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linecap="round"/>`; }
       return s;
     };
+    // Smooth curve through the given points (Catmull-Rom converted to cubic Bezier): the chain passes exactly through
+    // every point, so bonds drawn to a point end on the chain.
+    const smooth = (P) => { let d = `M${P[0][0]} ${P[0][1]}`; for (let i = 0; i < P.length - 1; i++) { const p0 = P[i - 1] || P[i], p1 = P[i], p2 = P[i + 1], p3 = P[i + 2] || p2; const c1 = [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6], c2 = [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6]; d += ` C${c1[0].toFixed(1)} ${c1[1].toFixed(1)} ${c2[0].toFixed(1)} ${c2[1].toFixed(1)} ${p2[0]} ${p2[1]}`; } return d; };
+    const chain = (P) => `<path d="${smooth(P)}" fill="none" stroke="#1f8a8a" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>`;
+    const tag = (x, y, s, c, w = 700) => { const wd = s.length * 7 + 8; return `<rect x="${x - wd / 2}" y="${y - 11}" width="${wd}" height="15" rx="3" fill="#fff"/>` + T(x, y, s, { s: 12, w, c }); };
     const HX = 150, HY = 34, HR = 40, HP = 26; // helix centre x, top y, radius, pitch (one turn = 3.6 amino acids)
     const helixPanel = `<line x1="${HX}" y1="${HY - 4}" x2="${HX}" y2="${HY + 4 * HP + 4}" stroke="#6b7d8f" stroke-width="1" stroke-dasharray="2 4"/>${helixCoil(HX, HY, HR, HP, 4, 6, "#1f8a8a")}
         <g stroke="#c8902a" stroke-width="2" stroke-dasharray="4 3">${[0, 1, 2].map((k) => `<line x1="${HX + HR}" y1="${HY + HP / 4 + k * HP + 3}" x2="${HX + HR}" y2="${HY + HP / 4 + (k + 1) * HP - 3}"/><line x1="${HX - HR}" y1="${HY + 3 * HP / 4 + k * HP + 3}" x2="${HX - HR}" y2="${HY + 3 * HP / 4 + (k + 1) * HP - 3}"/>`).join("")}</g>
-        ${T(HX + HR + 10, HY + HP / 4 + 4, "C=O", { s: 10, w: 600, a: "start" })}${T(HX + HR + 10, HY + HP / 4 + HP + 4, "N–H", { s: 10, w: 600, a: "start" })}
-        ${T(250, 60, "one chain,", { s: 10, a: "start", c: "#6b7d8f" })}${T(250, 73, "coiled round", { s: 10, a: "start", c: "#6b7d8f" })}${T(250, 86, "an axis;", { s: 10, a: "start", c: "#6b7d8f" })}${T(250, 99, "3.6 amino acids", { s: 10, a: "start", c: "#6b7d8f" })}${T(250, 112, "per turn", { s: 10, a: "start", c: "#6b7d8f" })}
-        ${T(180, 160, "hydrogen bonds (dashed) run along the axis, from the C=O", { s: 11, c: "#3c4f63" })}${T(180, 175, "of one amino acid to the N–H four amino acids further on", { s: 11, c: "#3c4f63" })}`;
-    const beads = (seq, x0, y0, mutIdx = -1) => seq.map((r, i) => `<circle cx="${x0 + i * 30}" cy="${y0}" r="11" fill="${i === mutIdx ? "#c25f5f" : "#1f8a8a"}"/><text x="${x0 + i * 30}" y="${y0 + 4}" text-anchor="middle" font-size="10" font-weight="700" fill="#fff">${r}</text>`).join("") + seq.slice(1).map((_, i) => `<line x1="${x0 + i * 30 + 11}" y1="${y0}" x2="${x0 + (i + 1) * 30 - 11}" y2="${y0}" stroke="#16263a" stroke-width="3"/>`).join("");
-    const tertiarySVG = (denatured) => {
-      const dy = denatured ? 60 : 0; const weak = denatured ? 0 : 1;
-      return `<svg viewBox="0 0 720 250" width="720" role="img" aria-label="tertiary structure held by bonds between R groups${denatured ? ", denatured" : ""}">
-        <path d="M60 40 q80 -16 160 0 t160 0 t160 0 t120 0" fill="none" stroke="#1f8a8a" stroke-width="6" stroke-linecap="round"/>
-        <path d="M60 ${150 + dy} q80 16 160 0 t160 0 t160 0 t120 0" fill="none" stroke="#1f8a8a" stroke-width="6" stroke-linecap="round"/>
-        <g opacity="${weak}"><line x1="150" y1="48" x2="150" y2="142" stroke="#c8902a" stroke-width="2" stroke-dasharray="4 3"/><rect x="132" y="75" width="36" height="14" fill="#fff"/><rect x="130" y="111" width="40" height="14" fill="#fff"/>${T(150, 86, "–OH", { s: 11, w: 700 })}${T(150, 122, "O=C–", { s: 11, w: 700 })}${T(150, 180, "hydrogen bond", { s: 11, c: "#8a5f12" })}</g>
-        <g opacity="${weak}"><line x1="330" y1="48" x2="330" y2="142" stroke="#1e3a5f" stroke-width="2" stroke-dasharray="6 3"/><rect x="308" y="75" width="44" height="14" fill="#fff"/><rect x="308" y="111" width="44" height="14" fill="#fff"/>${T(330, 86, "–COO⁻", { s: 11, w: 700, c: "#1e3a5f" })}${T(330, 122, "⁺H₃N–", { s: 11, w: 700, c: "#1e3a5f" })}${T(330, 180, "ionic bond", { s: 11, c: "#1e3a5f" })}</g>
-        <line x1="510" y1="48" x2="510" y2="${142 + dy}" stroke="#c25f5f" stroke-width="4"/><circle cx="510" cy="64" r="8" fill="#fff"/>${T(510, 68, "S", { s: 12, w: 700, c: "#c25f5f" })}<circle cx="510" cy="${126 + dy}" r="8" fill="#fff"/>${T(510, 130 + dy, "S", { s: 12, w: 700, c: "#c25f5f" })}${denatured ? T(530, 100, "disulfide bridge (covalent) remains", { s: 11, c: "#c25f5f", a: "start" }) : T(510, 180, "disulfide bridge (covalent)", { s: 11, c: "#c25f5f" })}
-        <g opacity="${weak}"><ellipse cx="650" cy="96" rx="40" ry="18" fill="#e2efe6" stroke="#6b9a7f"/>${T(650, 100, "hydrophobic core", { s: 10, c: "#3c4f63" })}</g>
-        ${T(360, denatured ? 240 : 212, denatured ? "Heated: hydrogen and ionic bonds broken, chain unfolds; the covalent disulfide bridge and peptide bonds remain." : "solid = covalent; dashed = weaker interactions between R groups (schematic: two stretches of one folded chain)", { s: 11, c: "#3c4f63" })}</svg>`;
-    };
+        ${T(HX + HR + 10, HY + HP / 4 + 4, "C=O", { s: 12, w: 600, a: "start" })}${T(HX + HR + 10, HY + HP / 4 + HP + 4, "N–H", { s: 12, w: 600, a: "start" })}
+        ${T(262, 82, "one chain coiled", { s: 12, a: "start", c: "#3c4f63" })}${T(262, 98, "round an axis;", { s: 12, a: "start", c: "#3c4f63" })}${T(262, 114, "3.6 amino acids", { s: 12, a: "start", c: "#3c4f63" })}${T(262, 130, "per turn", { s: 12, a: "start", c: "#3c4f63" })}`;
+    const SEQ = ["Gly", "Ala", "Ser", "Cys", "Leu", "Lys", "Glu", "Val", "His", "Cys", "Pro", "Phe", "Asp", "Arg", "Tyr", "Thr", "Met", "Ile", "Asn", "Gln", "Trp"];
+    const beads = (seq, x0, y0, mutIdx = -1) => seq.slice(1).map((_, i) => `<line x1="${x0 + i * 31 + 13}" y1="${y0}" x2="${x0 + (i + 1) * 31 - 13}" y2="${y0}" stroke="#16263a" stroke-width="3"/>`).join("") + seq.map((r, i) => `<circle cx="${x0 + i * 31}" cy="${y0}" r="13" fill="${i === mutIdx ? "#c25f5f" : "#1f8a8a"}"/><text x="${x0 + i * 31}" y="${y0 + 4}" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">${r}</text>`).join("");
+    const primarySVG = (mut) => `<svg viewBox="0 0 720 130" width="720" role="img" aria-label="primary structure as a sequence of amino acids${mut ? ", with one amino acid substituted" : ""}">${T(26, 30, "N-terminus", { a: "start", s: 12, w: 600, c: "#3c4f63" })}${T(694, 30, "C-terminus", { a: "end", s: 12, w: 600, c: "#3c4f63" })}${beads(mut ? SEQ.map((r, i) => (i === 6 ? "Val" : r)) : SEQ, 50, 64, mut ? 6 : -1)}${mut ? T(236, 100, "Glu → Val", { s: 12, c: "#c25f5f" }) : ""}${T(360, 122, "the sequence of amino acids, joined by peptide bonds (covalent)", { s: 12, c: "#3c4f63" })}</svg>`;
+    // Tertiary structure: ONE continuous folded chain. Upper and lower stretches are held together by a hydrogen bond, an
+    // ionic bond, a cluster of non-polar R groups (hydrophobic interactions) and a disulfide bridge between two cysteines.
+    const FOLD = [[70, 60], [115, 40], [160, 70], [230, 40], [300, 70], [370, 40], [440, 70], [510, 40], [580, 70], [640, 58], [682, 110], [640, 162], [580, 150], [510, 180], [440, 150], [370, 180], [300, 150], [230, 180], [160, 150], [115, 180], [70, 165]];
+    const bond = (x, y1, y2, col, dash, w = 2) => `<line x1="${x}" y1="${y1}" x2="${x}" y2="${y2}" stroke="${col}" stroke-width="${w}"${dash ? ` stroke-dasharray="${dash}"` : ""}/>`;
+    const tertiarySVG = `<svg viewBox="0 0 720 236" width="720" role="img" aria-label="tertiary structure: one folded chain held by a hydrogen bond, an ionic bond, hydrophobic interactions and a disulfide bridge">
+        ${chain(FOLD)}${T(58, 64, "N", { a: "end", s: 13 })}${T(58, 170, "C", { a: "end", s: 13 })}
+        ${bond(160, 76, 144, "#c8902a", "4 3")}${tag(160, 92, "–OH", "#16263a")}${tag(160, 136, "O=C–", "#16263a")}${tag(160, 114, "hydrogen bond", "#8a5f12", 600)}
+        ${bond(300, 76, 144, "#1e3a5f", "6 3")}${tag(300, 92, "–COO⁻", "#1e3a5f")}${tag(300, 136, "⁺H₃N–", "#1e3a5f")}${tag(300, 114, "ionic bond", "#1e3a5f", 600)}
+        <g stroke="#6b7d8f" stroke-width="2"><line x1="425" y1="72" x2="428" y2="86"/><line x1="455" y1="72" x2="452" y2="86"/><line x1="425" y1="148" x2="428" y2="134"/><line x1="455" y1="148" x2="452" y2="134"/></g>
+        <ellipse cx="440" cy="110" rx="50" ry="25" fill="#e2efe6" stroke="#6b9a7f" stroke-width="2"/>${T(440, 107, "hydrophobic", { s: 11, w: 600, c: "#3c4f63" })}${T(440, 121, "interactions", { s: 11, w: 600, c: "#3c4f63" })}
+        ${bond(580, 76, 144, "#c25f5f", "", 4)}${tag(580, 92, "S", "#c25f5f")}${tag(580, 136, "S", "#c25f5f")}${tag(580, 114, "disulfide bridge", "#c25f5f", 600)}
+        <line x1="150" y1="216" x2="190" y2="216" stroke="#c25f5f" stroke-width="4"/>${T(198, 220, "covalent (strong)", { a: "start", s: 12, w: 500, c: "#3c4f63" })}
+        <line x1="380" y1="216" x2="420" y2="216" stroke="#c8902a" stroke-width="2" stroke-dasharray="4 3"/>${T(428, 220, "weaker interactions between R groups", { a: "start", s: 12, w: 500, c: "#3c4f63" })}</svg>`;
+    // Denatured: the same chain as a loose random coil. The weak bonds are gone; the two cysteines are still joined by a
+    // disulfide bridge of normal length, and the peptide bonds are intact.
+    const COIL = [[50, 110], [100, 50], [150, 100], [200, 45], [250, 125], [200, 185], [290, 196], [330, 110], [380, 175], [420, 60], [470, 82], [540, 50], [640, 90], [600, 170], [470, 150], [560, 206]];
+    const denaturedSVG = `<svg viewBox="0 0 720 236" width="720" role="img" aria-label="denatured protein: the chain is a loose random coil; only the covalent disulfide bridge remains">
+        ${chain(COIL)}${T(38, 114, "N", { a: "end", s: 13 })}${T(574, 214, "C", { a: "start", s: 13 })}
+        ${bond(470, 88, 144, "#c25f5f", "", 4)}${tag(470, 92, "S", "#c25f5f")}${tag(470, 150, "S", "#c25f5f")}${T(484, 124, "disulfide bridge remains", { a: "start", s: 12, w: 600, c: "#c25f5f" })}</svg>`;
     const views = {
-      1: { title: "Primary structure", svg: `<svg viewBox="0 0 720 120" width="720" role="img" aria-label="primary structure as a sequence of amino acids">${T(30, 30, "N", { a: "start", w: 700 })}${T(690, 30, "C", { a: "end", w: 700 })}${beads(["Gly", "Ala", "Ser", "Cys", "Leu", "Lys", "Glu", "Val", "His", "Cys", "Pro", "Phe", "Asp", "Arg", "Tyr", "Thr", "Met", "Ile", "Asn", "Gln", "Trp"], 50, 60)}${T(360, 105, "the sequence of amino acids, held by peptide bonds (covalent)", { s: 12, c: "#3c4f63" })}</svg>`,
-        text: "The primary structure is the sequence of amino acids in the polypeptide, determined by the base sequence of the gene (3.1.8). The only bonds are covalent peptide bonds. Change one amino acid and every higher level can change." },
-      2: { title: "Secondary structure", svg: `<svg viewBox="0 0 720 200" width="720" role="img" aria-label="alpha helix and beta pleated sheet held by hydrogen bonds">
-        ${T(HX, 20, "α-helix", { w: 700 })}${helixPanel}
-        ${T(540, 24, "β-pleated sheet", { w: 700 })}<path d="M420 55 l30 -10 l30 10 l30 -10 l30 10 l30 -10 l30 10 l30 -10 l30 10" fill="none" stroke="#6b9a7f" stroke-width="6"/><path d="M420 95 l30 10 l30 -10 l30 10 l30 -10 l30 10 l30 -10 l30 10 l30 -10" fill="none" stroke="#6b9a7f" stroke-width="6"/><path d="M420 135 l30 -10 l30 10 l30 -10 l30 10 l30 -10 l30 10 l30 -10 l30 10" fill="none" stroke="#6b9a7f" stroke-width="6"/>
-        <g stroke="#c8902a" stroke-width="2" stroke-dasharray="4 3"><line x1="450" y1="48" x2="450" y2="102"/><line x1="510" y1="48" x2="510" y2="102"/><line x1="570" y1="48" x2="570" y2="102"/><line x1="630" y1="48" x2="630" y2="102"/><line x1="480" y1="100" x2="480" y2="128"/><line x1="540" y1="100" x2="540" y2="128"/><line x1="600" y1="100" x2="600" y2="128"/><line x1="660" y1="100" x2="660" y2="128"/></g>${T(540, 175, "hydrogen bonds (dashed) between neighbouring strands", { s: 11, c: "#3c4f63" })}</svg>`,
-        text: "Hydrogen bonds between the C=O of one peptide bond and the N–H of another coil the chain into an α-helix or fold it into a β-pleated sheet. In the α-helix a single chain coils, and each C=O forms a hydrogen bond with the N–H four amino acids further along, so the bonds run parallel to the axis between one turn and the next. In a β-pleated sheet, neighbouring stretches of chain lie side by side and are hydrogen bonded to each other. These hydrogen bonds involve backbone groups, but the R groups along the sequence decide which regions form helices or sheets, so secondary structure still depends on primary structure." },
-      3: { title: "Tertiary structure", svg: tertiarySVG(false),
-        text: "Further folding gives the overall 3D shape. It is held by interactions between R groups: hydrogen bonds, ionic bonds between oppositely charged R groups, disulfide bridges (strong covalent S–S bonds between two cysteines) and hydrophobic interactions. The specification names hydrogen bonds and disulfide bridges. This shape creates the active site of an enzyme or the binding site of an antibody." },
-      4: { title: "Quaternary structure", svg: `<svg viewBox="0 0 720 200" width="720" role="img" aria-label="quaternary structure: four polypeptide subunits of haemoglobin each with a haem group">
+      1: { title: "Primary", svg: primarySVG(false),
+        text: "<strong>Primary structure:</strong> the sequence of amino acids in the polypeptide, set by the base sequence of the gene. The only bonds are covalent peptide bonds." },
+      2: { title: "Secondary", svg: `<svg viewBox="0 0 720 200" width="720" role="img" aria-label="alpha helix and beta pleated sheet held by hydrogen bonds">
+        ${T(HX, 20, "α-helix", { w: 700, s: 14 })}${helixPanel}
+        ${T(560, 24, "β-pleated sheet", { w: 700, s: 14 })}<path d="M440 55 l30 -10 l30 10 l30 -10 l30 10 l30 -10 l30 10 l30 -10 l30 10" fill="none" stroke="#6b9a7f" stroke-width="6"/><path d="M440 95 l30 10 l30 -10 l30 10 l30 -10 l30 10 l30 -10 l30 10 l30 -10" fill="none" stroke="#6b9a7f" stroke-width="6"/><path d="M440 135 l30 -10 l30 10 l30 -10 l30 10 l30 -10 l30 10 l30 -10 l30 10" fill="none" stroke="#6b9a7f" stroke-width="6"/>
+        <g stroke="#c8902a" stroke-width="2" stroke-dasharray="4 3"><line x1="470" y1="48" x2="470" y2="102"/><line x1="530" y1="48" x2="530" y2="102"/><line x1="590" y1="48" x2="590" y2="102"/><line x1="650" y1="48" x2="650" y2="102"/><line x1="500" y1="100" x2="500" y2="128"/><line x1="560" y1="100" x2="560" y2="128"/><line x1="620" y1="100" x2="620" y2="128"/><line x1="680" y1="100" x2="680" y2="128"/></g>
+        ${T(360, 186, "dashed lines: hydrogen bonds between the C=O and N–H groups of the backbone", { s: 12, c: "#3c4f63" })}</svg>`,
+        text: "<strong>Secondary structure:</strong> hydrogen bonds between the C=O of one peptide bond and the N–H of another coil the chain into an α-helix or fold it into a β-pleated sheet. R groups are not involved." },
+      3: { title: "Tertiary", svg: tertiarySVG,
+        text: "<strong>Tertiary structure:</strong> the whole chain folds into a precise 3D shape, held by bonds between R groups: hydrogen bonds, ionic bonds, disulfide bridges and hydrophobic interactions. The covalent disulfide bridge (solid line) is strong and is not broken by moderate heat; the weaker interactions (dashed) are broken by heat and changes in pH. This shape forms the active site of an enzyme." },
+      4: { title: "Quaternary", svg: `<svg viewBox="0 0 720 200" width="720" role="img" aria-label="quaternary structure: four polypeptide subunits of haemoglobin each with a haem group">
         ${[[250, 62, "α", "#d6efec", "#1f8a8a"], [340, 62, "β", "#e2efe6", "#6b9a7f"], [250, 142, "β", "#e2efe6", "#6b9a7f"], [340, 142, "α", "#d6efec", "#1f8a8a"]].map(([x, y, l, f, st]) => `<path d="M${x - 50} ${y} c0 -40 40 -45 60 -30 c30 -20 60 20 40 45 c10 30 -40 45 -60 25 c-30 15 -50 -10 -40 -40z" fill="${f}" stroke="${st}" stroke-width="3"/><circle cx="${x + 12}" cy="${y + 6}" r="8" fill="#c25f5f"/>${T(x - 18, y + 10, l, { w: 700, s: 15 })}`).join("")}
-        ${T(540, 90, "● haem (prosthetic group with Fe²⁺)", { s: 11, c: "#c25f5f" })}${T(540, 110, "2 α + 2 β globin chains = 1 haemoglobin", { s: 11, c: "#3c4f63" })}${T(540, 128, "held by the same R-group interactions", { s: 11, c: "#3c4f63" })}</svg>`,
-        text: "Some proteins consist of more than one polypeptide chain. Haemoglobin has four (two α and two β globins), each with a non-protein haem group (3.1.5.3). The chains are held by the same interactions as tertiary structure. Quaternary structure lets haemoglobin show cooperative binding, which the single-chain myoglobin cannot." },
+        ${T(430, 86, "● haem group (contains Fe²⁺)", { s: 12, c: "#c25f5f", a: "start" })}${T(430, 108, "2 α + 2 β chains = 1 haemoglobin", { s: 12, c: "#3c4f63", a: "start" })}${T(430, 128, "held by the same R-group interactions", { s: 12, c: "#3c4f63", a: "start" })}</svg>`,
+        text: "<strong>Quaternary structure:</strong> two or more polypeptide chains in one protein. Haemoglobin has four (two α and two β), each with a haem group (3.1.5.3), held by the same interactions as tertiary structure." },
     };
-    host.innerHTML = head(spec) + `<div class="tabs" role="tablist" id="lvl">${[1, 2, 3, 4].map((n) => `<button role="tab" aria-selected="${n === 1}" data-l="${n}">${n}. ${views[n].title}</button>`).join("")}</div>
-      <div class="figure"><div class="fig-view" id="pview"></div></div><div class="small" id="ptext"></div>
-      <div class="card mt" style="background:var(--surface-2)"><div class="row"><strong class="small">What if…</strong><button class="btn sm" id="mut">one amino acid is substituted</button><button class="btn sm" id="heat">the protein is heated to 70 °C</button><button class="btn sm" id="reset">reset</button></div><div class="small mt" id="what"></div></div>`;
-    const show = (n) => { $$("#lvl button", host).forEach((b) => b.setAttribute("aria-selected", b.dataset.l == n)); $("#pview", host).innerHTML = views[n].svg; $("#ptext", host).innerHTML = views[n].text; $("#what", host).innerHTML = ""; };
-    $$("#lvl button", host).forEach((b) => b.addEventListener("click", () => show(+b.dataset.l)));
-    $("#mut", host).onclick = () => { show(1); $("#pview", host).innerHTML = views[1].svg.replace(beads(["Gly", "Ala", "Ser", "Cys", "Leu", "Lys", "Glu", "Val", "His", "Cys", "Pro", "Phe", "Asp", "Arg", "Tyr", "Thr", "Met", "Ile", "Asn", "Gln", "Trp"], 50, 60), beads(["Gly", "Ala", "Ser", "Cys", "Leu", "Lys", "Val", "Val", "His", "Cys", "Pro", "Phe", "Asp", "Arg", "Tyr", "Thr", "Met", "Ile", "Asn", "Gln", "Trp"], 50, 60, 6)); $("#what", host).innerHTML = "<strong>Glu → Val in this example chain (red).</strong> A charged, hydrophilic R group is replaced by a non-polar, hydrophobic one, so the bonds that R group can form change. Inside the protein this could stop an ionic bond forming, so the chain folds differently; if the change is at an active or binding site, function is lost or altered. A change like this (glutamic acid to valine at position 6 of β-globin) causes sickle-cell anaemia. There the valine is on the <em>surface</em> of the molecule: the fold of each chain hardly changes, but the non-polar patch makes haemoglobin molecules stick to one another in low oxygen and form long fibres that distort red blood cells. (Mutations: 3.2.11.1.)"; };
-    $("#heat", host).onclick = () => { show(3); $("#pview", host).innerHTML = tertiarySVG(true); $("#what", host).innerHTML = "<strong>Denaturation.</strong> Heat increases vibration, breaking hydrogen bonds and ionic bonds (not the covalent peptide bonds or disulfide bridges at this temperature). The tertiary structure unfolds, the active site loses its shape and the protein loses function. The primary structure is unchanged. (Enzymes: 3.1.3.2.)"; };
-    $("#reset", host).onclick = () => show(1);
+    host.innerHTML = head(spec) + `<div class="row" style="justify-content:space-between;align-items:center;gap:.5rem 1rem;flex-wrap:wrap;margin-bottom:.4rem"><div class="tabs" role="tablist" id="lvl" aria-label="levels of protein structure" style="margin:0">${[1, 2, 3, 4].map((n) => `<button role="tab" aria-selected="${n === 1}" data-l="${n}">${n}. ${views[n].title}</button>`).join("")}</div><div class="row" style="gap:.35rem;margin:0" role="group" aria-label="what if"><strong class="small">What if…</strong><button class="btn sm" id="mut" aria-pressed="false">one amino acid changes</button><button class="btn sm" id="heat" aria-pressed="false">it is heated to 70 °C</button></div></div>
+      <div class="figure" style="margin:0"><div class="fig-view" id="pview"></div></div><div class="small mt" id="ptext" aria-live="polite"></div>`;
+    const tabs = $$("#lvl button", host), mutB = $("#mut", host), heatB = $("#heat", host);
+    const show = (n, svg, text, which) => { tabs.forEach((b) => b.setAttribute("aria-selected", b.dataset.l == n)); mutB.setAttribute("aria-pressed", which === "mut"); heatB.setAttribute("aria-pressed", which === "heat"); mutB.classList.toggle("primary", which === "mut"); heatB.classList.toggle("primary", which === "heat"); $("#pview", host).innerHTML = svg || views[n].svg; $("#ptext", host).innerHTML = text || views[n].text; };
+    tabs.forEach((b) => b.addEventListener("click", () => show(+b.dataset.l)));
+    mutB.onclick = () => show(1, primarySVG(true), "<strong>One amino acid changes (Glu → Val, red).</strong> A charged R group is replaced by a non-polar one, so the bonds that R group can form change. The chain may fold differently, and if the active site or binding site changes shape the protein loses its function. Glutamic acid to valine at position 6 of β-globin causes sickle-cell anaemia (3.2.11.1).", "mut");
+    heatB.onclick = () => show(3, denaturedSVG, "<strong>Heated to 70 °C: denaturation.</strong> Hydrogen bonds and ionic bonds break and the chain unfolds, so the active site loses its shape and the protein loses its function. The peptide bonds (primary structure) and the covalent disulfide bridge are not broken.", "heat");
     show(1);
   };
 
@@ -195,55 +209,46 @@ window.BIO = window.BIO || {}; window.BIO.interactives = window.BIO.interactives
   const head = (spec, badge = "schematic") => h`<div class="card-head"><h3>${spec.title}</h3><span class="badge amber">${badge}</span></div><p class="small muted">${spec.note || ""}</p>`;
 
   // ---------- Clickable cell explorer (animal / plant / prokaryote) ----------
+  // spec.cell: one cell; spec.cells: several cells with a switch above the drawing (3.1.2.1 shows animal and plant in one
+  // explorer). "Show all labels" swaps in the labelled drawing (same structures, labels in the margins) and shows it at
+  // the full card width, all labels at one size (14 units, at least 12 px on a laptop; the automatic label enlarger is
+  // switched off for it). On phones the labelled drawing keeps a readable width and scrolls sideways, with a cue.
   B.interactives.cellExplorer = function (spec, host) {
-    const art = B.cellArt; const data = spec.cell === "prokaryote" ? art.prokOrganelles : art.organelles;
-    const svg = spec.cell === "animal" ? art.animalCell() : spec.cell === "plant" ? art.plantCell() : art.prokaryote();
-    // only list structures that are actually drawn in this cell, so every button highlights something
-    const present = data.filter((o) => (!o.only || o.only.includes(spec.cell)) && svg.includes(`data-org="${o.key}"`));
-    host.innerHTML = head(spec, "click or tab to a structure") + `<div class="explorer"><div class="figure"><div class="fig-view">${svg}</div></div><div><div class="org-list">${present.map((o) => `<button class="btn sm" data-key="${esc(o.key)}" aria-pressed="false">${esc(o.name)}</button>`).join("")}</div><div class="card" id="orginfo" style="background:var(--surface-2)" aria-live="polite"><p class="muted small">Select a structure on the diagram or from the list.</p></div></div></div>`;
-    const groups = $$("[data-org]", host); groups.forEach((g) => { g.setAttribute("tabindex", "0"); g.setAttribute("role", "button"); const o = present.find((x) => x.key === g.dataset.org); if (o) g.setAttribute("aria-label", o.name); });
-    const show = (key) => { const o = present.find((x) => x.key === key); if (!o) return; groups.forEach((g) => g.classList.toggle("on", g.dataset.org === key)); $$(".org-list button", host).forEach((b) => b.setAttribute("aria-pressed", b.dataset.key === key)); $("#orginfo", host).innerHTML = h`<div class="row"><strong>${o.name}</strong><span class="badge ${o.membrane === "double" ? "navy" : o.membrane === "single" ? "teal" : ""}">${o.membrane === "double" ? "double membrane" : o.membrane === "single" ? "single membrane" : "no membrane"}</span>${o.size ? raw(h`<span class="badge">${o.size}</span>`) : ""}</div><p class="small mt"><strong>Structure.</strong> ${o.structure}</p><p class="small"><strong>Function.</strong> ${o.func}</p>${o.sf ? raw(h`<p class="small"><strong>Structure → function.</strong> ${o.sf}</p>`) : ""}${o.note ? raw(h`<p class="tiny muted">${o.note}</p>`) : ""}`; };
-    groups.forEach((g) => { g.addEventListener("click", () => show(g.dataset.org)); g.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); show(g.dataset.org); } }); });
-    $$(".org-list button", host).forEach((b) => b.addEventListener("click", () => show(b.dataset.key)));
-  };
-
-  // ---------- Microscopy explorer ----------
-  B.interactives.microscopy = function (spec, host) {
-    const M = {
-      light: { name: "Optical (light) microscope", how: "Visible light passes through the specimen and glass lenses magnify the image.", res: "about 0.2 µm (200 nm)", mag: "up to about ×1500 useful magnification", sees: ["whole cells", "nucleus", "cell wall", "chloroplasts (as green bodies)", "large vacuole"], notSees: ["ribosomes", "membrane detail", "cristae", "ER"], pros: ["living specimens can be viewed", "colour (natural or stained)", "cheap, portable, quick to prepare"], cons: ["low resolution: light's wavelength limits detail", "organelles mostly invisible or unclear"], colour: "#efe0d6" },
-      tem: { name: "Transmission electron microscope (TEM)", how: "A beam of electrons passes through an ultra-thin, stained section; electromagnets focus it; denser parts absorb more electrons and appear darker.", res: "about 0.1 nm (0.0001 µm)", mag: "up to about ×1,000,000 or more", sees: ["all organelles in section", "double membranes", "cristae and thylakoids", "ribosomes"], notSees: ["living cells", "colour", "3D shape (one thin slice at a time)"], pros: ["highest resolution: electrons have a very short wavelength", "reveals ultrastructure"], cons: ["specimen must be dead, dehydrated, in a vacuum, very thin", "complex preparation can create artefacts", "image is black and white (colour is added afterwards)", "expensive"], colour: "#c4c4c4" },
-      sem: { name: "Scanning electron microscope (SEM)", how: "Electrons are scanned across the surface of a coated specimen; electrons knocked off the surface are collected to build a 3D image.", res: "about 20 nm", mag: "up to about ×100,000", sees: ["3D surface of cells, tissues, organisms", "surface features such as flagella, cilia, pollen walls"], notSees: ["internal structures", "living cells", "colour"], pros: ["3D images", "thick specimens can be used (no sectioning)"], cons: ["lower resolution than TEM", "dead, coated specimens in a vacuum", "expensive"], colour: "#e9eeec" },
+    const art = B.cellArt; const cells = spec.cells || [spec.cell]; const NAMES = { animal: "Animal cell", plant: "Plant cell", prokaryote: "Bacterial cell" };
+    const draw = (cell, labels) => (cell === "animal" ? art.animalCell({ labels }) : cell === "plant" ? art.plantCell({ labels }) : art.prokaryote({ big: true, labels }));
+    const presentOf = (cell) => { const data = cell === "prokaryote" ? art.prokOrganelles : art.organelles; const svg = draw(cell, false); return data.filter((o) => (!o.only || o.only.includes(cell)) && svg.includes(`data-org="${o.key}"`)); };
+    const sw = cells.length > 1 ? `<div class="row mb" role="group" aria-label="choose a cell">${cells.map((c, i) => `<button class="btn sm${i ? "" : " primary"}" data-cell="${c}" aria-pressed="${!i}">${NAMES[c]}</button>`).join("")}</div>` : "";
+    host.innerHTML = head(spec, "click or tab to a structure") + sw + `<div class="explorer"><div class="figure"><div class="fig-view" id="cview"></div></div><div><div class="row mb"><button class="btn sm" id="clabels" aria-pressed="false">Show all labels</button></div><div class="org-list"></div><div class="card" id="orginfo" style="background:var(--surface-2)" aria-live="polite"></div></div></div>`;
+    let cell = cells[0], labels = false, cur = null, groups = [], present = [];
+    const show = (key) => { const o = present.find((x) => x.key === key); if (!o) return; cur = key; groups.forEach((g) => g.classList.toggle("on", g.dataset.org === key)); $$(".org-list button", host).forEach((b) => b.setAttribute("aria-pressed", b.dataset.key === key)); $("#orginfo", host).innerHTML = h`<div class="row"><strong>${o.name}</strong><span class="badge ${o.membrane === "double" ? "navy" : o.membrane === "single" ? "teal" : ""}">${o.membrane === "double" ? "double membrane" : o.membrane === "single" ? "single membrane" : "no membrane"}</span>${o.size ? raw(h`<span class="badge">${o.size}</span>`) : ""}</div><p class="small mt"><strong>Structure.</strong> ${o.structure}</p><p class="small"><strong>Function.</strong> ${o.func}</p>${o.sf ? raw(h`<p class="small"><strong>Structure → function.</strong> ${o.sf}</p>`) : ""}${o.note ? raw(h`<p class="tiny muted">${o.note}</p>`) : ""}`; };
+    const render = () => {
+      const view = $("#cview", host), phone = matchMedia("(max-width: 599.98px)").matches;
+      $(".explorer", host).classList.toggle("ix-explorer-stack", labels);
+      view.classList.toggle("ix-read-off", labels);
+      view.innerHTML = labels ? `<div class="ix-hscroll">${draw(cell, true).replace("<svg ", `<svg style="${phone ? "width:800px;min-width:800px" : "width:100%"};height:auto;display:block" `)}</div><p class="ix-swipe tiny muted" aria-hidden="true">↔ Swipe sideways to see the whole drawing</p>` : draw(cell, false);
+      // the automatic phone layout (js/core/ix-layout.js) adds its own scroll box and cue for the unlabelled drawing only
+      if (labels) { view.classList.remove("ix-hscroll"); view.parentElement.querySelectorAll(":scope > .ix-swipe").forEach((e) => e.remove()); }
+      groups = $$("[data-org]", view);
+      groups.forEach((g) => { g.setAttribute("tabindex", "0"); g.setAttribute("role", "button"); const o = present.find((x) => x.key === g.dataset.org); if (o) g.setAttribute("aria-label", o.name); g.addEventListener("click", () => show(g.dataset.org)); g.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); show(g.dataset.org); } }); });
+      if (cur && present.some((o) => o.key === cur)) show(cur);
     };
-    host.innerHTML = head(spec, "illustrative, not micrographs") + `<div class="tabs" role="tablist" id="mtabs">${Object.entries(M).map(([k, m], i) => `<button role="tab" aria-selected="${i === 0}" data-m="${k}">${m.name.replace(/ \(.*\)/, "")}</button>`).join("")}</div><div class="explorer"><div class="figure"><div class="fig-view" id="mview"></div></div><div id="minfo" class="card" style="background:var(--surface-2)" aria-live="polite"></div></div><div class="small mt" id="mphotos"></div>`;
-    const panels = B.cellArt.microscopyPanels;
-    const show = (k) => { const m = M[k]; $$("#mtabs button", host).forEach((b) => b.setAttribute("aria-selected", b.dataset.m === k)); const idx = { light: 0, tem: 1, sem: 2 }[k]; $("#mview", host).innerHTML = panels.replace(/<rect x="(20|267|514)" y="40"/g, (mm, x) => `<rect x="${x}" y="40" ${["20", "267", "514"][idx] === x ? 'stroke="#2b8dd6" stroke-width="4"' : ""}`); $("#minfo", host).innerHTML = h`<strong>${m.name}</strong><p class="small mt">${m.how}</p><p class="small"><strong>Resolution:</strong> ${m.res} · <strong>Magnification:</strong> ${m.mag}</p><p class="small"><strong>Can show:</strong> ${m.sees.join(", ")}.<br><strong>Cannot show:</strong> ${m.notSees.join(", ")}.</p><p class="small"><strong>Advantages:</strong> ${m.pros.join("; ")}.<br><strong>Limitations:</strong> ${m.cons.join("; ")}.</p>`; $("#mphotos", host).innerHTML = `<div class="grid grid-3">${B.views.photo(k === "light" ? "plant-cells-lm" : k === "tem" ? "mitochondrion-tem" : "bacteria-sem")}${B.views.photo(k === "light" ? "animal-cells-lm" : k === "tem" ? "chloroplast-tem" : "rbc-sem", {})}</div>`; };
-    $$("#mtabs button", host).forEach((b) => b.addEventListener("click", () => show(b.dataset.m)));
-    show("light");
-  };
-
-  // ---------- Differential centrifugation, step by step ----------
-  B.interactives.centrifuge = function (spec, host) {
-    const stages = [
-      { t: "Homogenate", speed: "", pellet: null, sup: ["nuclei", "chloroplasts (plant tissue)", "mitochondria", "lysosomes", "ER fragments", "ribosomes"], info: "Tissue has been homogenised in a cold, isotonic, buffered solution and filtered. Everything smaller than a whole cell is suspended in the liquid." },
-      { t: "Spin 1: low speed, short time", speed: "lowest", pellet: ["nuclei (the largest organelles)"], sup: ["chloroplasts (plant tissue)", "mitochondria", "lysosomes", "ER fragments", "ribosomes"], info: "How fast a component sediments depends mainly on its size (mass), and also on its density and shape, so the largest components, the nuclei, sediment first. The pellet is enriched in nuclei; the supernatant (liquid above) is poured into a fresh tube." },
-      { t: "Spin 2: higher speed, longer", speed: "higher", pellet: ["chloroplasts (plant tissue only: these pellet first, at the lower end of this speed range)", "mitochondria"], sup: ["lysosomes", "ER fragments", "ribosomes"], info: "In plant tissue, chloroplasts sediment after the nuclei and before the mitochondria: they are larger than mitochondria, so they pellet at a slightly lower speed. Their size ranges overlap and broken chloroplasts are smaller, so in practice the chloroplast and mitochondrial fractions overlap. In animal tissue this pellet is enriched in mitochondria." },
-      { t: "Spin 3: higher speed again", speed: "higher still", pellet: ["lysosomes", "then ER / membrane fragments (microsomes)"], sup: ["ribosomes"], info: "Lysosomes, then fragments of ER and other membranes, sediment. Separation of these is imperfect; each pellet is enriched in, not purely, one component." },
-      { t: "Spin 4: highest speed, longest", speed: "highest", pellet: ["ribosomes"], sup: ["soluble cytoplasm (enzymes, small molecules)"], info: "Ribosomes, the smallest of the components listed, sediment last. What remains in solution is the soluble part of the cytoplasm." },
-    ];
-    host.innerHTML = head(spec, "schematic, order of magnitude only") + `<div class="frac-steps" id="fsteps">${stages.map((s, i) => `<button class="btn sm" data-i="${i}" aria-pressed="${i === 0}">${i}. ${esc(s.t.split(":")[0])}</button>`).join("")}</div>
-      <div class="explorer mt"><div class="figure"><div class="fig-view"><svg id="fsvg" viewBox="0 0 420 260" width="420" role="img" aria-label="centrifuge tube showing pellet and supernatant"><path d="M150 20 l0 180 a60 60 0 0 0 120 0 l0 -180" fill="#fff" stroke="#16263a" stroke-width="3"/><path id="fsup" d="M154 60 l0 140 a56 56 0 0 0 112 0 l0 -140z" fill="#e6f6f1"/><path id="fpel" d="M166 230 a44 44 0 0 0 88 0z" fill="#1e3a5f" opacity="0"/><text id="fspeed" x="210" y="14" text-anchor="middle" font-size="12" fill="#3c4f63"></text></svg></div></div>
-      <div class="card" style="background:var(--surface-2)" id="finfo" aria-live="polite"></div></div>
-      <div class="card mt"><div class="row"><strong class="small">Check yourself:</strong><span class="small">after which spin is the pellet mainly mitochondria?</span><select id="fq"><option value="">choose…</option><option value="1">Spin 1</option><option value="2">Spin 2</option><option value="3">Spin 3</option><option value="4">Spin 4</option></select><span id="ffb" class="small"></span></div></div>`;
-    const colours = [null, "#1e3a5f", "#c8902a", "#c25f5f", "#16263a"];
-    const show = (i) => { const s = stages[i]; $$("#fsteps button", host).forEach((b) => b.setAttribute("aria-pressed", +b.dataset.i === i)); const pel = $("#fpel", host); pel.style.transition = matchMedia("(prefers-reduced-motion: reduce)").matches ? "none" : "opacity .5s"; pel.style.opacity = s.pellet ? 1 : 0; if (colours[i]) pel.setAttribute("fill", colours[i]); $("#fsup", host).setAttribute("fill", ["#dfe8e3", "#e6f6f1", "#edf8f4", "#f3faf7", "#f8fcfa"][i]); $("#fspeed", host).textContent = s.speed ? `speed: ${s.speed}` : "before centrifugation"; $("#finfo", host).innerHTML = h`<strong>${s.t}</strong><p class="small mt">${s.info}</p>${s.pellet ? raw(h`<p class="small"><strong>Pellet enriched in:</strong> ${s.pellet.join("; ")}</p>`) : ""}<p class="small"><strong>Still in supernatant:</strong> ${s.sup.join(", ")}</p>`; };
-    $$("#fsteps button", host).forEach((b) => b.addEventListener("click", () => show(+b.dataset.i)));
-    $("#fq", host).addEventListener("change", (e) => { const v = e.target.value; $("#ffb", host).innerHTML = !v ? "" : v === "2" ? '<span class="badge sage">Correct: nuclei first, then mitochondria (in plant tissue the chloroplasts pellet just before the mitochondria).</span>' : '<span class="badge rose">Not quite: nuclei pellet first (largest), mitochondria in the second spin.</span>'; });
-    show(0);
+    const setCell = (c) => {
+      cell = c; present = presentOf(c);
+      $$("[data-cell]", host).forEach((b) => { const on = b.dataset.cell === c; b.setAttribute("aria-pressed", on); b.classList.toggle("primary", on); });
+      $(".org-list", host).innerHTML = present.map((o) => `<button class="btn sm" data-key="${esc(o.key)}" aria-pressed="false">${esc(o.name)}</button>`).join("");
+      $$(".org-list button", host).forEach((b) => b.addEventListener("click", () => show(b.dataset.key)));
+      if (!present.some((o) => o.key === cur)) { cur = null; $("#orginfo", host).innerHTML = '<p class="muted small">Select a structure on the diagram or from the list.</p>'; }
+      render();
+    };
+    const lb = $("#clabels", host);
+    lb.addEventListener("click", () => { labels = !labels; lb.setAttribute("aria-pressed", labels); lb.textContent = labels ? "Hide labels" : "Show all labels"; render(); });
+    $$("[data-cell]", host).forEach((b) => b.addEventListener("click", () => setCell(b.dataset.cell)));
+    setCell(cell);
   };
 
   // ---------- Prokaryote v eukaryote comparison toggle ----------
   B.interactives.prokEuk = function (spec, host) {
-    const rows = [["Typical size", "0.5 to 5 µm", "10 to 100 µm"], ["Nucleus", "None: circular DNA free in the cytoplasm (nucleoid)", "DNA in a nucleus bounded by a double membrane (envelope)"], ["DNA", "Circular, not associated with proteins; often plasmids too", "Linear, associated with histone proteins, in chromosomes"], ["Membrane-bound organelles", "None", "Mitochondria, ER, Golgi, lysosomes, (chloroplasts, vacuole)"], ["Ribosomes", "Smaller: 70S", "Larger: 80S in cytoplasm (70S inside mitochondria and chloroplasts)"], ["Cell wall", "Always present; contains murein (peptidoglycan)", "Plants: cellulose; fungi: chitin; animals: none"], ["Other features", "Capsule, flagella and plasmids in some bacteria", "Cilia / flagella (with microtubules) in some cells"], ["Cell division", "Binary fission (3.2.10.3)", "Mitosis / meiosis (3.2.10.2, 3.1.9.1)"]];
+    const rows = [["Typical size", "0.5 to 5 µm", "10 to 100 µm"], ["Nucleus", "None: circular DNA free in the cytoplasm (nucleoid)", "DNA in a nucleus bounded by a double membrane (envelope)"], ["DNA", "Circular, not associated with proteins; often plasmids too", "Linear, associated with histone proteins, in chromosomes"], ["Membrane-bound organelles", "None", "Mitochondria, ER, Golgi, lysosomes, (chloroplasts, vacuole)"], ["Ribosomes", "Smaller: 70S", "Larger: 80S in cytoplasm (70S inside mitochondria and chloroplasts)"], ["Cell wall", "Always present; contains murein (peptidoglycan)", "Plants: cellulose; fungi: chitin; animals: none"], ["Other features", "Capsule, flagella and plasmids in some bacteria", "Capsules and plasmids rare; flagella (different structure) in some cells"], ["Cell division", "Binary fission (3.2.10.3)", "Mitosis / meiosis (3.2.10.2, 3.1.9.1)"]];
     host.innerHTML = head(spec, "comparison") + `<div class="row mb"><button class="btn sm" id="pe-all" aria-pressed="true">Show all</button><button class="btn sm" id="pe-quiz" aria-pressed="false">Hide eukaryote column (self-test)</button></div><table id="petab"><thead><tr><th>Feature</th><th>Prokaryotic cell</th><th>Eukaryotic cell</th></tr></thead><tbody>${rows.map((r) => h`<tr><th>${r[0]}</th><td>${r[1]}</td><td class="euk">${r[2]}</td></tr>`).join("")}</tbody></table>`;
     const set = (quiz) => { $$("td.euk", host).forEach((td) => { td.style.color = quiz ? "transparent" : ""; td.style.background = quiz ? "var(--surface-2)" : ""; td.title = quiz ? "click to reveal" : ""; td.onclick = quiz ? () => { td.style.color = ""; } : null; }); $("#pe-all", host).setAttribute("aria-pressed", !quiz); $("#pe-quiz", host).setAttribute("aria-pressed", quiz); };
     $("#pe-all", host).onclick = () => set(false); $("#pe-quiz", host).onclick = () => set(true);

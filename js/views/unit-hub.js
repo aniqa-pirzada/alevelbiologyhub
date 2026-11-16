@@ -155,10 +155,10 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
   }
 
   // Weekly history chart: bar height = first-time score (% of marks), label above = number of attempts that week.
-  function weeklyChart(weeks) {
+  function weeklyChart(weeks, label = "Unit 1") {
     const W = 400, H = 210, padL = 34, padB = 34, padT = 18, w = W - padL - 6, hh = H - padB - padT; const n = weeks.length; const slot = w / n; const bw = Math.min(26, slot - 6);
     const Y = (p) => padT + hh - (hh * p) / 100;
-    let s = `<svg class="uh-chart" viewBox="0 0 ${W} ${H}" role="img" aria-labelledby="uh-wk-t" focusable="false"><title id="uh-wk-t">Weekly Unit 1 practice: ${esc(weeks.map((x) => `week of ${shortDate(x.start)}: ${x.n} attempts${x.pct != null ? ", " + x.pct + "%" : ""}`).join("; "))}</title>`;
+    let s = `<svg class="uh-chart" viewBox="0 0 ${W} ${H}" role="img" aria-labelledby="uh-wk-t" focusable="false"><title id="uh-wk-t">Weekly ${esc(label)} practice: ${esc(weeks.map((x) => `week of ${shortDate(x.start)}: ${x.n} attempts${x.pct != null ? ", " + x.pct + "%" : ""}`).join("; "))}</title>`;
     for (const g of [0, 25, 50, 75, 100]) s += `<line x1="${padL}" x2="${W - 6}" y1="${Y(g)}" y2="${Y(g)}" stroke="#e3ecea"/><text x="${padL - 5}" y="${Y(g) + 3.5}" font-size="10" text-anchor="end" fill="#6b7d8f">${g}%</text>`;
     const every = n > 8 ? 2 : 1;
     weeks.forEach((x, i) => {
@@ -169,6 +169,70 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
     });
     s += `<text x="${padL + w / 2}" y="${H - 3}" font-size="10" text-anchor="middle" fill="#6b7d8f">week beginning (Monday)</text>`;
     return s + "</svg>";
+  }
+
+  // ---------------------------------------------------------------- Phase 4 Batch 4 additions (generic for any unit)
+  // Spaced-repetition review, incorrect-answer review, weak areas, practical skills coverage and question-type analytics.
+  // They add panels to every unit's overview; nothing that the Unit 1 page showed before is removed or reworded.
+  // Styles are emitted inline (prefix uh2-) because css/ is a shared file.
+  const STYLE2 = `<style id="uh2-style">
+  .uh2-actions { display: flex; flex-wrap: wrap; gap: .35rem .8rem; margin-top: .25rem; font-size: .86rem; }
+  .uh2-actions a { color: var(--teal-strong); text-decoration: underline; }
+  .uh2-actions button.linklike { background: none; border: 0; padding: 0; font: inherit; color: var(--teal-strong); text-decoration: underline; cursor: pointer; }
+  .uh2-actions button.linklike:hover { color: var(--ink); }
+  .uh2-q { font-size: .86rem; color: var(--ink-2); overflow-wrap: anywhere; }
+  .uh2-confirm { margin-top: .7rem; }
+  .uh2-confirm[hidden] { display: none; }
+  .uh2-tags { display: flex; flex-wrap: wrap; gap: .3rem; margin: .3rem 0 .6rem; }
+  .uh2-prac-line { font-size: .86rem; margin-top: .2rem; }
+  .uh2-tbl-wrap { overflow-x: auto; max-width: 100%; }
+  </style>`;
+  const FC_SIZE = 15; // focused session size (the flashcard hub's "Standard" size)
+  const strip = (s) => String(s || "").replace(/<[^>]+>/g, " ").replace(/\{\{\d+\}\}/g, "…").replace(/\s+/g, " ").trim();
+  const clip = (s, n = 110) => (s.length > n ? s.slice(0, n - 1) + "…" : s);
+  const CATEGORY = { knowledge: "Knowledge gap", misconception: "Misconception", maths: "Mathematical error", technique: "Examination technique", misread: "Misreading the question" };
+
+  // Where a question that is not in the custom-test pool lives (practice-paper parts and concept-map questions).
+  function elsewhere(qid, u) {
+    for (const p of Object.values(B.papers || {})) for (const q of p.questions || []) for (const pt of q.parts || []) if (pt.id === qid) {
+      const runs = ((B.store.get().papers || {})[p.id] || []); const last = runs[runs.length - 1];
+      return { q: pt, where: `${p.title} (${p.code || "practice paper"}), ${pt.label || pt.id}`, href: last ? `#/papers/${p.id}/review/${last.ts}` : `#/papers/${p.id}`, linkText: last ? "Exam Review" : "Open the paper", kind: "paper" };
+    }
+    for (const [mu, M] of Object.entries(B.unitMaps || {})) for (const l of M.links || []) if (l.question && l.question.id === qid) return { q: l.question, where: `Unit ${mu.split(".")[1]} concept map`, href: `#/unit/${mu}/map`, linkText: "Open the concept map", kind: "map" };
+    for (const [cid, c] of Object.entries(B.clusters || {})) for (const q of [...((c && c.examQuestions) || []), ...(((c && c.map && c.map.links) || []).map((l) => l.question).filter(Boolean))]) if (q && q.id === qid) return { q, where: `Cross-topic page ${cid}`, href: `#/cluster/${cid}`, linkText: "Open the cross-topic page", kind: "cluster" };
+    return null;
+  }
+
+  // Open mistake-bank entries for this unit, one per question (the latest entry wins), in specification order.
+  function unitMistakes(u, inUnit, poolById, orderOf) {
+    const st = B.store.get(); const byQ = new Map();
+    for (const [id, m] of Object.entries(st.mistakes || {})) { if (!m || m.resolved || !m.qid || !inUnit(m.ref)) continue; const prev = byQ.get(m.qid); byQ.set(m.qid, { id, m, n: (prev ? prev.n : 0) + 1 }); }
+    const out = [];
+    for (const [qid, x] of byQ) {
+      const e = poolById[qid]; const o = e ? null : elsewhere(qid, u);
+      const q = e ? e.q : o ? o.q : null;
+      out.push({ qid, ref: x.m.ref, id: x.id, n: x.n, category: x.m.category, entry: e || null, other: o, preview: q ? clip(strip(q.stem || q.text || q.prompt)) : qid, marks: q ? +q.marks || 0 : 0, order: orderOf(x.m.ref) });
+    }
+    return out.sort((a, b) => a.order - b.order || idCmp(a.qid, b.qid));
+  }
+
+  // Practical status from the data, never assumed: a practical counts as built only when its file sets a status other
+  // than "not_started". "Covered" needs a built virtual lab, at least one completed run and every one of its questions
+  // attempted; an unbuilt practical is always "outstanding" and can never be shown as covered.
+  function practicalState(n, poolAll, latestById) {
+    const st = B.store.get(); const pr = (B.practicals || {})[n] || {}; const built = !!pr.status && pr.status !== "not_started";
+    const runs = (st.labRuns || {})[n] || []; const qs = poolAll.filter((e) => e.source === "practical" && e.ctx && String(e.ctx.n) === String(n));
+    const done = qs.filter((e) => latestById[e.id]); const sc = done.reduce((a, e) => a + latestById[e.id].score, 0), mx = done.reduce((a, e) => a + latestById[e.id].max, 0);
+    const level = !built ? "outstanding" : runs.length && qs.length && done.length === qs.length ? "covered" : runs.length || done.length ? "in progress" : "not started";
+    return { built, status: pr.status || "not_started", runs, qs, done, pct: mx ? Math.round((100 * sc) / mx) : null, level };
+  }
+  const statusOfPrac = (stt) => (B.views.lib && B.views.lib.statusBadge ? B.views.lib.statusBadge(stt) : `<span class="badge">${esc(stt)}</span>`);
+  const levelBadge = (lv) => ({ outstanding: '<span class="badge rose">outstanding</span>', covered: '<span class="badge sage">covered</span>', "in progress": '<span class="badge amber">in progress</span>', "not started": '<span class="badge">not started</span>' })[lv];
+
+  // Mastery from the latest non-hinted attempt at each question, grouped by a key (question type or difficulty).
+  function masteryBy(latest, keyOf) {
+    const g = {}; for (const a of latest) { const k = keyOf(a); if (!k) continue; const b = g[k] || (g[k] = { n: 0, score: 0, max: 0 }); b.n++; b.score += a.score; b.max += a.max; }
+    return g;
   }
 
   // ---------------------------------------------------------------- overview
@@ -219,6 +283,27 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
     const mathsGeneral = (B.maths || []).filter((m) => !mathsNamed.includes(m) && /Section 7/.test(m.source || "") && (unitLevel === "A2" || m.level === "AS"));
     const synCount = Object.entries(B.content || {}).filter(([r]) => inUnit(r)).reduce((n, [, c]) => n + (c.synoptic || []).length, 0);
 
+    // Phase 4 Batch 4 panels: flashcards, incorrect answers, weak areas, practical coverage, analytics, unit papers
+    const poolAll = pool(u); const poolById = Object.fromEntries(poolAll.map((e) => [e.id, e]));
+    const subOrder = {}; unit.topics.forEach((t) => t.subsections.forEach((s) => (subOrder[s.ref] = Object.keys(subOrder).length)));
+    const latest = P.latestAttempts((a) => inUnit(a.ref)); const latestById = Object.fromEntries(latest.map((a) => [a.qid, a]));
+    const mist = unitMistakes(u, inUnit, poolById, (r) => (r in subOrder ? subOrder[r] : 999)); const retryable = mist.filter((x) => x.entry);
+    const F = B.flashcards; const nCards = F ? F.all(u).length : 0;
+    const fcPlan = nCards ? F.plan({ size: FC_SIZE, scope: u, includeNew: false }) : null;
+    const fcPlanNew = nCards ? F.plan({ size: FC_SIZE, scope: u, includeNew: true }) : null;
+    const fcSaved = F ? F.saved() : null; const fcSame = !!(fcSaved && fcSaved.queue.length && fcSaved.scope === u);
+    const ret = P.retention((id, c) => inUnit(c.ref));
+    const weakSubs = per.filter((s) => s.mastery.sufficient && s.mastery.pct < CONSOLIDATE_BELOW).sort((a, b) => a.mastery.pct - b.mastery.pct || subOrder[a.ref] - subOrder[b.ref]);
+    const weakTopics = unit.topics.map((t) => { const runs = (st.consolidation || {})[t.ref] || []; const last = runs[runs.length - 1]; return last && last.pct != null && last.pct < CONSOLIDATE_BELOW ? { t, last } : null; }).filter(Boolean);
+    const pState = Object.fromEntries(pracs.map((p) => [p.n, practicalState(p.n, poolAll, latestById)]));
+    const nBuilt = pracs.filter((p) => pState[p.n].built).length;
+    const unitPapers = Object.values(B.papers || {}).filter((p) => p && p.unit === u && Array.isArray(p.questions) && p.questions.some((q) => (q.parts || []).length));
+    const byType = masteryBy(latest, (a) => a.type); const byDiff = masteryBy(latest, (a) => (TYPES.includes(a.type) ? difficulty({ type: a.type, marks: a.max }) : null));
+    const answeredInPool = poolAll.filter((e) => latestById[e.id]).length;
+    const earlierMaps = B.spec.units.slice(0, B.spec.units.indexOf(unit)).filter((x) => (B.unitMaps || {})[x.ref]);
+    const nowTs = Date.now();
+    const topicDue = (ref) => (F ? F.all(ref).filter((k) => { const c = st.cards[k.id]; return c && F.isReviewed(c) && (c.due || 0) <= nowTs; }).length : 0);
+
     const rev = (r, isDue) => h`<li class="uh-rev"><div><a href="#/topic/${r.ref}"><strong>${r.ref}</strong>${r.stmt ? raw(h` <span class="tiny muted mono">${r.stmt}</span>`) : ""}</a> <span class="badge ${isDue ? "amber" : ""}">${(isDue ? "due " : "scheduled ") + fmtDate(r.due)}</span><div class="small">${r.reason || "Scheduled revisit"}${r.source ? raw(h` <span class="tiny muted">· ${r.source}</span>`) : ""}</div></div><button class="btn sm" data-rev="${r.id}" aria-label="Mark revisit of ${r.ref} as done">Done</button></li>`;
 
     const paperItem = (w, c) => h`<li><a href="#/topic/${w.ref}"><span class="mono small">${w.id}</span></a> <span class="badge ${c}">${w.score}/${w.max} · ${w.pct}%</span><div class="small">${w.text}</div><div class="tiny muted">${w.paper}, ${fmtDate(w.ts)}</div></li>`;
@@ -230,20 +315,26 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
     const topicBlock = (r) => { const t = r.t; const ts = t.subsections.flatMap((s) => s.statements); const nt = ts.filter((x) => st.checklist[x.id]).length;
       return h`<details class="acc" data-topic="${t.ref}"><summary><span><span class="mono">${t.ref}</span> ${t.title}</span><span class="uh-flags"><span class="badge" data-topic-count="${t.ref}">${nt}/${ts.length} ticked</span>${raw(masteryBadge(r.m))}</span></summary><div class="acc-body">${raw(t.subsections.map(subBlock).join(""))}<p class="small mt">${B.consolidation && B.consolidation[t.ref] && B.consolidation[t.ref].assessment ? raw(h`<a href="#/consolidate/${t.ref}">Topic ${t.ref} consolidation and assessment →</a>`) : raw(h`<span class="muted">The ${t.ref} consolidation page has not been built yet.</span>`)}</p></div></details>`; };
 
+    const mistItem = (x) => { const e = x.entry, o = x.other; const where = e ? e.where : o ? o.where : "Question not found on the platform (it may have been revised)";
+      const link = e ? (e.source === "page" ? h`<a class="small" href="#/topic/${x.ref}/check/${x.qid}">Reattempt on the ${x.ref} page</a>` : e.source === "consolidation" ? h`<a class="small" href="#/consolidate/${e.topic}">Open the ${e.topic} consolidation page</a>` : e.source === "practical" && e.ctx ? h`<a class="small" href="#/lab/${e.ctx.n}">Open required practical ${e.ctx.n}</a>` : h`<a class="small" href="#/topic/${x.ref}">Open the ${x.ref} page</a>`) : o ? h`<a class="small" href="${o.href}">${o.linkText}</a>` : "";
+      return h`<li><div class="uh-sub-head"><a href="#/topic/${x.ref}"><span class="mono">${x.ref}</span></a><span class="uh-flags">${x.marks ? raw(h`<span class="badge">${x.marks} mark${x.marks === 1 ? "" : "s"}</span>`) : ""}${x.category && CATEGORY[x.category] ? raw(h`<span class="badge navy">${CATEGORY[x.category]}</span>`) : ""}${x.n > 1 ? raw(h`<span class="badge amber">${x.n} entries</span>`) : ""}</span></div><div class="uh2-q">${x.preview}</div><div class="tiny muted">${where}</div>${link ? raw(`<div class="uh2-actions">${link}</div>`) : ""}</li>`; };
+    const pracLine = (p, ps) => ps.built
+      ? h`<div class="uh2-prac-line">${ps.status !== "reviewed" && ps.status !== "verified" && ps.status !== "approved" ? raw(statusOfPrac(ps.status) + " ") : ""}Practical questions: ${ps.done.length} of ${ps.qs.length} answered${ps.pct != null ? ` (${ps.pct}% of marks on your latest attempts)` : ""}. Your coverage: ${raw(levelBadge(ps.level))}</div>`
+      : h`<div class="uh2-prac-line">Your coverage: ${raw(levelBadge("outstanding"))} This practical is not built on the platform yet. Carry it out in school, and revise its method, variables, risks and calculations from the specification and your practical notes.</div>`;
     const recItems = [
       ...due.map((r) => ({ html: rev(r, true) })),
       ...recs.map((r) => ({ html: h`<li><a href="#/topic/${r.ref}"><strong>${r.ref}</strong> ${r.title}</a><div class="small muted">Why: ${r.why.join("; ")}</div></li>` })),
     ];
     const tableMastery = h`<table class="tbl"><caption class="sr-only">Mastery by topic</caption><thead><tr><th scope="col">Topic</th><th scope="col">Mastery</th><th scope="col">Questions</th><th scope="col">Completed</th></tr></thead><tbody>${raw(topicRows.map((r) => h`<tr><th scope="row"><a href="#/library/${u}/${r.ref}">${r.ref} ${r.title}</a></th><td>${r.m.sufficient ? r.m.pct + "%" : r.m.questions ? "not enough evidence" : "no attempts"}</td><td>${r.m.questions}</td><td>${r.cov.completed}/${r.cov.total}</td></tr>`).join(""))}</tbody></table>`;
 
-    const html = el(h`<div class="uh">
+    const html = el(h`<div class="uh">${raw(STYLE2)}
       <div class="page-head"><div><div class="eyebrow">${unit.code} · ${unitName(unit)} Revision Centre</div><h1>${unitName(unit)}: ${unit.short}</h1><p class="lede">Everything for ${unitName(unit)} in one place: the full specification checklist, your mastery topic by topic, what to revise next and why, and custom retrieval tests built from every original question on the platform.</p></div>
-        <div class="row"><a class="btn primary" href="#/unit/${u}/test">Build a custom test</a><a class="btn" href="#/papers">Practice papers</a></div></div>
+        <div class="row"><a class="btn primary" href="#/unit/${u}/test">Build a custom test</a><a class="btn" href="#/papers/unit/${u}">Practice papers</a></div></div>
       ${raw(tabsNav(u, "overview"))}
       ${!st.attempts.length && !Object.keys(st.checklist).length && !Object.keys(st.coverage).length ? raw(`<div class="notice sage mb"><strong>Nothing recorded yet.</strong> Tick statements below as you learn them, answer questions on the topic pages or build a custom test: this page fills in as you go.</div>`) : ""}
       <div class="grid grid-4 mb uh-stats">
         <div class="card"><div class="stat"><span class="v" id="uh-ticked">${ticked}</span><span class="l">of ${stmts.length} statements ticked</span></div><div class="progress mt" aria-hidden="true"><span id="uh-tick-bar" style="width:${B.util.pct(ticked, stmts.length)}%"></span></div></div>
-        <div class="card"><div class="stat"><span class="v">${nDone} / ${per.length}</span><span class="l">subsections completed · ${nVis} visited · ${nAuth} authored</span></div></div>
+        <div class="card"><div class="stat"><span class="v">${nDone} / ${per.length}</span><span class="l">subsections completed · ${nVis} visited</span></div></div>
         <div class="card"><div class="stat"><span class="v">${um.sufficient ? um.pct + "%" : "–"}</span><span class="l">${um.sufficient ? `unit mastery · ${um.questions} questions` : um.questions ? `not enough evidence (${um.questions} question${um.questions === 1 ? "" : "s"})` : "unit mastery · no attempts yet"}</span></div></div>
         <div class="card"><div class="stat"><span class="v">${due.length}</span><span class="l">revisit${due.length === 1 ? "" : "s"} due · ${open.length} scheduled later</span></div></div>
       </div>
@@ -251,10 +342,11 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
       <div class="grid grid-2 mb">
         <section class="card" aria-labelledby="uh-rec-h"><div class="card-head"><h2 class="h3" id="uh-rec-h">What to revise next</h2><a class="small" href="#/progress">How this works</a></div>
           ${recItems.length ? raw(`<ul class="uh-list">${recItems.map((x) => x.html).join("")}</ul>`) : raw(`<div class="empty">${icons.seed}<h3>No recommendations yet</h3><p>Study a ${esc(unitName(unit))} topic and answer some questions; recommendations come from your mastery, mistakes, flashcards and scheduled revisits.</p></div>`)}
+          ${weakSubs.length || weakTopics.length ? raw(h`<h3 class="h4 mt">Weak areas (below ${CONSOLIDATE_BELOW}%)</h3><ul class="uh-list" id="uh-weak">${raw(weakSubs.slice(0, 6).map((s) => h`<li><a href="#/topic/${s.ref}"><strong>${s.ref}</strong> ${s.title}</a> ${raw(masteryBadge(s.mastery))}<div class="uh2-actions"><a href="#/topic/${s.ref}/learn">Notes</a><a href="#/topic/${s.ref}/check">Quick check</a>${F && F.all(s.ref).length ? raw(h`<a href="#/flashcards/${s.ref}">Flashcards</a>`) : ""}<button type="button" class="linklike" data-weak-test="${s.ref}">Set up a 10-mark test on ${s.ref}</button></div></li>`).join(""))}${raw(weakTopics.map((w) => h`<li><a href="#/consolidate/${w.t.ref}"><strong>${w.t.ref}</strong> ${w.t.title}</a> <span class="badge amber">topic assessment ${w.last.pct}%</span><div class="uh2-actions"><a href="#/consolidate/${w.t.ref}">Revisit the consolidation page and retake the assessment</a></div></li>`).join(""))}</ul>${weakSubs.length > 6 ? raw(h`<p class="tiny muted">and ${weakSubs.length - 6} more subsection${weakSubs.length - 6 === 1 ? "" : "s"} below ${CONSOLIDATE_BELOW}%: see the checklist below.</p>`) : ""}`) : ""}
           ${paperLow.length ? raw(h`<h3 class="h4 mt">Weak statements in your latest practice-paper runs (below ${WB}%)</h3><ul class="uh-list">${raw(paperLow.slice(0, 8).map((w) => paperItem(w, "rose")).join(""))}</ul>${paperLow.length > 8 ? raw(h`<p class="tiny muted">and ${paperLow.length - 8} more: see Exam Review for each paper.</p>`) : ""}`) : ""}
           ${paperMid.length ? raw(h`<details class="mt"><summary class="small"><strong>Paper statements that need consolidation (${WB}–${CONSOLIDATE_BELOW - 1}%) (${paperMid.length})</strong></summary><ul class="uh-list">${raw(paperMid.map((w) => paperItem(w, "amber")).join(""))}</ul></details>`) : ""}
           ${open.length ? raw(h`<details class="mt"><summary class="small"><strong>Scheduled revisits not yet due (${open.length})</strong></summary><ul class="uh-list">${raw(open.map((r) => rev(r, false)).join(""))}</ul></details>`) : ""}
-          <p class="tiny muted mt">Recommendations are scored by the platform's published rules (not studied yet, mastery below 70%, few questions attempted, flashcards due, unresolved mistakes, not opened for two weeks). Revisits are scheduled by practice papers and topic work; "Done" records that you have revisited it. Paper statements are called weak when you scored below ${WB}% of their marks in the latest run of a paper (the same rule as the score report and Exam Review); ${WB}–${CONSOLIDATE_BELOW - 1}% is listed separately as needing consolidation.</p>
+          <details class="tiny muted mt"><summary>How this works</summary><p>Recommendations come from these rules: not studied yet, mastery below 70%, few questions attempted, flashcards due, unresolved mistakes, not opened for two weeks. Revisits are scheduled by practice papers and topic work; "Done" records that you have revisited it. Paper statements are called weak when you scored below ${WB}% of their marks in the latest run of a paper (the same rule as the score report and Exam Review); ${WB}–${CONSOLIDATE_BELOW - 1}% is listed separately as needing consolidation. Weak areas are subsections with mastery below ${CONSOLIDATE_BELOW}% (at least 3 different questions answered) and topics whose latest topic assessment scored below ${CONSOLIDATE_BELOW}%.</p></details>
         </section>
         <section class="card" aria-labelledby="uh-mas-h"><div class="card-head"><h2 class="h3" id="uh-mas-h">Mastery by topic</h2><span class="badge">${unit.topics.length} topics</span></div>
           <div class="uh-chart-wrap">${raw(masteryChart(topicRows))}</div>
@@ -264,20 +356,46 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
       </div>
 
       <div class="grid grid-2 mb">
-        <section class="card" aria-labelledby="uh-time-h"><div class="card-head"><h2 class="h3" id="uh-time-h">Progress over time</h2><span class="badge">${atts.length} attempt${atts.length === 1 ? "" : "s"}</span></div>
-          ${weeks.length ? raw(h`<div class="uh-chart-wrap">${raw(weeklyChart(weeks))}</div><p class="tiny muted">Bars: marks scored on first attempts that week as a percentage of marks available (hint-assisted attempts and immediate retries excluded). Number above each bar: all attempts logged that week. Up to the last 12 weeks.</p>
-            <details><summary class="small"><strong>Show as a table</strong></summary><table class="tbl"><caption class="sr-only">Weekly attempts</caption><thead><tr><th scope="col">Week beginning</th><th scope="col">Attempts</th><th scope="col">Questions</th><th scope="col">First-attempt marks</th></tr></thead><tbody>${raw(weeks.map((x) => h`<tr><th scope="row">${fmtDate(x.start)}</th><td>${x.n}</td><td>${x.q}</td><td>${x.max ? `${x.score}/${x.max} (${x.pct}%)` : "–"}</td></tr>`).join(""))}</tbody></table></details>`) : raw(`<div class="empty">${icons.progress}<h3>No attempts yet</h3><p>Answer ${esc(unitName(unit))} questions anywhere on the platform and your weekly history appears here.</p></div>`)}
+        <section class="card" aria-labelledby="uh-fc-h"><div class="card-head"><h2 class="h3" id="uh-fc-h">Spaced-repetition review</h2><span class="badge">${nCards} card${nCards === 1 ? "" : "s"}</span></div>
+          ${!nCards ? raw(`<div class="empty">${icons.cards || icons.seed}<h3>No flashcards yet</h3><p>Flashcards are written with each ${esc(unitName(unit))} subsection page and appear here when the pages are published.</p></div>`) : raw(h`
+          <p class="small">A focused session of up to ${FC_SIZE} ${unitName(unit)} cards, chosen by the platform's flashcard planner: due cards you found difficult first, then other due cards (most overdue first), then cards from subsections where your mastery is below 70%.</p>
+          <div class="grid grid-3 uh-stats mb"><div class="stat"><span class="v">${fcPlan.dueTotal}</span><span class="l">due now</span></div><div class="stat"><span class="v">${fcPlanNew.newAvailable}</span><span class="l">not yet studied</span></div><div class="stat"><span class="v">${ret.pct == null ? "–" : ret.pct + "%"}</span><span class="l">${ret.pct == null ? "retention: no repeat reviews yet" : `retention · ${ret.reviews} review${ret.reviews === 1 ? "" : "s"}`}</span></div></div>
+          <p class="small" id="uh-fc-plan">${fcPlan.cards.length ? `Next session: ${fcPlan.cards.length} card${fcPlan.cards.length === 1 ? "" : "s"} (${[["difficult", "difficult"], ["due", "due"], ["weak", "from weak subsections"]].filter(([k]) => fcPlan.breakdown[k]).map(([k, l]) => `${fcPlan.breakdown[k]} ${l}`).join(", ")}).` : fcPlanNew.newAvailable ? `Nothing is due for review. You can start ${Math.min(FC_SIZE, fcPlanNew.newAvailable)} new cards instead.` : "Nothing is due for review: your cards are scheduled. Come back when more are due."}</p>
+          <div class="row">${fcSame ? raw(h`<a class="btn primary" href="#/flashcards/resume" id="uh-fc-resume">Resume your ${unitName(unit)} session (${fcSaved.queue.length} left)</a>`) : ""}${fcPlan.cards.length ? raw(h`<button class="btn ${fcSame ? "" : "primary"}" type="button" data-fc="due" id="uh-fc-due">Review ${fcPlan.cards.length} ${unitName(unit)} card${fcPlan.cards.length === 1 ? "" : "s"}</button>`) : ""}${fcPlanNew.newAvailable ? raw(h`<button class="btn ${fcPlan.cards.length || fcSame ? "" : "primary"}" type="button" data-fc="new" id="uh-fc-new">${fcPlan.cards.length ? `Session with new cards (up to ${FC_SIZE})` : `Learn ${Math.min(FC_SIZE, fcPlanNew.cards.length)} new cards`}</button>`) : ""}<a class="btn ghost" href="#/flashcards">All flashcard options</a></div>
+          <div class="notice uh2-confirm" id="uh-fc-confirm" role="group" aria-labelledby="uh-fc-ch" hidden><h3 class="h4" id="uh-fc-ch" tabindex="-1">You already have a saved flashcard session</h3><p class="small" id="uh-fc-ctxt"></p><div class="row"><a class="btn primary" href="#/flashcards/resume">Resume the saved session</a><button class="btn" type="button" id="uh-fc-replace">Start the ${unitName(unit)} session instead</button><button class="btn ghost" type="button" id="uh-fc-cancel">Cancel</button></div></div>
+          <details class="mt"><summary class="small"><strong>Flashcards by topic</strong></summary><ul class="uh-list compact">${raw(unit.topics.map((t) => { const n = F.all(t.ref).length; const d = topicDue(t.ref); const deck = (B.consolidation || {})[t.ref] && F.all("deck:" + t.ref).length;
+            return n ? h`<li><a href="#/flashcards/${t.ref}"><span class="mono">${t.ref}</span> ${t.title}</a> <span class="badge">${n} cards</span>${d ? raw(h` <span class="badge amber">${d} due</span>`) : ""}${deck ? raw(h` · <a class="small" href="#/flashcards/deck:${t.ref}">combined deck</a>`) : ""}</li>` : h`<li><span class="mono">${t.ref}</span> ${t.title} <span class="badge">no cards yet</span></li>`; }).join(""))}</ul></details>
+          <p class="tiny muted mt">Starting a session here uses the same planner and schedule as the Flashcards page, so ratings count everywhere. A saved session is never replaced without asking; reviews you have already made are always kept.</p>`)}
         </section>
-        <section class="card" aria-labelledby="uh-rp-h"><div class="card-head"><h2 class="h3" id="uh-rp-h">Required practicals</h2><span class="badge">${pracs.length}</span></div>
+        <section class="card" aria-labelledby="uh-mb-h"><div class="card-head"><h2 class="h3" id="uh-mb-h">Incorrect-answer review</h2><span class="badge ${mist.length ? "amber" : ""}">${mist.length} open</span></div>
+          ${mist.length ? raw(h`<p class="small">${unitName(unit)} questions with an open entry in your mistake bank: an answer below full marks that you have not yet corrected. A later full-marks answer to the same question closes it automatically.</p>
+          <div class="uh2-tags" aria-label="Open mistakes by topic">${raw(unit.topics.map((t) => { const n = mist.filter((x) => x.ref === t.ref || String(x.ref).startsWith(t.ref + ".")).length; return n ? h`<span class="badge"><span class="mono">${t.ref}</span> ${n}</span>` : ""; }).join(""))}</div>
+          <div class="row">${retryable.length ? raw(h`<button class="btn primary" type="button" id="uh-retry">Retry ${Math.min(30, retryable.length)} question${Math.min(30, retryable.length) === 1 ? "" : "s"} now</button>`) : ""}<button class="btn" type="button" id="uh-wrong-test">Build a test from incorrect answers</button><a class="btn ghost" href="#/progress">Categorise in Personal Progress</a></div>
+          <ul class="uh-list mt" id="uh-mistakes">${raw(mist.slice(0, 5).map(mistItem).join(""))}</ul>
+          ${mist.length > 5 ? raw(h`<details><summary class="small"><strong>Show the other ${mist.length - 5}</strong></summary><ul class="uh-list">${raw(mist.slice(5).map(mistItem).join(""))}</ul></details>`) : ""}
+          <p class="tiny muted mt">Retry draws up to 30 of these questions in specification order and marks them in the normal way. ${mist.length - retryable.length ? `${mist.length - retryable.length} ${mist.length - retryable.length === 1 ? "entry is a practice-paper or concept-map part" : "entries are practice-paper or concept-map parts"}: open ${mist.length - retryable.length === 1 ? "it" : "them"} from the link${mist.length - retryable.length === 1 ? "" : "s"} (practice papers stay out of custom tests so they remain unseen).` : ""}</p>`) : raw(`<div class="empty">${icons.check}<h3>No open mistakes in ${esc(unitName(unit))}</h3><p>When an answer scores below full marks it is saved here, so you can retry it later. Every question you answer correctly afterwards closes its entry.</p></div>`)}
+        </section>
+      </div>
+
+      <div class="grid grid-2 mb">
+        <section class="card" aria-labelledby="uh-time-h"><div class="card-head"><h2 class="h3" id="uh-time-h">Progress over time</h2><span class="badge">${atts.length} attempt${atts.length === 1 ? "" : "s"}</span></div>
+          ${weeks.length ? raw(h`<div class="uh-chart-wrap">${raw(weeklyChart(weeks, unitName(unit)))}</div><p class="tiny muted">Bars: marks scored on first attempts that week as a percentage of marks available (hint-assisted attempts and immediate retries excluded). Number above each bar: all attempts logged that week. Up to the last 12 weeks.</p>
+            <details><summary class="small"><strong>Show as a table</strong></summary><table class="tbl"><caption class="sr-only">Weekly attempts</caption><thead><tr><th scope="col">Week beginning</th><th scope="col">Attempts</th><th scope="col">Questions</th><th scope="col">First-attempt marks</th></tr></thead><tbody>${raw(weeks.map((x) => h`<tr><th scope="row">${fmtDate(x.start)}</th><td>${x.n}</td><td>${x.q}</td><td>${x.max ? `${x.score}/${x.max} (${x.pct}%)` : "–"}</td></tr>`).join(""))}</tbody></table></details>
+            <details id="uh-by-type"><summary class="small"><strong>Mastery by question type and difficulty</strong></summary><div class="uh2-tbl-wrap"><table class="tbl"><caption class="sr-only">Mastery by question type</caption><thead><tr><th scope="col">Question type</th><th scope="col">Questions</th><th scope="col">Latest marks</th></tr></thead><tbody>${raw(TYPES.filter((t) => byType[t]).map((t) => h`<tr><th scope="row">${B.questions.labelFor(t)}</th><td>${byType[t].n}</td><td>${byType[t].score}/${byType[t].max} (${B.util.pct(byType[t].score, byType[t].max)}%)</td></tr>`).join(""))}</tbody></table>
+              <table class="tbl mt"><caption class="sr-only">Mastery by difficulty</caption><thead><tr><th scope="col">Difficulty</th><th scope="col">Questions</th><th scope="col">Latest marks</th></tr></thead><tbody>${raw(DIFFS.filter((d) => byDiff[d]).map((d) => h`<tr><th scope="row">${DIFF_LABEL[d]}</th><td>${byDiff[d].n}</td><td>${byDiff[d].score}/${byDiff[d].max} (${B.util.pct(byDiff[d].score, byDiff[d].max)}%)</td></tr>`).join(""))}</tbody></table></div>
+              <p class="tiny muted">Your latest score on each different question (hint-assisted attempts excluded), grouped by type and by the difficulty rule used in the custom test builder.</p></details>
+            <p class="tiny muted">You have answered ${answeredInPool} of the ${poolAll.length} ${unitName(unit)} questions in the custom-test bank at least once.</p>`) : raw(`<div class="empty">${icons.progress}<h3>No attempts yet</h3><p>Answer ${esc(unitName(unit))} questions anywhere on the platform and your weekly history appears here.</p></div>`)}
+        </section>
+        <section class="card" aria-labelledby="uh-rp-h"><div class="card-head"><h2 class="h3" id="uh-rp-h">Required practicals</h2><span class="badge">${pracs.length}</span>${pracs.length ? raw(h`<span class="badge ${nBuilt === pracs.length ? "teal" : "amber"}">${nBuilt} of ${pracs.length} built</span>`) : ""}</div>
           ${pracs.length ? raw(`<ul class="uh-list">${pracs.map((p) => { const runs = (st.labRuns || {})[p.n] || []; const last = runs.length ? runs[runs.length - 1].ts : null; const pr = (B.practicals || {})[p.n] || {};
-            return h`<li><div class="uh-sub-head"><a href="#/lab/${p.n}"><strong>RP${p.n}</strong> ${p.title}</a><span class="uh-flags">${pr.status && pr.status !== "not_started" ? raw('<span class="badge teal">virtual lab</span>') : raw('<span class="badge">not built yet</span>')}<span class="badge ${runs.length ? "sage" : ""}">${runs.length ? `${runs.length} run${runs.length === 1 ? "" : "s"}${last ? ", last " + fmtDate(last) : ""}` : "no runs yet"}</span></span></div>
-              <div class="small">Specification links: ${raw((p.links || []).map((l) => { const f = B.views.lib.findSub(l); const other = f && f.u.ref !== u; return h`<a href="#/topic/${l}">${l}${f ? " " + f.s.title : ""}</a>${other ? raw(h` <span class="badge navy">${f.u.ref} · ${f.u.level}</span>`) : ""}`; }).join(" · "))}</div></li>`; }).join("")}</ul>`) : raw('<p class="small muted">No required practicals are assigned to this unit.</p>')}
-          <p class="tiny muted">A run is recorded each time you complete the virtual practical. A link to a later unit shows where the same practical returns.</p>
+            return h`<li><div class="uh-sub-head"><a href="#/lab/${p.n}"><strong>RP${p.n}</strong> ${p.title}</a><span class="uh-flags">${pr.status && pr.status !== "not_started" ? raw('<span class="badge teal">virtual lab</span>') : raw('<span class="badge rose">not built yet: outstanding</span>')}<span class="badge ${runs.length ? "sage" : ""}">${runs.length ? `${runs.length} run${runs.length === 1 ? "" : "s"}${last ? ", last " + fmtDate(last) : ""}` : "no runs yet"}</span></span></div>
+              <div class="small">Specification links: ${raw((p.links || []).map((l) => { const f = B.views.lib.findSub(l); const other = f && f.u.ref !== u; return h`<a href="#/topic/${l}">${l}${f ? " " + f.s.title : ""}</a>${other ? raw(h` <span class="badge navy">returns in Unit ${f.u.ref.split(".")[1]}${f.u.level === "A2" ? " (A-level)" : ""}</span>`) : ""}`; }).join(" · "))}</div>${raw(pracLine(p, pState[p.n]))}</li>`; }).join("")}</ul>`) : raw('<p class="small muted">No required practicals are assigned to this unit.</p>')}
+          <p class="tiny muted">A run is recorded each time you complete the virtual practical. A link to a later unit shows where the same practical returns. Your coverage of a practical is <strong>covered</strong> when you have completed its virtual lab at least once and attempted every one of its questions, <strong>in progress</strong> when you have started either, and <strong>outstanding</strong> while the practical is not built on the platform: an outstanding practical is never shown as covered.</p>
         </section>
       </div>
 
       <section class="card mb" aria-labelledby="uh-ck-h"><div class="card-head"><h2 class="h3" id="uh-ck-h">Specification checklist</h2><span class="badge">${stmts.length} statements · ${per.length} subsections</span></div>
-        <p class="small muted">Every ${esc(unitName(unit))} statement from the OxfordAQA 9610 specification (v${esc(B.spec.meta.specVersion)}), paraphrased: check the exact wording in the <a href="${B.spec.meta.specPdfUrl}" target="_blank" rel="noopener">official specification</a>. Tick a statement when you can do it from memory; ticks are shared with the topic pages and the main checklist. For each subsection you can see whether its page is written, whether you have visited and completed it, and your mastery.</p>
+        <p class="small muted">Every ${esc(unitName(unit))} statement from the OxfordAQA 9610 specification (v${esc(B.spec.meta.specVersion)}), ${/^3\.[12]$/.test(unit.ref) ? "quoted from the specification (long paragraphs are split into separate statements)" : "paraphrased"}: check the full context in the <a href="${B.spec.meta.specPdfUrl}" target="_blank" rel="noopener">official specification</a>. Tick a statement when you can do it from memory; ticks are shared with the topic pages and the main checklist. For each subsection you can see whether its page is written, whether you have visited and completed it, and your mastery.</p>
         <div class="row mb"><button class="btn sm" id="uh-open-all" type="button">Expand all topics</button><button class="btn sm ghost" id="uh-close-all" type="button">Collapse all</button></div>
         ${raw(topicRows.map(topicBlock).join(""))}
       </section>
@@ -293,7 +411,10 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
           <ul class="uh-list compact">${raw(unit.topics.map((t) => { const c = (B.consolidation || {})[t.ref]; const ok = c && c.assessment; const runs = ((st.consolidation || {})[t.ref] || []); const last = runs[runs.length - 1];
             return ok ? h`<li><a href="#/consolidate/${t.ref}"><span class="mono">${t.ref}</span> ${t.title}</a>${last ? raw(h` <span class="badge navy">last ${last.pct}%</span>`) : ""}</li>` : h`<li><span class="mono">${t.ref}</span> ${t.title} <span class="badge">not built yet</span></li>`; }).join(""))}</ul>
           <h3 class="h4 mt">Practice papers</h3>
-          <p class="small">${paperRuns.length ? raw(paperRuns.map((p) => h`${p.title}: ${p.n} run${p.n === 1 ? "" : "s"}, latest ${p.last.max ? `${p.last.score}/${p.last.max}` : ""} (${fmtDate(p.last.ts)})`).join("<br>")) : "No practice-paper runs yet. Papers are kept out of the custom tests so they stay unseen."} <a href="#/papers">Open practice papers →</a></p>
+          ${unitPapers.length ? raw(h`<ul class="uh-list compact" id="uh-papers">${raw(unitPapers.map((p) => { const runs = (st.papers || {})[p.id] || []; const last = runs[runs.length - 1]; return h`<li><a href="#/papers/${p.id}">${p.title}</a> <span class="badge mono">${p.code || unit.code}</span>${last ? raw(h` <span class="badge navy">latest ${last.score}/${last.max}</span> <a class="small" href="#/papers/${p.id}/review/${last.ts}">Exam Review</a>`) : ""}</li>`; }).join(""))}</ul>`) : raw(h`<p class="small muted" id="uh-papers-none">The ${unit.code}-style practice papers for ${unitName(unit)} are still being written and checked. They will be listed here when they are ready.</p>`)}
+          <p class="small">${paperRuns.length ? raw(paperRuns.map((p) => h`${p.title}: ${p.n} run${p.n === 1 ? "" : "s"}, latest ${p.last.max ? `${p.last.score}/${p.last.max}` : ""} (${fmtDate(p.last.ts)})`).join("<br>")) : "No practice-paper runs yet. Papers are kept out of the custom tests so they stay unseen."} <a href="#/papers/unit/${u}">${unitName(unit)} practice papers →</a> · <a href="#/papers">All practice papers</a></p>
+          <p class="tiny muted">These are original papers written for this platform in the ${unit.code} style; they are not official OxfordAQA papers.</p>
+          ${earlierMaps.length ? raw(h`<h3 class="h4 mt">Principles from earlier units</h3><p class="small">${unit.code} questions are not set on earlier units' topics but may draw on their biological principles. The ${unitName(unit)} concept map labels each one; revise them with ${raw(earlierMaps.map((x) => h`the <a href="#/unit/${x.ref}/map">Unit ${x.ref.split(".")[1]} concept map</a> and <a href="#/unit/${x.ref}">Unit ${x.ref.split(".")[1]} Revision Centre</a>`).join("; "))}.</p>`) : ""}
         </section>
       </div>
     </div>`);
@@ -310,6 +431,26 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
     }));
     $("#uh-open-all", html).addEventListener("click", () => $$("details.acc", html).forEach((d) => (d.open = true)));
     $("#uh-close-all", html).addEventListener("click", () => $$("details.acc", html).forEach((d) => (d.open = false)));
+    // weak areas: set up a 10-mark test on that subsection (the form opens with the settings filled in)
+    $$("button[data-weak-test]", html).forEach((b) => b.addEventListener("click", () => { const ref = b.dataset.weakTest; const t = unit.topics.find((x) => x.subsections.some((s) => s.ref === ref));
+      lastOpts = Object.assign(defaults(), { topic: t ? t.ref : "", sub: ref, mode: "marks", target: 10 }); location.hash = `#/unit/${u}/test`; }));
+    // incorrect-answer review
+    const retryBtn = $("#uh-retry", html);
+    if (retryBtn) retryBtn.addEventListener("click", () => { const items = retryable.slice(0, 30).map((x) => x.entry); pendingRun = { u, items, marks: items.reduce((n, e) => n + e.marks, 0), title: `${unitName(unit)} incorrect-answer review` }; location.hash = `#/unit/${u}/run`; });
+    const wrongBtn = $("#uh-wrong-test", html);
+    if (wrongBtn) wrongBtn.addEventListener("click", () => { lastOpts = Object.assign(defaults(), { incorrect: true }); location.hash = `#/unit/${u}/test`; });
+    // spaced repetition: a focused session from the flashcard planner; a saved session elsewhere is never replaced silently
+    const conf = $("#uh-fc-confirm", html); let pendingNew = null; let opener = null;
+    const startFc = (includeNew) => { const sess = F.createSession({ size: FC_SIZE, scope: u, includeNew }, true); if (!sess.queue.length) { B.util.toast("No cards are available for that session."); return; } location.hash = "#/flashcards/resume"; };
+    $$("button[data-fc]", html).forEach((b) => b.addEventListener("click", () => {
+      const includeNew = b.dataset.fc === "new"; const sv = F.saved();
+      if (sv && sv.queue.length) { pendingNew = includeNew; opener = b; $("#uh-fc-ctxt", html).textContent = `Your saved session (${F.scopeLabel(sv.scope)}) has ${sv.queue.length} card${sv.queue.length === 1 ? "" : "s"} left. Resume it, or start this ${unitName(unit)} session instead: the saved one is closed, and every rating you have already made is kept.`; conf.hidden = false; $("#uh-fc-ch", html).focus(); return; }
+      startFc(includeNew); }));
+    if (conf) {
+      $("#uh-fc-replace", html).addEventListener("click", () => startFc(!!pendingNew));
+      const close = () => { conf.hidden = true; if (opener) opener.focus(); };
+      $("#uh-fc-cancel", html).addEventListener("click", close); conf.addEventListener("keydown", (e) => { if (e.key === "Escape") close(); });
+    }
     $$("button[data-rev]", html).forEach((b) => b.addEventListener("click", () => { B.store.completeRevisit(b.dataset.rev); B.util.toast("Revisit marked as done."); overview(unit); const h2 = $("#uh-rec-h"); if (h2) { h2.setAttribute("tabindex", "-1"); h2.focus(); } }));
   }
 
@@ -447,7 +588,7 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
     if (tab === "run") {
       if (!pendingRun || pendingRun.u !== u) { location.replace(`#/unit/${u}/test`); return; } // reload or stale link: back to the form
       const run = pendingRun; pendingRun = null;
-      return B.examRunTest(`${unitName(unit)} custom test`, run.items.map(wrap), `${unitName(unit)} custom test · ${run.marks} marks`, { retry: `#/unit/${u}/test`, crumbs: [{ label: `${unitName(unit)} Revision Centre`, href: `#/unit/${u}` }, { label: "Custom test" }], back: { href: `#/unit/${u}/test`, label: "Back to the test builder" } });
+      return B.examRunTest(run.title || `${unitName(unit)} custom test`, run.items.map(wrap), `${run.title || `${unitName(unit)} custom test`} · ${run.marks} marks`, { retry: `#/unit/${u}/test`, crumbs: [{ label: `${unitName(unit)} Revision Centre`, href: `#/unit/${u}` }, { label: "Custom test" }], back: { href: `#/unit/${u}/test`, label: "Back to the test builder" } });
     }
     if (tab && tab !== "overview") return B.app.render(h`<div class="card"><h1>Page not found</h1><p class="muted">The Revision Centre has no "${tab}" section.</p><a class="btn" href="#/unit/${u}">Back to the ${unitName(unit)} Revision Centre</a></div>`, { title: "Not found" });
     return overview(unit);

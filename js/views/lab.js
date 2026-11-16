@@ -1,38 +1,71 @@
 window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
 (function (B) {
   const { h, raw, el, $, $$, icons, esc } = B.util;
+  // OxfordAQA 9610 Practical Handbook (official PDF) and the printed pages of each exemplar (checked in the handbook text, 2026-11-15)
+  const HANDBOOK_URL = "https://www.oxfordaqa.com/oaqaresources/science/teaching/a-level-practical-handbook-biology.pdf";
+  const HANDBOOK_PAGES = { 1: "54–57", 2: "58–61", 3: "62–65", 4: "66–69", 5: "70–72", 6: "73–76", 7: "77–79", 8: "80–83", 9: "84–86", 10: "87–89" };
+  const handbookLink = (n) => h`<p class="small handbook-link">${raw(icons.book || "")} <a href="${HANDBOOK_URL}" target="_blank" rel="noopener">OxfordAQA Practical Handbook (PDF)</a>${n ? `: exemplar for Required Practical ${n}, printed pages ${HANDBOOK_PAGES[n]}` : ": the official exemplar methods for all ten required practicals"} <span class="muted">(opens the OxfordAQA website in a new tab)</span></p>`;
+
+  // RP3 apparatus schematic (R9-22): drawn here at a readable size, with numbered callouts and the long labels as a key
+  // below the drawing, so it also reads on a phone. Geometry: a 130 mm strip drawn 280 px long (about 2.15 px per mm);
+  // origin 20 mm above the bottom edge; 3 cm3 of solvent stands about 10 mm deep, so the origin is above the solvent.
+  const chromaApparatus = () => {
+    const NAVY = "#1d3a52", GREY = "#6b7d8f";
+    const call = (n, x1, y1, x2, y2) => `<line x1="${x1}" y1="${y1}" x2="${x2 + (x2 > x1 ? -14 : 14)}" y2="${y2}" stroke="${GREY}" stroke-width="1.4"/><circle cx="${x1}" cy="${y1}" r="3" fill="${GREY}"/><circle cx="${x2}" cy="${y2}" r="14" fill="#fff" stroke="${NAVY}" stroke-width="2"/><text x="${x2}" y="${y2 + 5}" font-size="15" font-weight="700" text-anchor="middle" fill="${NAVY}">${n}</text>`;
+    const svg = `<svg viewBox="128 12 346 362" width="346" style="max-width:min(100%,420px);width:100%;height:auto;display:block;margin-inline:auto" role="img" aria-label="Paper chromatography apparatus: a strip of chromatography paper hangs from a bung inside a boiling tube; a pencil origin line with the leaf extract sits above the solvent at the bottom of the tube; the solvent front is marked higher up the strip">
+      <defs><clipPath id="rp3ap-clip"><path d="M240 52 v258 a50 50 0 0 0 100 0 v-258 z"/></clipPath></defs>
+      <rect x="128" y="12" width="346" height="362" rx="12" fill="#fff"/>
+      <g clip-path="url(#rp3ap-clip)"><rect x="236" y="52" width="108" height="320" fill="#f4f9ff"/><rect x="236" y="310" width="108" height="70" fill="#cfe6ff"/><rect x="236" y="306" width="108" height="5" fill="#a9cdef"/></g>
+      <rect x="270" y="58" width="40" height="274" fill="#fbf8ef" stroke="#c9c2b0" stroke-width="1.5"/>
+      <rect x="270" y="120" width="40" height="212" fill="#e9f2f7" opacity=".75"/>
+      <line x1="264" y1="120" x2="316" y2="120" stroke="#444" stroke-width="1.6" stroke-dasharray="5 3"/>
+      <line x1="266" y1="289" x2="314" y2="289" stroke="#444" stroke-width="1.6"/><ellipse cx="290" cy="289" rx="9" ry="5" fill="#2f7d3a"/>
+      <path d="M240 52 v258 a50 50 0 0 0 100 0 v-258" fill="none" stroke="#476a85" stroke-width="3"/>
+      <rect x="226" y="24" width="128" height="32" rx="6" fill="#8c6f4e" stroke="#5a4631" stroke-width="2"/>
+      <circle cx="290" cy="64" r="5" fill="#9aa5ad" stroke="#5a4631"/><line x1="290" y1="56" x2="290" y2="64" stroke="#5a4631" stroke-width="2"/>
+      ${call(1, 354, 40, 450, 40)}${call(2, 312, 120, 450, 112)}${call(3, 310, 200, 450, 192)}${call(4, 314, 289, 450, 272)}${call(5, 326, 334, 450, 340)}${call(6, 240, 200, 150, 200)}
+    </svg>`;
+    const key = ["Bung and drawing pin: hold the strip and seal the tube, so the air inside stays saturated with solvent vapour.", "Solvent front: mark it in pencil as soon as the strip is taken out.", "Chromatography paper strip, hung straight and not touching the sides of the tube.", "Origin line drawn in pencil, 2 cm from the bottom of the strip, with the leaf extract crushed onto it.", "Solvent (3 cm³): its surface must be below the origin line.", "Boiling tube."];
+    return svg + `<figcaption><ol class="small" style="margin:.4rem 0 0;padding-left:1.4rem">${key.map((k) => `<li>${k}</li>`).join("")}</ol><span class="small muted">Schematic of the apparatus (not to scale).</span></figcaption>`;
+  };
 
   B.views.lab = function (n, variant) {
     if (n) return practicalPage(+n, variant === "alt");
+    if (labAbort) { labAbort.abort(); labAbort = null; }
     const tiles = B.spec.practicals.map((p) => { const c = B.practicals[p.n] || { status: "not_started" }; return h`<a class="tile" href="#/lab/${p.n}"><span class="ref">Required practical ${p.n} · ${p.unit} · ${p.level}</span><h3>${p.title}</h3><div class="meta">${raw(B.views.lib.statusBadge(c.status))}${c.sim ? raw('<span class="badge teal">simulation</span>') : ""}</div></a>`; }).join("");
-    B.app.render(h`<div class="page-head"><div><div class="eyebrow">Virtual Practical Laboratory</div><h1>The ten required practicals</h1><p class="lede">Practical skills are assessed only in the written papers, so you must understand the method, variables, errors and analysis of each. Simulations here let you explore the variables; they supplement, and do not replace, the hands-on practicals you do in school.</p></div></div>
+    B.app.render(h`<div class="page-head"><div><div class="eyebrow">Virtual Practical Laboratory</div><h1>The ten required practicals</h1><p class="lede">Practical skills are assessed only in the written papers, so you must understand the method, variables, errors and analysis of each. Simulations here let you explore the variables; they supplement, and do not replace, the hands-on practicals you do in school.</p>${raw(handbookLink(0))}</div></div>
       <div class="notice mb"><strong>Source.</strong> Titles follow section 3 of the specification; methods draw on the OxfordAQA 9610 Practical handbook (2019). Papers can ask directly about these procedures and about the skills they contain.</div>
       <div class="grid grid-2">${raw(tiles)}</div>`, { title: "Virtual lab", crumbs: [{ label: "Virtual lab" }] });
   };
 
+  // R9-39: "labrun" listeners are registered with the signal of the current practical page and removed when another
+  // practical page (or the lab index) is rendered, so revisiting pages no longer piles up handlers.
+  let labAbort = null;
+  const onLabRun = (fn, host) => document.addEventListener("labrun", () => { if (!host || host.isConnected) fn(); }, { signal: labAbort.signal });
   function practicalPage(n, alt = false) {
+    if (labAbort) labAbort.abort(); labAbort = new AbortController();
     const p = B.spec.practicals.find((x) => x.n === n); const c = (alt ? (B.practicalAlts || {})[n] : B.practicals[n]) || { status: "not_started" };
     if (!p) return B.app.render("<div class='card'>Unknown practical.</div>");
     const key = alt ? `${n}c` : n; // results storage key; the alternative method keeps its runs separately
     migrateRuns(n);
-    const links = p.links.map((r) => h`<a class="badge mono" href="#/topic/${r}">${r}</a>`).join(" ");
+    const links = p.links.map((r) => (/^3\.[34]\./.test(r) && !/^3\.[34]/.test(p.links[0])) ? h`<a class="badge mono" href="#/topic/${r}" title="A-level content, shown as extension for this AS practical">${r} (A-level extension)</a>` : h`<a class="badge mono" href="#/topic/${r}">${r}</a>`).join(" ");
     if (c.status === "not_started") {
-      return B.app.render(h`<div class="page-head"><div><div class="eyebrow">Required practical ${n} · ${p.level}</div><h1>${p.title}</h1><div class="row">${raw(B.views.lib.statusBadge(c.status))} ${raw(links)}</div></div></div>
+      return B.app.render(h`<div class="page-head"><div><div class="eyebrow">Required practical ${n} · ${p.level}</div><h1>${p.title}</h1><div class="row">${raw(B.views.lib.statusBadge(c.status))} ${raw(links)}</div>${raw(handbookLink(n))}</div></div>
         <div class="card"><div class="empty">${raw(icons.lab)}<h3>This practical page has not been built yet</h3><p>The title and specification links above are verified. The full page (method, variables, safety, simulation, data analysis and exam questions) will follow in Phase 5.</p></div></div>`, { title: `RP${n}`, crumbs: [{ label: "Virtual lab", href: "#/lab" }, { label: `RP${n}` }] });
     }
     const list = (arr) => `<ul>${arr.map((x) => h`<li>${x}</li>`).join("")}</ul>`;
     const html = el(h`<div>
-      <div class="page-head"><div><div class="eyebrow">Required practical ${n} · ${p.level} · Unit ${p.unit.split(".")[1]}</div><h1>${p.title}</h1><div class="row">${raw(B.views.lib.statusBadge(c.status))} ${raw(links)}</div></div></div>
-      ${alt ? raw(h`<div class="notice amber mb"><strong>${c.altTitle}.</strong> ${c.altNote} <a href="#/lab/${n}">Back to the handbook method</a>.</div>`) : c.handbook ? raw(h`<p class="small muted mb">Method follows the ${c.handbook}.</p>`) : ""}
+      <div class="page-head"><div><div class="eyebrow">Required practical ${n} · ${p.level} · Unit ${p.unit.split(".")[1]}</div><h1>${p.title}</h1><div class="row">${raw(B.views.lib.statusBadge(c.status))} ${raw(links)}</div>${raw(handbookLink(n))}</div></div>
+      ${alt ? raw(h`<div class="notice amber mb"><strong>${c.altTitle}.</strong> ${c.altNote} <a href="#/lab/${n}">Back to the handbook method</a>.</div>`) : ""}
       <div class="tabs" role="tablist"><button role="tab" aria-selected="true" data-tab="method">Method &amp; theory</button>${c.planQuestions ? raw('<button role="tab" aria-selected="false" data-tab="plan">Plan &amp; variables</button>') : ""}<button role="tab" aria-selected="false" data-tab="sim">Virtual experiment</button>${c.sim ? raw('<button role="tab" aria-selected="false" data-tab="calc">Calculate</button>') : ""}<button role="tab" aria-selected="false" data-tab="analysis">Analysis &amp; evaluation</button><button role="tab" aria-selected="false" data-tab="questions">Exam questions</button></div>
       <div class="pane" data-pane="method"><div class="stack">
         <div class="card"><h3>Aim</h3><p>${c.aim}</p><h3 class="mt">Scientific background</h3><div class="notes">${raw(c.background)}</div></div>
         <div class="grid grid-2"><div class="card"><h3>Apparatus</h3>${raw(list(c.apparatus))}</div><div class="card"><h3>Variables</h3><p><strong>Independent:</strong> ${c.variables.independent}</p><p><strong>Dependent:</strong> ${c.variables.dependent}</p><strong>Control:</strong>${raw(list(c.variables.control))}</div></div>
         <div class="card"><h3>Method</h3><ol>${raw(c.method.map((x) => h`<li>${x}</li>`).join(""))}</ol></div>
         <div class="card"><h3>Risk assessment and safety</h3>${raw(list(c.safety))}${c.risk ? raw(`<table class="tbl mt"><thead><tr><th>Hazard</th><th>Risk</th><th>Control measure</th></tr></thead><tbody>${c.risk.map((r) => h`<tr><td>${r.hazard}</td><td>${r.risk}</td><td>${r.control}</td></tr>`).join("")}</tbody></table>`) : ""}</div>
-        ${c.alternatives ? raw(h`<div class="card"><h3>${c.alternativesTitle || "Alternative methods and extensions"}</h3><p class="small muted">${c.alternativesNote || "Exam questions may describe any of these variants of the practical."}</p>${raw(list(c.alternatives))}</div>`) : ""}
-        ${n === 1 && alt ? raw(`<div class="grid grid-2">${B.views.photo("water-bath")}${B.views.photo("gas-syringe")}</div>`) : n === 1 ? raw(`<div class="grid grid-2">${B.views.photo("water-bath")}${B.views.photo("test-tubes-pipette")}</div>`) : n === 2 ? raw(`<div class="grid grid-2">${B.views.photo("potato-osmometer")}${B.views.photo("onion-plasmolysed-lm")}</div>`) : n === 3 ? raw(`<div class="grid grid-2">${B.views.photo("chromatography-apparatus")}${B.views.photo("chromatogram-photo")}</div><div class="grid grid-2 mt">${B.views.photo("leaf-pigments")}<figure class="figure">${B.variationArt.apparatus()}<figcaption>Schematic of the apparatus (this site's drawing).</figcaption></figure></div>`) : ""}</div></div>
-      ${c.planQuestions ? raw(`<div class="pane" data-pane="plan" hidden><div class="card mb"><h3>Before you start</h3><p class="small">Identify the apparatus, classify the variables and decide what makes the test fair. Every question here is marked and counts towards ${p.links[0]}.</p></div><div id="planq"></div></div>`) : ""}
+        ${c.alternatives ? raw(h`<div class="card"><h3>${c.alternativesTitle || "Alternative methods and stretch investigations"}</h3><p class="small muted">${c.alternativesNote || "Exam questions may describe any of these variants of the practical."}</p>${raw(list(c.alternatives))}</div>`) : ""}
+        ${n === 1 && alt ? raw(`<div class="grid grid-2">${B.views.photo("water-bath")}${B.views.photo("gas-syringe")}</div>`) : n === 1 ? raw(`<div class="grid grid-2">${B.views.photo("water-bath")}</div>`) : n === 3 ? raw(`<div class="grid grid-2">${B.views.photo("chromatography-apparatus")}${B.views.photo("leaf-pigments")}</div><figure class="figure lab-fig mt">${chromaApparatus()}</figure>`) : ""}</div></div>
+      ${c.planQuestions ? raw(`<div class="pane" data-pane="plan" hidden><div class="card mb"><h3>Before you start</h3><p class="small">Identify the apparatus, classify the variables and decide what makes the test fair. Every question here is marked and counts towards ${[...new Set(c.planQuestions.map((q) => q.ref).filter(Boolean))].join(", ") || p.links[0]}.</p></div><div id="planq"></div></div>`) : ""}
       ${c.sim ? raw(`<div class="pane" data-pane="calc" hidden><div id="calc"></div></div>`) : ""}
       <div class="pane" data-pane="sim" hidden><div class="card"><div class="card-head"><h3>Virtual experiment</h3><span class="badge amber">model, not measured data</span></div><p class="small muted">${c.simNote}</p><div id="sim"></div></div></div>
       <div class="pane" data-pane="analysis" hidden><div class="stack"><div class="card"><h3>Analysis and interpretation</h3><div class="notes">${raw(c.analysis)}</div></div><div class="grid grid-2"><div class="card"><h3>Sources of error and limitations</h3>${raw(list(c.errors))}</div><div class="card"><h3>Improvements</h3>${raw(list(c.improvements))}</div></div></div></div>
@@ -48,6 +81,8 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
     if (!alt && (B.practicalAlts || {})[n]) $("#sim", html).insertAdjacentHTML("afterend", h`<div class="notice mt"><strong>${B.practicalAlts[n].altTitle}.</strong> A separate virtual bench for this method, with its own results and questions: <a href="#/lab/${n}/alt">open the alternative method</a>.</div>`);
     if (c.sim === "osmosis") { osmosisSim($("#sim", html), key); calcTabOsmosis($("#calc", html), key); }
     if (c.sim === "chroma") { chromaSim($("#sim", html), key); calcTabChroma($("#calc", html), key); }
+    // Generic hook (Batch 3): a bench file registers B.labSims[<sim>] = { sim(host, key), calc(host, key) }.
+    if (c.sim && (B.labSims || {})[c.sim]) { B.labSims[c.sim].sim($("#sim", html), key); if (B.labSims[c.sim].calc) B.labSims[c.sim].calc($("#calc", html), key); }
   }
 
   // Catalase runs saved before RP1 followed the handbook (trypsin) belong to the alternative-method page.
@@ -59,6 +94,9 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
   // ---------- RP1 (handbook exemplar): trypsin bench (js/views/bench-trypsin.js), results table ----------
   const tMean = (r) => { const ok = r.times.filter((x) => x !== null); return ok.length ? ok.reduce((a, b) => a + b, 0) / ok.length : null; };
   const errNames = (e) => [e.noEquil && "no equilibration", e.dyed && "dyed buffer", e.shake && "shaken, not inverted"].filter(Boolean);
+  // Fair test (R9-11): the handbook investigation varies temperature only, at pH 7 and 0.5 % trypsin. Rows saved with another
+  // pH or concentration (possible before 2026-11-15) are listed but never plotted or used for the optimum.
+  const tFair = (r) => (r.pH === undefined || +r.pH === 7) && (r.E === undefined || +r.E === 0.5);
   function trypsinSim(host, n) {
     host.innerHTML = `
       <div id="bench-host"></div>
@@ -68,11 +106,11 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
     const st = B.store.get(); st.labRuns[n] = st.labRuns[n] || []; const runs = st.labRuns[n];
     function table() {
       if (!runs.length) { $("#table", host).innerHTML = '<p class="muted small">No temperatures run yet.</p>'; return; }
-      $("#table", host).innerHTML = `<table><tr><th>#</th><th>Temperature / °C</th><th>pH</th><th>Trypsin / %</th><th>Tube 1 / s</th><th>Tube 2 / s</th><th>Tube 3 / s</th><th>Method</th></tr>${runs.map((r, i) => `<tr><td>${i + 1}</td><td>${r.T}</td><td>${r.pH}</td><td>${r.E}</td>${r.times.map((t) => `<td>${t === null ? "not clear after 10 min" : t}</td>`).join("")}<td>${errNames(r.errors).length ? `<span style="color:var(--rose-ink)">${errNames(r.errors).join("; ")}</span>` : "as handbook"}</td></tr>`).join("")}</table>`;
+      $("#table", host).innerHTML = `<p class="tiny muted">Every row: pH 7 buffer and 0.5 % trypsin, as in the handbook.</p><table><tr><th>#</th><th>Temperature / °C</th><th>Tube 1 / s</th><th>Tube 2 / s</th><th>Tube 3 / s</th><th>Method</th></tr>${runs.map((r, i) => `<tr><td>${i + 1}</td><td>${r.T}</td>${r.times.map((t) => `<td>${t === null ? "not clear after 10 min" : t}</td>`).join("")}<td>${[...errNames(r.errors), ...(tFair(r) ? [] : [`pH ${r.pH}, ${r.E} % trypsin (not a fair comparison)`])].length ? `<span style="color:var(--rose-ink)">${[...errNames(r.errors), ...(tFair(r) ? [] : [`pH ${r.pH}, ${r.E} % trypsin (not a fair comparison)`])].join("; ")}</span>` : "as handbook"}</td></tr>`).join("")}</table>`;
     }
     B.views.benchTrypsin($("#bench-host", host), n, (r) => { runs.push({ ts: Date.now(), ...r }); B.store.save(); B.store.touchActivity("lab"); table(); document.dispatchEvent(new Event("labrun")); });
     $("#clear", host).addEventListener("click", () => { if (confirm("Clear all saved results for this practical?")) { runs.length = 0; B.store.save(); table(); document.dispatchEvent(new Event("labrun")); } });
-    table(); document.addEventListener("labrun", table);
+    table(); onLabRun(table, host);
   }
   // ---------- RP1 Calculate tab: mean (anomalies), rate = 1000 ÷ time, plot rate against temperature, optimum ----------
   function calcTabTrypsin(host, n) {
@@ -80,7 +118,7 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
     function render() {
       const runs = runsOf();
       if (!runs.length) { host.innerHTML = `<div class="card"><div class="empty">${B.util.icons.lab}<h3>No results yet</h3><p>Run the virtual experiment at one or more temperatures first, then come back to calculate means and rates.</p></div></div>`; return; }
-      const opts = runs.map((r, i) => `<option value="${i}">#${i + 1} ${r.T} °C${errNames(r.errors).length ? " (method problem)" : ""}${r.done ? " ✓" : ""}</option>`).join("");
+      const opts = runs.map((r, i) => `<option value="${i}">#${i + 1} ${r.T} °C${!tFair(r) ? ` (pH ${r.pH}, ${r.E} % trypsin: not plotted, not a fair comparison)` : errNames(r.errors).length ? " (method problem)" : ""}${r.done ? " ✓" : ""}</option>`).join("");
       host.innerHTML = `
         <div class="card mb"><h3>1 Mean time and rate</h3><p class="small muted">Check the three times first: a time far from the other two is anomalous and should be left out of the mean (and repeated). <span class="badge">platform convention</span> This site flags a time more than 25 % from the mean of the other two (when those two agree within 15 %); this is the site's convention, not an OxfordAQA rule, and any reasoned rule applied consistently is acceptable. Then rate = 1000 ÷ mean time, in ×10⁻³ s⁻¹ (1 decimal place). Tubes that did not clear within 10 minutes cannot be included.</p>
           <div class="row"><label class="small">Row: <select id="tr-run">${opts}</select></label></div><div id="tr-vals" class="small mt"></div>
@@ -100,18 +138,18 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
         const bnote = tr.border ? ` ${tr.border.value} s is ${tr.border.pct} % from the mean of the other two: a borderline case, so leaving it out or keeping it are both accepted (the other choice gives a mean of ${(matchAlt ? tr : tr.alt).mean} s). Say which you did and why.` : "";
         $("#tr-fb", host).innerHTML = okM && okR ? `<span style="color:var(--sage-ink)">✓ Mean ${ex.mean} s${ex.anomaly ? " (anomalous time left out)" : ""}; rate ${ex.rate} ×10⁻³ s⁻¹.${bnote}</span>` : `<span style="color:var(--rose-ink)">Not quite.${!okM ? ` ${tr.border ? `${tr.border.value} s is borderline: you may keep it or leave it out, then a` : tr.anomaly ? "One time is anomalous: leave it out, then a" : "A"}dd the times and divide by how many you used.` : ""}${!okR ? " Rate = 1000 ÷ your mean time." : ""}</span>`;
         if (okM && okR) { r.done = true; B.store.save(); draw(); } });
-      const draw = () => { const done = runs.filter((r) => r.done && truth(r)); if (!done.length) { $("#tr-plot", host).innerHTML = '<p class="small muted">Calculate at least one row to see it plotted.</p>'; return; }
+      const draw = () => { const done = runs.filter((r) => r.done && truth(r) && tFair(r)); if (!done.length) { $("#tr-plot", host).innerHTML = '<p class="small muted">Calculate at least one row to see it plotted.</p>'; return; }
         const pts = done.map((r) => ({ x: r.T, y: truth(r).rate, bad: errNames(r.errors).length > 0 })).sort((a, b) => a.x - b.x);
         const W = 560, H = 280, pl = 56, pr = 16, pt = 14, pb = 44, ymax = Math.max(16, ...pts.map((p) => p.y)) * 1.1; const X = (t) => pl + ((t - 10) / 60) * (W - pl - pr), Y = (v) => pt + (1 - v / ymax) * (H - pt - pb);
         let g = `<svg viewBox="0 0 ${W} ${H}" width="${W}" style="max-width:100%;height:auto;background:#fff;border:1px solid var(--line);border-radius:10px" role="img" aria-label="graph of rate against temperature">`;
-        for (let t = 10; t <= 70; t += 10) g += `<line x1="${X(t)}" y1="${pt}" x2="${X(t)}" y2="${H - pb}" stroke="#eef2f5"/><text x="${X(t)}" y="${H - pb + 16}" font-size="11" text-anchor="middle" fill="#6b7d8f">${t}</text>`;
-        const step = ymax > 30 ? 10 : 2; for (let v = 0; v <= ymax; v += step) g += `<line x1="${pl}" y1="${Y(v)}" x2="${W - pr}" y2="${Y(v)}" stroke="#eef2f5"/><text x="${pl - 6}" y="${Y(v) + 4}" font-size="11" text-anchor="end" fill="#6b7d8f">${v}</text>`;
+        for (let t = 10; t <= 70; t += 10) g += `<line x1="${X(t)}" y1="${pt}" x2="${X(t)}" y2="${H - pb}" stroke="#eef2f5"/><text x="${X(t)}" y="${H - pb + 16}" font-size="12" text-anchor="middle" fill="#6b7d8f">${t}</text>`;
+        const step = ymax > 30 ? 10 : 2; for (let v = 0; v <= ymax; v += step) g += `<line x1="${pl}" y1="${Y(v)}" x2="${W - pr}" y2="${Y(v)}" stroke="#eef2f5"/><text x="${pl - 6}" y="${Y(v) + 4}" font-size="12" text-anchor="end" fill="#6b7d8f">${v}</text>`;
         g += `<line x1="${pl}" y1="${H - pb}" x2="${W - pr}" y2="${H - pb}" stroke="#16263a"/><line x1="${pl}" y1="${pt}" x2="${pl}" y2="${H - pb}" stroke="#16263a"/><text x="${(W + pl) / 2}" y="${H - 6}" font-size="12" text-anchor="middle" fill="#16263a">temperature / °C</text><text x="14" y="${(H - pb) / 2}" font-size="12" text-anchor="middle" fill="#16263a" transform="rotate(-90 14 ${(H - pb) / 2})">rate / ×10⁻³ s⁻¹</text>`;
         const good = pts.filter((p) => !p.bad); if (good.length > 1) g += `<polyline points="${good.map((p) => `${X(p.x)},${Y(p.y)}`).join(" ")}" fill="none" stroke="#1f8a85" stroke-width="2"/>`;
         pts.forEach((p) => { const c = p.bad ? "#b4504f" : "#1f8a85"; g += `<line x1="${X(p.x) - 5}" y1="${Y(p.y) - 5}" x2="${X(p.x) + 5}" y2="${Y(p.y) + 5}" stroke="${c}" stroke-width="2"/><line x1="${X(p.x) - 5}" y1="${Y(p.y) + 5}" x2="${X(p.x) + 5}" y2="${Y(p.y) - 5}" stroke="${c}" stroke-width="2"/>`; });
         $("#tr-plot", host).innerHTML = g + "</svg>"; };
       draw();
-      $("#tr-optcheck", host).addEventListener("click", () => { const good = runs.filter((r) => r.done && truth(r) && !errNames(r.errors).length).map((r) => ({ T: r.T, rate: truth(r).rate })); const v = +$("#tr-opt", host).value; const fb = $("#tr-optfb", host);
+      $("#tr-optcheck", host).addEventListener("click", () => { const good = runs.filter((r) => r.done && truth(r) && tFair(r) && !errNames(r.errors).length).map((r) => ({ T: r.T, rate: truth(r).rate })); const v = +$("#tr-opt", host).value; const fb = $("#tr-optfb", host);
         if (good.length < 3) { fb.innerHTML = `<span style="color:var(--rose-ink)">Calculate at least three temperatures (without method problems) first, including some either side of the fastest.</span>`; return; }
         const byT = {}; good.forEach((g2) => { (byT[g2.T] = byT[g2.T] || []).push(g2.rate); }); const ts = Object.keys(byT).map(Number).sort((a, b) => a - b); const best = ts.reduce((a, t) => (Math.max(...byT[t]) > Math.max(...byT[a]) ? t : a), ts[0]); const i = ts.indexOf(best); const lo = i > 0 ? ts[i - 1] : best, hi = i < ts.length - 1 ? ts[i + 1] : best;
         if (ts.length < 3) { fb.innerHTML = `<span style="color:var(--rose-ink)">Your calculated rows cover only ${ts.length === 1 ? "one temperature" : "two temperatures"}. Run at least three different temperatures, including some either side of the fastest.</span>`; return; }
@@ -119,7 +157,7 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
         fb.innerHTML = v >= lo && v <= hi ? `<span style="color:var(--sage-ink)">✓ Your data put the optimum between ${lo} and ${hi} °C (fastest at ${best} °C). To locate it more precisely, run more temperatures in that range.</span>` : `<span style="color:var(--rose-ink)">Not supported by your data: the fastest rate was at ${best} °C, so the optimum lies between ${lo} and ${hi} °C.</span>`; });
     }
     render();
-    document.addEventListener("labrun", render);
+    onLabRun(render, host);
   }
   // ---------- Enzyme practical: animated bench (js/views/bench.js) + results table and plotting ----------
   function enzymeSim(host, n) {
@@ -151,7 +189,7 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
 
   // ---------- Osmosis practical (RP2): animated bench (js/views/bench-osmosis.js) + results table ----------
   const pctOf = (r) => +(((r.m1 - r.m0) / r.m0) * 100).toFixed(1);
-  // Replicate statistics shared by the Sim-tab plot and the Calculate tab. Chips are grouped by immersion time and
+  // Replicate statistics used by the Calculate tab. Chips are grouped by immersion time and
   // then by concentration (time is a control variable, so chips left for different times are never averaged together).
   // A chip is flagged as anomalous when it is more than 3 percentage points from the median of its group, and only
   // when the unflagged chips are a clear majority: a group is never emptied, and a group of two is never flagged.
@@ -171,25 +209,17 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
   function osmosisSim(host, n) {
     host.innerHTML = `
       <div id="bench-host"></div>
-      <h3 class="mt">Results table</h3><p class="small muted">Each chip adds a row. The balance gives you the masses; you work out the change and the percentage change in the Calculate tab, where your answers are checked. Three chips per concentration give a mean.</p>
+      <h3 class="mt">Results table</h3><p class="small muted">Each chip adds a row. The balance gives you the masses; you work out the change and the percentage change, then plot the means, in the Calculate tab, where your answers are checked. Three chips per concentration (three sets of six) give a mean.</p>
       <div id="table"></div>
-      <div class="row mt"><button class="btn sm" id="plot">Plot mean % change against concentration</button><button class="btn sm" id="clear">Clear results table</button></div>
-      <div id="plotout" class="mt"></div>`;
+      <div class="row mt"><button class="btn sm" id="clear">Clear results table</button></div>`;
     const st = B.store.get(); st.labRuns[n] = st.labRuns[n] || []; const runs = st.labRuns[n];
     function table() {
       if (!runs.length) { $("#table", host).innerHTML = '<p class="muted small">No chips yet.</p>'; return; }
       $("#table", host).innerHTML = `<table><tr><th>#</th><th>Sucrose / mol dm⁻³</th><th>Time / min</th><th>Initial mass / g</th><th>Final mass / g</th><th>Change / g</th><th>% change</th><th>Note</th></tr>${runs.map((r, i) => `<tr><td>${i + 1}</td><td>${r.C.toFixed(1)}</td><td>${r.minutes}</td><td>${r.m0.toFixed(2)}</td><td>${r.m1.toFixed(2)}</td><td>${r.pctOk ? (r.m1 - r.m0 >= 0 ? "+" : "") + (r.m1 - r.m0).toFixed(2) : "<span class='muted'>calculate</span>"}</td><td>${r.pctOk ? (pctOf(r) >= 0 ? "+" : "") + pctOf(r).toFixed(1) : "<span class='muted'>calculate</span>"}</td><td class="tiny muted">${r.blotted ? "" : "not blotted"}</td></tr>`).join("")}</table>`;
     }
-    function plot() {
-      const done = runs.filter((r) => r.pctOk); if (!done.length) { $("#plotout", host).innerHTML = '<p class="muted small">Calculate the percentage change for at least one chip first (Calculate tab).</p>'; return; }
-      const S = osmoStats(runs), groups = S.groupsAt(S.main);
-      const pts = Object.entries(groups).map(([C, g]) => ({ x: +C, y: +g.mean.toFixed(1), n: g.v.length - g.flags.filter(Boolean).length })).sort((a, b) => a.x - b.x);
-      $("#plotout", host).innerHTML = `<p class="small"><strong>Mean percentage change in mass against sucrose concentration</strong> after ${S.main} min (${pts.length} concentration${pts.length === 1 ? "" : "s"}; chips used per point: ${pts.map((p) => p.n).join(", ")}; anomalous chips left out)${S.times.length > 1 ? `. Chips immersed for other times are not included, because immersion time is a control variable.` : ""}</p>` + B.charts.line(pts, { xLabel: "sucrose concentration / mol dm⁻³", yLabel: "mean % change in mass", width: 560, height: 260 }) + `<p class="tiny muted">The curve crosses 0 % where the solution and the tissue have the same water potential. Use the Calculate tab to plot the points yourself and estimate that concentration.</p>`;
-    }
     B.views.benchOsmosis($("#bench-host", host), n, (r) => { runs.push({ ts: Date.now(), ...r }); B.store.save(); B.store.touchActivity("lab"); table(); document.dispatchEvent(new Event("labrun")); });
-    $("#plot", host).addEventListener("click", plot);
-    $("#clear", host).addEventListener("click", () => { if (confirm("Clear all saved chips for this practical?")) { runs.length = 0; B.store.save(); table(); $("#plotout", host).innerHTML = ""; } });
-    table(); document.addEventListener("labrun", table);
+    $("#clear", host).addEventListener("click", () => { if (confirm("Clear all saved chips for this practical?")) { runs.length = 0; B.store.save(); table(); document.dispatchEvent(new Event("labrun")); } });
+    table(); onLabRun(table, host);
   }
   // ---------- RP2 Calculate tab: change and % change per chip, means, plot your own points, isotonic estimate ----------
   function calcTabOsmosis(host, n) {
@@ -213,7 +243,7 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
           <div class="row">${B.labModels.osmosisConcs.map((C) => `<label class="tiny">${C.toFixed(1)}: <input type="number" step="0.1" class="opt" data-c="${C}" style="width:4.2rem;padding:.25rem .3rem;border:1px solid var(--line-strong);border-radius:6px"></label>`).join("")}<button class="btn sm" id="pcheck">Check my plot</button></div>
           <div id="pgraph" class="mt"></div><div id="pfb" class="small mt"></div>
           <div class="row mt" id="isoRow" hidden><label class="small">Concentration where % change = 0: <input id="iso" type="number" step="0.01" style="width:5.5rem;padding:.35rem .5rem;border:1px solid var(--line-strong);border-radius:8px"> mol dm⁻³</label><button class="btn sm" id="isocheck">Check</button><span id="isofb"></span></div></div>
-        <div class="card"><h3>4 Interpreting the graph</h3><ul class="small"><li>Positive values: the solution had a higher water potential than the tissue, so water entered by osmosis and the chips gained mass.</li><li>Negative values: the solution had a lower water potential, water left, mass fell.</li><li>Where the line crosses zero there was no net movement: the sucrose solution and the potato tissue have the same water potential. Convert with Ψ = −iCRT (i = 1 for sucrose, R = 8.31, T in kelvin).</li><li>The isotonic point is a property of <em>this</em> tissue on <em>this</em> day: different potatoes, sweet potatoes or carrots give different values, and so do the same potatoes after storage.</li></ul></div>`;
+        <div class="card"><h3>4 Interpreting the graph</h3><ul class="small"><li>Positive values: the solution had a higher water potential than the tissue, so water entered by osmosis and the chips gained mass.</li><li>Negative values: the solution had a lower water potential, water left, mass fell.</li><li>Where the line crosses zero there was no net movement: the sucrose solution and the potato tissue have the same water potential.</li><li><span class="badge">beyond the specification: not required</span> The concentration can be converted to a water potential with Ψ = −iCRT (i = 1 for sucrose, R = 8.31 J K⁻¹ mol⁻¹, T in kelvin). An exam question would give you this formula.</li><li>The isotonic point is a property of <em>this</em> tissue on <em>this</em> day: different potatoes, sweet potatoes or carrots give different values, and so do the same potatoes after storage.</li></ul></div>`;
       // 1 check change and % change
       const oc = $("#ocheck", host); if (oc) oc.addEventListener("click", () => { const r = runs[+$("#orun", host).value]; const ch = +$("#och", host).value, pc = +$("#opc", host).value; const tch = +(r.m1 - r.m0).toFixed(2), tpc = pctOf(r); const okc = Math.abs(ch - tch) < 0.006, okp = Math.abs(pc - tpc) <= 0.15; if (okc && okp) { r.pctOk = true; B.store.save(); document.dispatchEvent(new Event("labrun")); render(); return; } $("#ofb", host).innerHTML = `<span style="color:var(--rose-ink)">${okc ? "Change correct. " : "Change: final − initial, keep the sign (a loss is negative). "}${okp ? "" : "Percentage change: change ÷ initial mass × 100, to 1 d.p."}</span>`; });
       // 2 means
@@ -221,8 +251,8 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
       // 3 plot
       const W = 560, H = 280, padL = 56, padR = 16, padT = 14, padB = 44; const X = (c) => padL + (c / 1) * (W - padL - padR), Y = (p) => padT + ((25 - p) / 50) * (H - padT - padB);
       const placedPts = {}; let revealed = false;
-      const draw = () => { let g = `<svg viewBox="0 0 ${W} ${H}" width="${W}" style="max-width:100%;height:auto;background:#fff;border:1px solid var(--line);border-radius:10px" role="img" aria-label="grid for plotting mean percentage change against sucrose concentration" id="pgsvg">`; for (let c = 0; c <= 1.001; c += 0.1) g += `<line x1="${X(c)}" y1="${padT}" x2="${X(c)}" y2="${H - padB}" stroke="#eef1f4"/>`; for (let p = -25; p <= 25; p += 5) g += `<line x1="${padL}" y1="${Y(p)}" x2="${W - padR}" y2="${Y(p)}" stroke="${p === 0 ? "#6b7d8f" : "#eef1f4"}"/>`; for (let c = 0; c <= 1.001; c += 0.2) g += `<text x="${X(c)}" y="${H - padB + 16}" font-size="10" text-anchor="middle" fill="#3c4f63">${c.toFixed(1)}</text>`; for (let p = -20; p <= 20; p += 10) g += `<text x="${padL - 6}" y="${Y(p) + 3}" font-size="10" text-anchor="end" fill="#3c4f63">${p > 0 ? "+" : ""}${p}</text>`; g += `<text x="${(padL + W - padR) / 2}" y="${H - 6}" font-size="11" text-anchor="middle" fill="#16263a">sucrose concentration / mol dm⁻³</text><text x="12" y="${H / 2}" font-size="11" text-anchor="middle" fill="#16263a" transform="rotate(-90 12 ${H / 2})">mean % change in mass</text>`;
-        if (revealed) { const pts = B.enzymeModel.range(0, 1, 40).map((c) => `${X(c)},${Y(B.transportModel.massChangePct(c, { minutes: plotMin || 20 }))}`).join(" "); g += `<polyline points="${pts}" fill="none" stroke="#1f8a8a" stroke-width="2" stroke-dasharray="5 4"/><text x="${X(0.62)}" y="${Y(-12)}" font-size="10" fill="#1f8a8a">model curve (${plotMin || 20} min)</text>`; }
+      const draw = () => { let g = `<svg viewBox="0 0 ${W} ${H}" width="${W}" style="max-width:100%;height:auto;background:#fff;border:1px solid var(--line);border-radius:10px" role="img" aria-label="grid for plotting mean percentage change against sucrose concentration" id="pgsvg">`; for (let c = 0; c <= 1.001; c += 0.1) g += `<line x1="${X(c)}" y1="${padT}" x2="${X(c)}" y2="${H - padB}" stroke="#eef1f4"/>`; for (let p = -25; p <= 25; p += 5) g += `<line x1="${padL}" y1="${Y(p)}" x2="${W - padR}" y2="${Y(p)}" stroke="${p === 0 ? "#6b7d8f" : "#eef1f4"}"/>`; for (let c = 0; c <= 1.001; c += 0.2) g += `<text x="${X(c)}" y="${H - padB + 16}" font-size="12" text-anchor="middle" fill="#3c4f63">${c.toFixed(1)}</text>`; for (let p = -20; p <= 20; p += 10) g += `<text x="${padL - 6}" y="${Y(p) + 3}" font-size="12" text-anchor="end" fill="#3c4f63">${p > 0 ? "+" : ""}${p}</text>`; g += `<text x="${(padL + W - padR) / 2}" y="${H - 6}" font-size="12" text-anchor="middle" fill="#16263a">sucrose concentration / mol dm⁻³</text><text x="12" y="${H / 2}" font-size="12" text-anchor="middle" fill="#16263a" transform="rotate(-90 12 ${H / 2})">mean % change in mass</text>`;
+        if (revealed) { const pts = B.enzymeModel.range(0, 1, 40).map((c) => `${X(c)},${Y(B.transportModel.massChangePct(c, { minutes: plotMin || 20 }))}`).join(" "); g += `<polyline points="${pts}" fill="none" stroke="#1f8a8a" stroke-width="2" stroke-dasharray="5 4"/><text x="${X(0.62)}" y="${Y(-12)}" font-size="12" fill="#1f8a8a">model curve (${plotMin || 20} min)</text>`; }
         Object.entries(placedPts).forEach(([c, p]) => { g += `<g><line x1="${X(+c) - 5}" y1="${Y(p) - 5}" x2="${X(+c) + 5}" y2="${Y(p) + 5}" stroke="#b4504f" stroke-width="2"/><line x1="${X(+c) - 5}" y1="${Y(p) + 5}" x2="${X(+c) + 5}" y2="${Y(p) - 5}" stroke="#b4504f" stroke-width="2"/></g>`; });
         g += "</svg>"; $("#pgraph", host).innerHTML = g;
         $("#pgsvg", host).addEventListener("click", (e) => { const r = e.currentTarget.getBoundingClientRect(); const x = ((e.clientX - r.left) / r.width) * W, y = ((e.clientY - r.top) / r.height) * H; const c = Math.round(((x - padL) / (W - padL - padR)) * 5) / 5; if (c < 0 || c > 1) return; const p = +(25 - ((y - padT) / (H - padT - padB)) * 50).toFixed(1); placedPts[c] = p; $(`.opt[data-c="${c}"]`, host).value = p; draw(); }); };
@@ -230,10 +260,10 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
       draw();
       const ot = $("#otime", host); if (ot) ot.addEventListener("change", () => { plotMin = +ot.value; render(); });
       $("#pcheck", host).addEventListener("click", () => { const means = {}; concs.forEach((C) => { means[C] = groups[C].mean; }); const have = Object.keys(means); if (have.length < 3) { $("#pfb", host).innerHTML = `<span style="color:var(--rose-ink)">You need means for at least three concentrations (three chips each is best) before a line can be drawn.</span>`; return; } const wrong = have.filter((C) => placedPts[C] === undefined || Math.abs(placedPts[C] - means[C]) > 1.5); if (wrong.length) { $("#pfb", host).innerHTML = `<span style="color:var(--rose-ink)">Check the point${wrong.length > 1 ? "s" : ""} at ${wrong.map((c) => (+c).toFixed(1)).join(", ")} mol dm⁻³ against your means in step 2 for ${plotMin} min, with anomalies left out (within 1.5 percentage points).</span>`; return; } revealed = true; draw(); const xs = have.map(Number).sort((a, b) => a - b); let iso = null; for (let i = 0; i < xs.length - 1; i++) { const a = means[xs[i]], b = means[xs[i + 1]]; if ((a >= 0 && b <= 0) || (a <= 0 && b >= 0)) { iso = a === b ? xs[i] : xs[i] + (a / (a - b)) * (xs[i + 1] - xs[i]); break; } } host.dataset.iso = iso === null ? "" : iso.toFixed(2); $("#pfb", host).innerHTML = `<span style="color:var(--sage-ink)">✓ Points plotted correctly. ${iso === null ? "Your concentrations do not bracket zero: include a concentration on each side of the crossing point." : "Now read off where your line crosses 0 % (interpolate between the two nearest points)."}</span>`; if (iso !== null) $("#isoRow", host).removeAttribute("hidden"); });
-      $("#isocheck", host).addEventListener("click", () => { const t = +host.dataset.iso, v = +$("#iso", host).value; const psi = B.transportModel.psiSolute(v, 1, 303); $("#isofb", host).innerHTML = Math.abs(v - t) <= 0.05 ? `<span style="color:var(--sage-ink)">✓ About ${t} mol dm⁻³. Ψ of that solution at 30 °C = −1 × ${v} × 8.31 × 303 ≈ ${Math.round(psi)} kPa, so the tissue's water potential is about ${Math.round(psi)} kPa.</span>` : `<span style="color:var(--rose-ink)">Interpolate between the last positive and first negative mean: the crossing is where the straight line between them meets 0 %.</span>`; });
+      $("#isocheck", host).addEventListener("click", () => { const t = +host.dataset.iso, v = +$("#iso", host).value; const psi = B.transportModel.psiSolute(v, 1, 303); $("#isofb", host).innerHTML = Math.abs(v - t) <= 0.05 ? `<span style="color:var(--sage-ink)">✓ About ${t} mol dm⁻³: the potato tissue has the same water potential as a sucrose solution of this concentration.</span> <span class="small muted">(Beyond the specification, not required: with Ψ = −iCRT at 30 °C, −1 × ${v} × 8.31 × 303 ≈ ${Math.round(psi)} kPa.)</span>` : `<span style="color:var(--rose-ink)">Interpolate between the last positive and first negative mean: the crossing is where the straight line between them meets 0 %.</span>`; });
     }
     render();
-    document.addEventListener("labrun", render);
+    onLabRun(render, host);
   }
   // ---------- Chromatography practical (RP3): animated bench (js/views/bench-chroma.js), results table, explorer ----------
   const errList = (e) => [e.inkOrigin && "ink origin", e.above && "sample below solvent level", e.touching && "paper touching tube", e.wrongRef && "measured from paper edge", e.lateMark && "front marked late"].filter(Boolean);
@@ -245,8 +275,8 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
       <div id="table"></div>
       <div class="row mt"><button class="btn sm" id="clear">Clear results table</button></div>
       <div class="card mt"><div class="card-head"><h3>Chromatogram Explorer</h3><span class="badge amber">model, not measured data</span></div><p class="small muted">Compare two leaf extracts run correctly in the same solvent (same conditions, so the Rf of a given pigment is similar on both strips) or in different solvents (the same pigment moves differently). Band intensity shows how much of each pigment the leaf contains. Rf values in the model fall within ranges reported for paper chromatography, but there is <strong>no universal Rf for a pigment</strong>: it depends on the paper, solvent, temperature and saturation of the tube, so published tables are a guide, never an answer key.</p>
-        <div class="row"><label class="small">Strip 1: <select id="ex-l1">${Object.entries(M.LEAVES).map(([k, v]) => `<option value="${k}">${esc(v.label)}</option>`).join("")}</select> in <select id="ex-s1">${Object.entries(M.SOLVENTS).map(([k, v]) => `<option value="${k}">${esc(v.label)}${k === "nonpolar" ? "" : " (extension: not the handbook solvent)"}</option>`).join("")}</select></label>
-        <label class="small">Strip 2: <select id="ex-l2">${Object.entries(M.LEAVES).map(([k, v]) => `<option value="${k}" ${k === "autumn" ? "selected" : ""}>${esc(v.label)}</option>`).join("")}</select> in <select id="ex-s2">${Object.entries(M.SOLVENTS).map(([k, v]) => `<option value="${k}">${esc(v.label)}${k === "nonpolar" ? "" : " (extension: not the handbook solvent)"}</option>`).join("")}</select></label></div>
+        <div class="row"><label class="small">Strip 1: <select id="ex-l1">${Object.keys(M.LEAVES).map((k) => `<option value="${k}">${esc(B.views.benchChroma.shortLeaf(k))}</option>`).join("")}</select> in <select id="ex-s1">${Object.entries(M.SOLVENTS).map(([k, v]) => `<option value="${k}">${esc(v.label)}${k === "nonpolar" ? "" : " (stretch: not the handbook solvent)"}</option>`).join("")}</select></label>
+        <label class="small">Strip 2: <select id="ex-l2">${Object.keys(M.LEAVES).map((k) => `<option value="${k}" ${k === "autumn" ? "selected" : ""}>${esc(B.views.benchChroma.shortLeaf(k))}</option>`).join("")}</select> in <select id="ex-s2">${Object.entries(M.SOLVENTS).map(([k, v]) => `<option value="${k}">${esc(v.label)}${k === "nonpolar" ? "" : " (stretch: not the handbook solvent)"}</option>`).join("")}</select></label></div>
         <div class="grid grid-2 mt" id="ex-out"></div><div id="ex-note" class="small mt"></div></div>`;
     const st = B.store.get(); st.labRuns[n] = st.labRuns[n] || []; const runs = st.labRuns[n];
     function table() {
@@ -256,16 +286,20 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
     }
     function explorer() {
       const l1 = $("#ex-l1", host).value, s1 = $("#ex-s1", host).value, l2 = $("#ex-l2", host).value, s2 = $("#ex-s2", host).value;
-      const r1 = M.run({ leaf: l1, solvent: s1, seed: 11 }), r2 = M.run({ leaf: l2, solvent: s2, seed: 12 });
-      const cell = (r) => `<div>${A.chromatogram(r, { frontMm: 100, height: 340, label: M.LEAVES[r.leaf].label.split(" (")[0] })}<table class="tbl small"><thead><tr><th>Band</th><th>Rf</th></tr></thead><tbody>${r.bands.map((b) => `<tr><td><span style="display:inline-block;width:.7em;height:.7em;border-radius:2px;background:${b.colour};vertical-align:middle"></span> ${esc(b.name)}</td><td>${b.rf.toFixed(2)}</td></tr>`).join("")}</tbody></table></div>`;
+      // R9-25: in the Explorer every pigment takes the middle of its model Rf range for the solvent, so a pigment has the
+      // same Rf on both strips in the same solvent; the leaves differ only in which bands are present and how intense.
+      const mid = (r) => { r.bands.forEach((b) => { const [lo, hi] = M.PIG[b.key].rf[r.solvent]; b.rf = +((lo + hi) / 2).toFixed(2); }); r.bands.sort((a, b) => b.rf - a.rf); return r; };
+      const r1 = mid(M.run({ leaf: l1, solvent: s1, seed: 11 })), r2 = mid(M.run({ leaf: l2, solvent: s2, seed: 12 }));
+      // R9-26: the strip name is ordinary page text (theme colours), not text inside the drawing
+      const cell = (r) => `<div><p class="small" style="margin:0 0 .2rem;text-align:center"><strong>${esc(B.views.benchChroma.shortLeaf(r.leaf))}</strong></p><div style="background:#fff;border-radius:8px;padding:4px;max-width:240px;margin-inline:auto">${A.chromatogram(r, { frontMm: 100, height: 340 })}</div><table class="tbl small"><thead><tr><th>Band</th><th>Rf</th></tr></thead><tbody>${r.bands.map((b) => `<tr><td><span style="display:inline-block;width:.7em;height:.7em;border-radius:2px;background:${b.colour};vertical-align:middle"></span> ${esc(b.name)}</td><td>${b.rf.toFixed(2)}</td></tr>`).join("")}</tbody></table></div>`;
       $("#ex-out", host).innerHTML = cell(r1) + cell(r2);
       const shared = r1.bands.filter((b) => r2.bands.some((c) => c.key === b.key));
-      $("#ex-note", host).innerHTML = s1 === s2 ? `<strong>Same solvent:</strong> for pigments present on both strips the Rf values are similar (e.g. ${shared.slice(0, 2).map((b) => `${esc(b.name.split(" (")[0])} ${b.rf.toFixed(2)} v ${r2.bands.find((c) => c.key === b.key).rf.toFixed(2)}`).join("; ")}), because Rf depends on the pigment–solvent–paper combination, not on the leaf. Differences between the leaves show in <em>which</em> bands are present and how intense they are: that is the interspecific (or intraspecific) variation the practical reveals.` : `<strong>Different solvents:</strong> the same pigment has a different Rf in each (e.g. ${shared.slice(0, 2).map((b) => `${esc(b.name.split(" (")[0])} ${b.rf.toFixed(2)} v ${r2.bands.find((c) => c.key === b.key).rf.toFixed(2)}`).join("; ")}), so Rf values can only be compared between runs made with the same solvent and paper under the same conditions.`;
+      $("#ex-note", host).innerHTML = s1 === s2 ? `<strong>Same solvent:</strong> for pigments present on both strips the Rf values are the same (e.g. ${shared.slice(0, 2).map((b) => `${esc(b.name.split(" (")[0])} ${b.rf.toFixed(2)} v ${r2.bands.find((c) => c.key === b.key).rf.toFixed(2)}`).join("; ")}), because Rf depends on the pigment–solvent–paper combination, not on the leaf. Differences between the leaves show in <em>which</em> bands are present and how intense they are: that is the interspecific (or intraspecific) variation the practical reveals.` : `<strong>Different solvents:</strong> the same pigment has a different Rf in each (e.g. ${shared.slice(0, 2).map((b) => `${esc(b.name.split(" (")[0])} ${b.rf.toFixed(2)} v ${r2.bands.find((c) => c.key === b.key).rf.toFixed(2)}`).join("; ")}), so Rf values can only be compared between runs made with the same solvent and paper under the same conditions.`;
     }
     B.views.benchChroma($("#bench-host", host), n, (r) => { runs.push({ ts: Date.now(), ...r }); B.store.save(); B.store.touchActivity("lab"); table(); document.dispatchEvent(new Event("labrun")); });
     $("#clear", host).addEventListener("click", () => { if (confirm("Clear all saved chromatograms for this practical?")) { runs.length = 0; B.store.save(); table(); } });
     $$("#ex-l1,#ex-s1,#ex-l2,#ex-s2", host).forEach((s) => s.addEventListener("change", explorer));
-    table(); explorer(); document.addEventListener("labrun", table);
+    table(); explorer(); onLabRun(table, host);
   }
   // ---------- RP3 Calculate tab: Rf calculator with checking, comparison investigation, evaluation ----------
   function calcTabChroma(host, n) {
@@ -302,7 +336,7 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
       }
     }
     render();
-    document.addEventListener("labrun", render);
+    onLabRun(render, host);
   }
   // ---------- Calculate tab: replicates, means, anomalies, initial rate by tangent ----------
   // Uses the student's own saved runs (store.labRuns[n]). The tangent tool lets the student choose a gradient and
@@ -334,6 +368,6 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
       $("#ctcheck", host).addEventListener("click", () => { const r = runs[+$("#crun", host).value]; const g = +$("#cgrad", host).value; const first = r.series[1].y * 2; const lo = first, hi = (r.v0 ? r.v0 * 1.12 : first * 1.35); $("#ctfb", host).innerHTML = g < lo * 0.9 ? `<span style="color:var(--rose-ink)">Too shallow: your line crosses into the curve. The curve is steepest at t = 0, so the tangent must be at least as steep as the first 30 s average (${first.toFixed(1)} cm³ min⁻¹).</span>` : g > hi ? `<span style="color:var(--rose-ink)">Too steep: the line leaves the curve immediately. Lower it until it just touches the curve at the origin.</span>` : `<span style="color:var(--sage-ink)">✓ Reasonable tangent: initial rate ≈ ${g.toFixed(1)} cm³ min⁻¹. Notice it is a little higher than the 30 s average (${first.toFixed(1)}) because the rate is already falling during the first 30 s.</span>`; });
     }
     render();
-    document.addEventListener("labrun", render);
+    onLabRun(render, host);
   }
 })(window.BIO);

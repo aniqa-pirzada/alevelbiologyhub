@@ -11,7 +11,7 @@ window.BIO = window.BIO || {}; window.BIO.spec = {
   "specPdfAltUrl": "https://www.oxfordaqa.com/wp-content/uploads/2022/08/oxfordaqa-a-level-biology-specification.pdf",
   "retrieved": "2026-10-31",
   "audited": "2026-11-02: every reference, heading and statement verified against the official v5.1 PDF (FULL_SPECIFICATION_AUDIT.md); topic-level references with no official subsections: 3.1.6, 3.4.1, 3.4.8",
-  "disclaimer": "This platform is an independent revision resource created by Aniqa Pirzada. It is not endorsed by or affiliated with OxfordAQA.",
+  "disclaimer": "This resource is independently developed and is not affiliated with or endorsed by OxfordAQA.",
   "counts": {
    "units": 4,
    "topics": 40,
@@ -47,17 +47,17 @@ window.BIO = window.BIO || {}; window.BIO.spec = {
        "statements": [
         {
          "id": "3.1.1.1.s1",
-         "text": "Monomers are small units that join together to form larger molecules called polymers.",
+         "text": "Monomers are the smaller units which may be joined together to form polymers.",
          "tags": []
         },
         {
          "id": "3.1.1.1.s2",
-         "text": "A condensation reaction joins two molecules together with a chemical bond and removes a molecule of water.",
+         "text": "Condensation is the joining together of molecules with a chemical bond and the elimination of a molecule of water.",
          "tags": []
         },
         {
          "id": "3.1.1.1.s3",
-         "text": "A hydrolysis reaction breaks a chemical bond between two molecules and uses a molecule of water.",
+         "text": "Hydrolysis is the breaking of the chemical bond between two molecules in a reaction involving a water molecule.",
          "tags": []
         }
        ]
@@ -69,59 +69,59 @@ window.BIO = window.BIO || {}; window.BIO.spec = {
        "statements": [
         {
          "id": "3.1.1.2.s1",
-         "text": "Monosaccharides are the monomers from which larger carbohydrates are made; glucose and fructose are common monosaccharides.",
+         "text": "The monomers from which larger carbohydrates are made are monosaccharides. Common monosaccharides are glucose and fructose.",
          "tags": []
         },
         {
          "id": "3.1.1.2.s2",
-         "text": "Glucose has two isomers, alpha glucose and beta glucose; students must know their structures.",
+         "text": "Glucose exists as two isomers, α-glucose and β-glucose. These isomers have the following chemical structure: [structures of α-glucose and β-glucose shown as diagrams in the specification].",
          "tags": []
         },
         {
          "id": "3.1.1.2.s3",
-         "text": "A condensation reaction between two monosaccharides forms a glycosidic bond and produces a disaccharide.",
+         "text": "Two monosaccharides may join by condensation to form a glycosidic bond. Disaccharides are formed by the condensation of two monosaccharides.",
          "tags": []
         },
         {
          "id": "3.1.1.2.s4",
-         "text": "Maltose is formed by condensation of two alpha glucose molecules.",
+         "text": "Maltose is a disaccharide formed from two α-glucose molecules.",
          "tags": []
         },
         {
          "id": "3.1.1.2.s5",
-         "text": "Sucrose is formed by condensation of one alpha glucose molecule and one fructose molecule.",
+         "text": "Sucrose is a disaccharide formed from an α-glucose molecule and a fructose molecule.",
          "tags": []
         },
         {
          "id": "3.1.1.2.s6",
-         "text": "Condensation of many monosaccharides forms polysaccharides.",
+         "text": "Many monosaccharides may join by condensation to form a polysaccharide.",
          "tags": []
         },
         {
          "id": "3.1.1.2.s7",
-         "text": "Starch is composed of amylose and amylopectin, both formed by condensation of alpha glucose.",
+         "text": "Starches are composed of amylose and amylopectin and formed by the condensation of α-glucose.",
          "tags": []
         },
         {
          "id": "3.1.1.2.s8",
-         "text": "Cellulose is formed by condensation of beta glucose.",
+         "text": "Cellulose is formed by the condensation of β-glucose.",
          "tags": []
         },
         {
          "id": "3.1.1.2.s9",
-         "text": "The relationship between the structures of starch and cellulose and their functions in plant cells.",
+         "text": "The relationship of the structure of starch and cellulose to their functions in the cells of plants.",
          "tags": []
         },
         {
          "id": "3.1.1.2.s10",
-         "text": "Biochemical tests: Benedict's reagent for reducing sugars and for non-reducing sugars; iodine in potassium iodide solution for starch.",
+         "text": "Biochemical tests using Benedict's reagent for reducing and non-reducing sugars and iodine/potassium iodide solution for starch.",
          "tags": [
           "P"
          ]
         },
         {
          "id": "3.1.1.2.s11",
-         "text": "Given the molecular structures or formulae of other carbohydrates, show how they can be joined by condensation or broken down by hydrolysis.",
+         "text": "When provided with the relevant molecular structures or formulae, be able to demonstrate how carbohydrates other than those specified in this section may be joined by condensation or broken down by hydrolysis.",
          "tags": [
           "E"
          ]
@@ -135,22 +135,22 @@ window.BIO = window.BIO || {}; window.BIO.spec = {
        "statements": [
         {
          "id": "3.1.1.3.s1",
-         "text": "Triglycerides are formed by condensation of one molecule of glycerol and three molecules of fatty acid, forming ester bonds.",
+         "text": "Triglycerides are formed by the condensation of one glycerol molecule and three fatty acid molecules. Ester bonds are formed as a result.",
          "tags": []
         },
         {
          "id": "3.1.1.3.s2",
-         "text": "A fatty acid may be represented as RCOOH; the R group may be saturated or unsaturated.",
+         "text": "A fatty acid may be represented by the chemical formula RCOOH. The R-group may be either saturated or unsaturated.",
          "tags": []
         },
         {
          "id": "3.1.1.3.s3",
-         "text": "In a phospholipid, one of the fatty acids of a triglyceride is replaced by a phosphate-containing group.",
+         "text": "In phospholipids, one of the fatty acids is substituted by a phosphate-containing group.",
          "tags": []
         },
         {
          "id": "3.1.1.3.s4",
-         "text": "The differences in structure, properties and function between saturated triglycerides, unsaturated triglycerides and phospholipids.",
+         "text": "The different structures of saturated triglycerides, unsaturated triglycerides and phospholipids result in different properties and different functions in living organisms.",
          "tags": []
         },
         {
@@ -162,7 +162,7 @@ window.BIO = window.BIO || {}; window.BIO.spec = {
         },
         {
          "id": "3.1.1.3.s6",
-         "text": "Recognise types of lipid from diagrams and molecular formulae.",
+         "text": "Recognise different types of lipid from diagrams and formulae showing molecular structure.",
          "tags": [
           "E"
          ]
@@ -176,22 +176,22 @@ window.BIO = window.BIO || {}; window.BIO.spec = {
        "statements": [
         {
          "id": "3.1.1.4.s1",
-         "text": "Amino acids are the monomers from which proteins are made; the general structure of an amino acid must be known.",
+         "text": "The monomers from which proteins are made are amino acids. Amino acids have the following general structure: [H2N–CHR–COOH, shown as a diagram in the specification].",
          "tags": []
         },
         {
          "id": "3.1.1.4.s2",
-         "text": "Twenty amino acids are common to all organisms; they differ only in their R group.",
+         "text": "There are twenty amino acids that are common in all organisms and they differ only in their R-groups.",
          "tags": []
         },
         {
          "id": "3.1.1.4.s3",
-         "text": "Condensation of two amino acids forms a peptide bond and a dipeptide; condensation of many amino acids forms a polypeptide.",
+         "text": "Amino acids may join by condensation to form a peptide bond. Dipeptides are formed by the condensation of two amino acids. Polypeptides are formed by the condensation of many amino acids.",
          "tags": []
         },
         {
          "id": "3.1.1.4.s4",
-         "text": "The roles of hydrogen bonds and disulfide bridges in the structure of proteins.",
+         "text": "The role of hydrogen bonds and disulfide bridges in the structure of proteins.",
          "tags": []
         },
         {
@@ -208,7 +208,7 @@ window.BIO = window.BIO || {}; window.BIO.spec = {
         },
         {
          "id": "3.1.1.4.s7",
-         "text": "Relate the properties of named proteins to their structure.",
+         "text": "Relate the properties of proteins that are named in this specification to their structure.",
          "tags": [
           "E"
          ]
@@ -229,7 +229,7 @@ window.BIO = window.BIO || {}; window.BIO.spec = {
        "statements": [
         {
          "id": "3.1.2.1.s1",
-         "text": "The principles and limitations of optical microscopes, transmission electron microscopes and scanning electron microscopes.",
+         "text": "Microscopes are important tools in the study of cells. The principles and limitations of optical microscopes, transmission electron microscopes and scanning electron microscopes.",
          "tags": []
         },
         {
@@ -239,29 +239,29 @@ window.BIO = window.BIO || {}; window.BIO.spec = {
         },
         {
          "id": "3.1.2.1.s3",
-         "text": "The principles of cell fractionation and ultracentrifugation as used to separate cell components.",
+         "text": "The principles of cell fractionation and ultracentrifugation in the separation of cell components.",
          "tags": []
         },
         {
          "id": "3.1.2.1.s4",
-         "text": "The appearance, ultrastructure and function of: plasma membrane (including cell-surface membrane), cell wall, nucleus, mitochondria, chloroplasts, Golgi apparatus, lysosomes, ribosomes, rough endoplasmic reticulum, smooth endoplasmic reticulum and cell vacuole.",
+         "text": "The appearance, ultrastructure and function of: plasma membranes including the cell-surface membrane; cell wall; nucleus; mitochondria; chloroplasts; Golgi apparatus; lysosomes; ribosomes; rough endoplasmic reticulum and smooth endoplasmic reticulum; cell vacuole.",
          "tags": []
         },
         {
          "id": "3.1.2.1.s5",
-         "text": "In multicellular organisms eukaryotic cells become specialised; specialised cells are organised into tissues, tissues into organs and organs into systems.",
+         "text": "In complex multicellular organisms, eukaryotic cells have specific functions. Cells are organised into tissues, tissues into organs and organs into systems.",
          "tags": []
         },
         {
          "id": "3.1.2.1.s6",
-         "text": "Use the formula magnification = size of image / size of real object.",
+         "text": "Use the formula, magnification = size of image / size of object.",
          "tags": [
           "M"
          ]
         },
         {
          "id": "3.1.2.1.s7",
-         "text": "Identify specific organelles in photographs taken with optical and electron microscopes.",
+         "text": "Identify specific organelles from photographs taken using optical or electron microscopes.",
          "tags": [
           "P"
          ]
@@ -275,12 +275,12 @@ window.BIO = window.BIO || {}; window.BIO.spec = {
        "statements": [
         {
          "id": "3.1.2.2.s1",
-         "text": "Prokaryotic cells are much smaller than eukaryotic cells and differ in having cytoplasm that lacks membrane-bound organelles, smaller ribosomes, no nucleus (instead a single circular DNA molecule, free in the cytoplasm and not associated with proteins), and a cell wall containing murein.",
+         "text": "Prokaryotic cells are smaller than eukaryotic cells and differ in having: cytoplasm lacking in membrane-bounded organelles; small ribosomes; no nucleus; their DNA forms a circular molecule that is not associated with proteins and is free in the cytoplasm; a cell wall containing the glycoprotein murein.",
          "tags": []
         },
         {
          "id": "3.1.2.2.s2",
-         "text": "Many prokaryotic cells also have one or more plasmids, a capsule surrounding the cell, and one or more flagella.",
+         "text": "In addition, many prokaryotic cells have: one or more plasmids; a capsule surrounding the cell; one or more flagella.",
          "tags": []
         }
        ]
@@ -299,22 +299,22 @@ window.BIO = window.BIO || {}; window.BIO.spec = {
        "statements": [
         {
          "id": "3.1.3.1.s1",
-         "text": "Enzymes are proteins; their properties depend on the tertiary structure of their active site.",
+         "text": "Enzymes are proteins and their properties depend on the tertiary structure of their active sites.",
          "tags": []
         },
         {
          "id": "3.1.3.1.s2",
-         "text": "Each enzyme binds a specific, complementary substrate to form an enzyme-substrate complex.",
+         "text": "[Enzymes] combine with a complementary substrate to form an enzyme-substrate complex.",
          "tags": []
         },
         {
          "id": "3.1.3.1.s3",
-         "text": "Enzymes lower the activation energy of the reaction they catalyse.",
+         "text": "An enzyme lowers the activation energy of the reaction that it catalyses.",
          "tags": []
         },
         {
          "id": "3.1.3.1.s4",
-         "text": "Models of enzyme action have changed over time: the lock and key model and the induced fit model.",
+         "text": "Models of enzyme action have changed over time. This is illustrated by the lock and key and induced fit models of action.",
          "tags": []
         }
        ]
@@ -326,17 +326,17 @@ window.BIO = window.BIO || {}; window.BIO.spec = {
        "statements": [
         {
          "id": "3.1.3.2.s1",
-         "text": "Enzymes are specific catalysts.",
+         "text": "Enzymes are catalysts that are specific in their action.",
          "tags": []
         },
         {
          "id": "3.1.3.2.s2",
-         "text": "The rate of an enzyme-catalysed reaction depends on the number of collisions between enzyme and substrate; this explains the effects of temperature, substrate concentration and enzyme concentration.",
+         "text": "The rate of reaction of an enzyme is related to number of collisions that take place between an enzyme and its substrate. This explains the effect of the following factors on the rate of an enzyme-controlled reaction: temperature; substrate concentration; enzyme concentration.",
          "tags": []
         },
         {
          "id": "3.1.3.2.s3",
-         "text": "The rate also depends on the ability of the active site to bind complementary substrate; this explains the effects of temperature, pH, and competitive and non-competitive inhibitors.",
+         "text": "The rate of reaction is also related to the ability of the active site to bind with complementary substrate molecules. This explains the effect of the following factors on the rate of an enzyme-controlled reaction: temperature; pH; competitive and non-competitive inhibitors.",
          "tags": []
         }
        ]
@@ -355,17 +355,17 @@ window.BIO = window.BIO || {}; window.BIO.spec = {
        "statements": [
         {
          "id": "3.1.4.1.s1",
-         "text": "The fluid-mosaic model of membrane structure: the arrangement of phospholipids, proteins and carbohydrates.",
+         "text": "The arrangement of phospholipids, proteins and carbohydrates in the fluid-mosaic model of membrane structure.",
          "tags": []
         },
         {
          "id": "3.1.4.1.s2",
-         "text": "Cholesterol may be present in membranes and restricts the movement of other membrane molecules.",
+         "text": "Cholesterol may also be present and restricts the movement of other molecules making up the membrane.",
          "tags": []
         },
         {
          "id": "3.1.4.1.s3",
-         "text": "Microvilli increase the surface area of cell-surface membranes.",
+         "text": "The role of microvilli in increasing the surface area of cell-surface membranes.",
          "tags": []
         }
        ]
@@ -377,27 +377,27 @@ window.BIO = window.BIO || {}; window.BIO.spec = {
        "statements": [
         {
          "id": "3.1.4.2.s1",
-         "text": "Diffusion is the passive movement of substances down a concentration gradient.",
+         "text": "Diffusion as the passive movement of substances down a concentration gradient.",
          "tags": []
         },
         {
          "id": "3.1.4.2.s2",
-         "text": "The phospholipid bilayer may limit diffusion across membranes.",
+         "text": "Diffusion across plasma membranes may be limited by the nature of the phospholipid bilayer.",
          "tags": []
         },
         {
          "id": "3.1.4.2.s3",
-         "text": "Surface area, difference in concentration and thickness of the exchange surface affect the rate of diffusion.",
+         "text": "Surface area, difference in concentration and the thickness of the exchange surface affect the rate of diffusion.",
          "tags": []
         },
         {
          "id": "3.1.4.2.s4",
-         "text": "Facilitated diffusion involves proteins that act as carriers or form channels.",
+         "text": "Facilitated diffusion involves the use of proteins. These may act as carriers or provide channels.",
          "tags": []
         },
         {
          "id": "3.1.4.2.s5",
-         "text": "Osmosis is a special case of diffusion: water moves from a higher to a lower water potential across a partially permeable membrane.",
+         "text": "Osmosis is a special case of diffusion in which water moves from a solution of higher water potential to one of lower water potential through a partially permeable membrane.",
          "tags": []
         }
        ]
@@ -409,12 +409,12 @@ window.BIO = window.BIO || {}; window.BIO.spec = {
        "statements": [
         {
          "id": "3.1.4.3.s1",
-         "text": "Active transport uses carrier proteins and ATP to move substances against a concentration gradient.",
+         "text": "The role of carrier proteins and ATP in the transport of substances against a concentration gradient.",
          "tags": []
         },
         {
          "id": "3.1.4.3.s2",
-         "text": "ATP is synthesised from ADP and inorganic phosphate and is the immediate source of energy for biological processes.",
+         "text": "ATP may be synthesised from ADP and phosphate and provides the immediate source of energy for biological processes.",
          "tags": []
         },
         {
@@ -440,17 +440,17 @@ window.BIO = window.BIO || {}; window.BIO.spec = {
        "statements": [
         {
          "id": "3.1.5.1.s1",
-         "text": "The relationship between the size of an organism and its surface area to volume ratio.",
+         "text": "The relationship between the size of an organism and its surface area to volume relationship.",
          "tags": []
         },
         {
          "id": "3.1.5.1.s2",
-         "text": "Changes in body shape and the development of transport and exchange systems in larger organisms are adaptations that aid exchange as the ratio falls.",
+         "text": "Differences in body shape and the development of systems in larger organisms are adaptations that facilitate exchange as the relationship between surface area and volume changes.",
          "tags": []
         },
         {
          "id": "3.1.5.1.s3",
-         "text": "Large organisms use mass transport to supply materials such as oxygen efficiently to their cells.",
+         "text": "In large organisms the efficient supply of materials, such as oxygen, is achieved by mass transport.",
          "tags": []
         }
        ]
@@ -462,12 +462,12 @@ window.BIO = window.BIO || {}; window.BIO.spec = {
        "statements": [
         {
          "id": "3.1.5.2.s1",
-         "text": "Adaptations of gas exchange surfaces in the body surface of a single-celled organism, the tracheal system of an insect and the leaves of a dicotyledonous plant.",
+         "text": "The adaptations of gas exchange systems as shown by gas exchange: across the body surface of a single-celled organism; in the tracheal system of an insect; by the leaves of a dicotyledonous plant.",
          "tags": []
         },
         {
          "id": "3.1.5.2.s2",
-         "text": "The compromise between efficient gas exchange and limiting water loss in terrestrial insects and in xerophytic plants.",
+         "text": "Structural and functional compromises between the opposing needs for efficient gas exchange and the limitation of water loss shown by terrestrial insects and xerophytic plants.",
          "tags": []
         },
         {
@@ -477,24 +477,24 @@ window.BIO = window.BIO || {}; window.BIO.spec = {
         },
         {
          "id": "3.1.5.2.s4",
-         "text": "The essential features of the alveolar epithelium and its capillaries as a surface for gas exchange.",
+         "text": "The essential features of the alveolar epithelium and capillaries as a gas exchange surface.",
          "tags": []
         },
         {
          "id": "3.1.5.2.s5",
-         "text": "The mechanism of breathing: the roles of the diaphragm and intercostal muscles in producing pressure and volume changes in the thoracic cavity.",
+         "text": "The mechanism of breathing to include the role of the diaphragm and the intercostal muscles in bringing about pressure and volume changes in the thoracic cavity.",
          "tags": []
         },
         {
          "id": "3.1.5.2.s6",
-         "text": "Use the principles of gas exchange to identify and explain the adaptations of unfamiliar gas exchange surfaces.",
+         "text": "Use the principles involved in the exchange of gases to identify and explain the adaptations of unfamiliar examples of gas exchange surfaces.",
          "tags": [
           "E"
          ]
         },
         {
          "id": "3.1.5.2.s7",
-         "text": "Interpret data on the effects of lung disease on gas exchange and ventilation.",
+         "text": "Interpret data relating to the effects of lung disease on gas exchange and ventilation.",
          "tags": [
           "M"
          ]
@@ -508,32 +508,32 @@ window.BIO = window.BIO || {}; window.BIO.spec = {
        "statements": [
         {
          "id": "3.1.5.3.s1",
-         "text": "The general pattern of blood circulation in a mammal through arteries, capillaries and veins; names are required only for the coronary arteries and the vessels entering and leaving the heart and liver.",
+         "text": "The general pattern of blood circulation in a mammal involving arteries, capillaries and veins. Names are required only of the coronary arteries and of vessels entering and leaving the heart and liver.",
          "tags": []
         },
         {
          "id": "3.1.5.3.s2",
-         "text": "The roles of haemoglobin and red blood cells in transporting oxygen, including the oxygen-haemoglobin dissociation curve.",
+         "text": "The role of haemoglobin and red blood cells in the transport of oxygen in relation to the oxygen-haemoglobin dissociation curve.",
          "tags": []
         },
         {
          "id": "3.1.5.3.s3",
-         "text": "The effect of carbon dioxide concentration on the transport of oxygen by haemoglobin.",
+         "text": "The effect of carbon dioxide on the transport of oxygen by haemoglobin.",
          "tags": []
         },
         {
          "id": "3.1.5.3.s4",
-         "text": "Haemoglobins are a group of chemically similar molecules found in many organisms; each has polypeptide globin chains, each associated with an iron-containing haem group.",
+         "text": "The haemoglobins are a group of chemically similar molecules found in many different organisms. They have a similar chemical structure consisting of a number of polypeptide globin chains each of which is associated with an iron-containing haem group.",
          "tags": []
         },
         {
          "id": "3.1.5.3.s5",
-         "text": "Different organisms have different haemoglobins with different oxygen-transport properties, adapting them to their environment.",
+         "text": "Many animals are adapted to their environments by possessing different types of haemoglobin with different oxygen-transporting properties.",
          "tags": []
         },
         {
          "id": "3.1.5.3.s6",
-         "text": "Relate the oxygen-transport properties of a haemoglobin to the environment and way of life of the organism.",
+         "text": "Relate the oxygen transporting properties of different types of haemoglobin to the environment and way of life of the organism concerned.",
          "tags": [
           "E"
          ]
@@ -554,12 +554,12 @@ window.BIO = window.BIO || {}; window.BIO.spec = {
        "statements": [
         {
          "id": "3.1.6.s1",
-         "text": "Intraspecific variation is variation within a species; interspecific variation is variation between species.",
+         "text": "Intraspecific variation is variation between members of a species. Interspecific variation is variation between species.",
          "tags": []
         },
         {
          "id": "3.1.6.s2",
-         "text": "Investigations of intraspecific variation require random sampling; chance contributes to differences between samples; sample size must be large enough for the data to be representative.",
+         "text": "In investigations of intraspecific variation, the need for random sampling and the importance of chance in contributing to the difference between samples. The importance of appropriate sample size in ensuring that data are representative.",
          "tags": []
         },
         {
@@ -569,17 +569,17 @@ window.BIO = window.BIO || {}; window.BIO.spec = {
         },
         {
          "id": "3.1.6.s4",
-         "text": "The mean and standard deviation as measures of variation within a sample; calculation of a standard deviation is not required in written papers.",
+         "text": "Understanding of mean and standard deviation as measures of variation within a sample. Students will not be required to calculate standard deviation in questions on written papers.",
          "tags": []
         },
         {
          "id": "3.1.6.s5",
-         "text": "Similarities and differences within a species may result from genetic factors, environmental factors, or a combination of both.",
+         "text": "Similarities and differences between individuals within a species may be the result of genetic factors, differences in environmental factors or a combination of both.",
          "tags": []
         },
         {
          "id": "3.1.6.s6",
-         "text": "Analyse and interpret data relating to intraspecific and interspecific variation.",
+         "text": "Analyse and interpret data referring to intraspecific and interspecific variation.",
          "tags": [
           "M"
          ]
@@ -600,27 +600,27 @@ window.BIO = window.BIO || {}; window.BIO.spec = {
        "statements": [
         {
          "id": "3.1.7.1.s1",
-         "text": "DNA and RNA are polymers of nucleotides; each nucleotide is formed from a pentose sugar, a phosphate group and a nitrogen-containing organic base (general structure required).",
+         "text": "Both DNA and RNA are polymers of nucleotides. Each nucleotide is formed from a pentose, a phosphate group and a nitrogen-containing organic base. Nucleotides have the following general structure: [phosphate group, pentose and nitrogen-containing base, shown as a diagram in the specification].",
          "tags": []
         },
         {
          "id": "3.1.7.1.s2",
-         "text": "A DNA nucleotide contains deoxyribose and one of adenine, cytosine, guanine or thymine.",
+         "text": "DNA nucleotides consist of deoxyribose, a phosphate group and one of the bases adenine, cytosine, guanine or thymine.",
          "tags": []
         },
         {
          "id": "3.1.7.1.s3",
-         "text": "DNA is a double helix of two polynucleotide chains held together by hydrogen bonds between complementary base pairs.",
+         "text": "A molecule of DNA is a double helix with two polynucleotide chains held together by hydrogen bonds formed between complementary base pairs.",
          "tags": []
         },
         {
          "id": "3.1.7.1.s4",
-         "text": "An RNA nucleotide contains ribose and one of adenine, cytosine, guanine or uracil; RNA is a relatively short polynucleotide chain.",
+         "text": "RNA nucleotides consist of ribose, a phosphate group and one of the organic bases adenine, cytosine, guanine or uracil. A molecule of RNA is a relatively short polynucleotide chain.",
          "tags": []
         },
         {
          "id": "3.1.7.1.s5",
-         "text": "The structure of messenger RNA (mRNA) and transfer RNA (tRNA).",
+         "text": "The structure of mRNA and tRNA.",
          "tags": []
         }
        ]
@@ -632,32 +632,32 @@ window.BIO = window.BIO || {}; window.BIO.spec = {
        "statements": [
         {
          "id": "3.1.7.2.s1",
-         "text": "In the nucleus of a eukaryotic cell, DNA molecules are linear and associated with proteins called histones that package and order the DNA into chromosomes.",
+         "text": "In the nucleus of a eukaryotic cell, DNA is in the form of linear molecules which are associated with proteins. Some of these proteins are the histones that package and order DNA to form a chromosome.",
          "tags": []
         },
         {
          "id": "3.1.7.2.s2",
-         "text": "The DNA in mitochondria, chloroplasts and prokaryotes is shorter, circular and not associated with proteins.",
+         "text": "The DNA found in mitochondria and chloroplasts, and in prokaryotic cells is shorter in length, circular and is not associated with proteins.",
          "tags": []
         },
         {
          "id": "3.1.7.2.s3",
-         "text": "Most genes occupy a fixed position, a locus, on a particular DNA molecule.",
+         "text": "Most genes occupy fixed positions called loci on particular DNA molecules.",
          "tags": []
         },
         {
          "id": "3.1.7.2.s4",
-         "text": "A gene is a section of DNA that codes for a polypeptide; polypeptides determine the nature and development of an organism.",
+         "text": "A gene is a section of DNA that codes for polypeptides that determine the nature and development of an organism.",
          "tags": []
         },
         {
          "id": "3.1.7.2.s5",
-         "text": "Much of the nuclear DNA of eukaryotes does not code for polypeptides: non-coding multiple repeats of base sequences lie between genes, and within genes exons (coding) are separated by introns (non-coding).",
+         "text": "In eukaryotes, much of the nuclear DNA does not code for polypeptides. There are non-coding multiple repeats of base sequences between genes. Even within a gene, only some sequences, called exons, code for amino acid sequences. Within the gene, these exons are separated by non-coding sequences called introns.",
          "tags": []
         },
         {
          "id": "3.1.7.2.s6",
-         "text": "The genome is the complete set of genes in a cell.",
+         "text": "The concept of the genome as the complete set of genes in a cell.",
          "tags": []
         }
        ]
@@ -669,7 +669,7 @@ window.BIO = window.BIO || {}; window.BIO.spec = {
        "statements": [
         {
          "id": "3.1.7.3.s1",
-         "text": "The semi-conservative replication of DNA: unwinding of the double helix; breaking of hydrogen bonds between complementary bases; the role of DNA helicase; attraction of new nucleotides to exposed bases on each template strand and complementary base pairing; the role of DNA polymerase in joining adjacent nucleotides.",
+         "text": "The semi-conservative replication of DNA in terms of: the unwinding of the double helix; breakage of hydrogen bonds between complementary base pairs; the role of DNA helicase in unwinding DNA and breaking hydrogen bonds; attraction of new DNA nucleotides to exposed bases on template strands and base pairing; the role of DNA polymerase in joining DNA nucleotides.",
          "tags": []
         }
        ]
@@ -688,7 +688,7 @@ window.BIO = window.BIO || {}; window.BIO.spec = {
        "statements": [
         {
          "id": "3.1.8.1.s1",
-         "text": "The genetic code is a sequence of base triplets, each of which codes for a specific amino acid.",
+         "text": "The genetic code as base triplets that code for specific amino acids.",
          "tags": []
         },
         {
@@ -705,17 +705,17 @@ window.BIO = window.BIO || {}; window.BIO.spec = {
        "statements": [
         {
          "id": "3.1.8.2.s1",
-         "text": "Transcription is the production of mRNA from DNA; RNA polymerase joins mRNA nucleotides.",
+         "text": "Transcription as the production of mRNA from DNA. The role of RNA polymerase in joining mRNA nucleotides.",
          "tags": []
         },
         {
          "id": "3.1.8.2.s2",
-         "text": "In prokaryotes transcription results directly in mRNA; in eukaryotes transcription produces pre-mRNA which is spliced to form mRNA.",
+         "text": "In prokaryotes, transcription results directly in the production of mRNA from DNA. In eukaryotes, transcription results in the production of pre-mRNA. Pre-mRNA is then spliced to form mRNA.",
          "tags": []
         },
         {
          "id": "3.1.8.2.s3",
-         "text": "Translation is the production of a polypeptide from the sequence of codons on mRNA; the roles of ribosomes, tRNA and ATP.",
+         "text": "Translation is the production of polypeptides from the sequence of codons on mRNA. The roles of ribosomes, tRNA and ATP.",
          "tags": []
         }
        ]
@@ -727,17 +727,17 @@ window.BIO = window.BIO || {}; window.BIO.spec = {
        "statements": [
         {
          "id": "3.1.8.3.s1",
-         "text": "Protein folding is the process by which a polypeptide folds into its characteristic three-dimensional structure.",
+         "text": "Protein folding as the process by which a polypeptide folds into its characteristic three-dimensional structure.",
          "tags": []
         },
         {
          "id": "3.1.8.3.s2",
-         "text": "The amino acid sequence determines how a protein folds; chaperone proteins assist folding.",
+         "text": "Protein folding is determined by the amino acid sequence of the polypeptide. Specialised proteins, called chaperones, assist in the folding of other proteins.",
          "tags": []
         },
         {
          "id": "3.1.8.3.s3",
-         "text": "Given suitable information about the genetic code, relate base sequences in nucleic acids to amino acid sequences in polypeptides; specific codons and their amino acids are not required.",
+         "text": "Relate base sequences of nucleic acids to the amino acid sequence of a polypeptide when provided with suitable information relating to the genetic code. Students will not be required to recall in written papers specific codons and the amino acids for which they code.",
          "tags": [
           "E"
          ]
@@ -758,17 +758,17 @@ window.BIO = window.BIO || {}; window.BIO.spec = {
        "statements": [
         {
          "id": "3.1.9.1.s1",
-         "text": "Meiosis produces daughter cells that are genetically different from each other: two nuclear divisions produce haploid daughter cells from a diploid parent cell.",
+         "text": "Meiosis results in daughter cells that are genetically different from each other. The process should be studied only in sufficient detail to show how nuclear divisions result in the formation of haploid daughter cells from a single diploid parent cell.",
          "tags": []
         },
         {
          "id": "3.1.9.1.s2",
-         "text": "Independent segregation of homologous chromosomes produces variation through different combinations of maternal and paternal chromosomes.",
+         "text": "Independent segregation of homologous chromosomes results in genetically different daughter cells as a result of different combinations of maternal and paternal chromosomes.",
          "tags": []
         },
         {
          "id": "3.1.9.1.s3",
-         "text": "Crossing over between homologous chromosomes produces further genetic variation.",
+         "text": "Crossing over between homologous chromosomes results in further genetic variation among daughter cells.",
          "tags": []
         },
         {
@@ -778,7 +778,7 @@ window.BIO = window.BIO || {}; window.BIO.spec = {
         },
         {
          "id": "3.1.9.1.s5",
-         "text": "Describe and explain the behaviour of chromosomes in drawings or photographs of cells undergoing meiosis.",
+         "text": "Describe and explain chromosomal behaviour in appropriate drawings or photographs of meiosis.",
          "tags": [
           "E"
          ]
@@ -799,22 +799,22 @@ window.BIO = window.BIO || {}; window.BIO.spec = {
        "statements": [
         {
          "id": "3.1.10.1.s1",
-         "text": "The species is the basic unit of biological classification.",
+         "text": "Species as the basic unit of biological classification.",
          "tags": []
         },
         {
          "id": "3.1.10.1.s2",
-         "text": "A species may be defined as the largest group of organisms that can interbreed to produce fertile offspring.",
+         "text": "A species may be defined as the largest group of organisms capable of interbreeding and producing fertile offspring.",
          "tags": []
         },
         {
          "id": "3.1.10.1.s3",
-         "text": "Each species is identified by a universal binomial name consisting of the genus name and the species name.",
+         "text": "Each species is universally identified by a binomial consisting of the name of its genus and species.",
          "tags": []
         },
         {
          "id": "3.1.10.1.s4",
-         "text": "Recognise the difficulty of defining species and critically evaluate the definition using data from specific examples.",
+         "text": "Recognise the difficulty of defining species and examine critically the definition of a species given above when provided with data relating to specific examples.",
          "tags": [
           "E"
          ]
@@ -828,17 +828,17 @@ window.BIO = window.BIO || {}; window.BIO.spec = {
        "statements": [
         {
          "id": "3.1.10.2.s1",
-         "text": "Classification groups species according to their relationships, which may reflect evolutionary origins; it is hierarchical and each group is a taxon.",
+         "text": "Biological classification attempts to arrange species in groups that reflect their relationships and may reflect their evolutionary origins. It uses a hierarchy in which smaller groups are placed within larger groups. Each group is called a taxon.",
          "tags": []
         },
         {
          "id": "3.1.10.2.s2",
-         "text": "The taxonomic hierarchy: domain, kingdom, phylum, class, order, family, genus, species.",
+         "text": "One taxonomic hierarchy comprises the taxa: domain, kingdom, phylum, class, order, family, genus and species.",
          "tags": []
         },
         {
          "id": "3.1.10.2.s3",
-         "text": "Use data to show how immunological comparisons and genome sequencing help clarify taxonomic relationships.",
+         "text": "Use given data to show how immunology and genome sequencing help to clarify taxonomic relationships between organisms.",
          "tags": [
           "E"
          ]
@@ -859,12 +859,12 @@ window.BIO = window.BIO || {}; window.BIO.spec = {
        "statements": [
         {
          "id": "3.1.11.1.s1",
-         "text": "Genetic diversity within or between species can be measured by comparing the base sequences of DNA or mRNA, the frequencies of specific base sequences or alleles in populations, and the amino acid sequences of encoded proteins.",
+         "text": "Genetic diversity within, or between, species can be measured by comparing: the base sequence of DNA or of mRNA; the frequency of specific base sequences or alleles in populations; the amino acid sequence of encoded proteins.",
          "tags": []
         },
         {
          "id": "3.1.11.1.s2",
-         "text": "Interpret data on similarities and differences in base or amino acid sequences to suggest relationships between organisms.",
+         "text": "Interpret data relating to similarities and differences in base sequences of DNA or in amino acid sequences to suggest relationships between different organisms.",
          "tags": [
           "M"
          ]
@@ -878,17 +878,17 @@ window.BIO = window.BIO || {}; window.BIO.spec = {
        "statements": [
         {
          "id": "3.1.11.2.s1",
-         "text": "Species richness is the number of different species in a community.",
+         "text": "Species richness is a measure of the number of different species in a community.",
          "tags": []
         },
         {
          "id": "3.1.11.2.s2",
-         "text": "An index of diversity describes the relationship between the number of species in a community and the number of individuals in each species.",
+         "text": "Biodiversity can also be measured by calculating an index. An index of diversity describes the relationship between the number of different species in a community and the number of individuals in each species.",
          "tags": []
         },
         {
          "id": "3.1.11.2.s3",
-         "text": "The index of diversity d = N(N minus 1) divided by the sum of n(n minus 1), where N is the total number of organisms of all species and n is the total number of organisms of each species; students must recall and use this formula.",
+         "text": "One example of an index of diversity is: d = N(N − 1) / Σn(n − 1), where N = total number of organisms of all species and n = total number of organisms of each species. Students should be able to recall the formula for the index of diversity and use it to calculate values from given data.",
          "tags": [
           "M"
          ]
@@ -900,7 +900,7 @@ window.BIO = window.BIO || {}; window.BIO.spec = {
         },
         {
          "id": "3.1.11.2.s5",
-         "text": "The balance between conservation and human food production.",
+         "text": "The balance between human food production and conservation.",
          "tags": []
         }
        ]
@@ -935,17 +935,17 @@ window.BIO = window.BIO || {}; window.BIO.spec = {
        "statements": [
         {
          "id": "3.2.1.1.s1",
-         "text": "Pathogens include bacteria and viruses.",
+         "text": "Pathogens are agents of infection and include bacteria and viruses.",
          "tags": []
         },
         {
          "id": "3.2.1.1.s2",
-         "text": "Disease can occur when pathogens cross the body's environmental interfaces; in mammals these include the digestive, reproductive and gas-exchange systems.",
+         "text": "Disease can result when pathogens penetrate any of an organism's interfaces with the environment. In a mammal these include the digestive, reproductive and gas-exchange systems.",
          "tags": []
         },
         {
          "id": "3.2.1.1.s3",
-         "text": "Pathogens cause disease by damaging host cells and by producing toxins.",
+         "text": "Pathogens cause disease by damaging the cells of the host and by producing toxins.",
          "tags": []
         }
        ]
@@ -957,17 +957,17 @@ window.BIO = window.BIO || {}; window.BIO.spec = {
        "statements": [
         {
          "id": "3.2.1.2.s1",
-         "text": "Specific risk factors are associated with coronary heart disease and with cancer.",
+         "text": "Specific risk factors are associated with coronary heart disease and cancer.",
          "tags": []
         },
         {
          "id": "3.2.1.2.s2",
-         "text": "Changes in lifestyle may be associated with a reduced risk of these conditions.",
+         "text": "Changes in lifestyle may be associated with a reduced risk of contracting these conditions.",
          "tags": []
         },
         {
          "id": "3.2.1.2.s3",
-         "text": "Analyse, interpret and evaluate data relating to specific risk factors and the incidence of disease.",
+         "text": "Analyse, interpret and evaluate data associated with specific risk factors and the incidence of disease.",
          "tags": [
           "E"
          ]
@@ -988,17 +988,17 @@ window.BIO = window.BIO || {}; window.BIO.spec = {
        "statements": [
         {
          "id": "3.2.2.1.s1",
-         "text": "The gross structure of the human digestive system, limited to the oesophagus, stomach, duodenum, ileum, colon and rectum, with the salivary glands and pancreas as associated glands.",
+         "text": "The gross structure of the human digestive system limited to oesophagus, stomach, duodenum, ileum, colon and rectum. The glands associated with the system, limited to salivary glands and pancreas.",
          "tags": []
         },
         {
          "id": "3.2.2.1.s2",
-         "text": "Digestion is the hydrolysis of large molecules by enzymes into smaller molecules.",
+         "text": "Digestion is the process in which large molecules are hydrolysed by enzymes to produce smaller molecules.",
          "tags": []
         },
         {
          "id": "3.2.2.1.s3",
-         "text": "The products of digestion are absorbed and assimilated; undigested food is egested as faeces.",
+         "text": "The products of digestion can be absorbed and assimilated. Undigested food is egested as faeces.",
          "tags": []
         }
        ]
@@ -1010,17 +1010,17 @@ window.BIO = window.BIO || {}; window.BIO.spec = {
        "statements": [
         {
          "id": "3.2.2.2.s1",
-         "text": "Carbohydrates are digested by amylases and membrane-bound disaccharidases.",
+         "text": "In the human digestive system, digestion of carbohydrates by amylases and membrane-bound disaccharidases.",
          "tags": []
         },
         {
          "id": "3.2.2.2.s2",
-         "text": "Lipids are digested by lipases; bile salts assist lipid digestion.",
+         "text": "Digestion of lipids by lipases. The role of bile salts in facilitating the digestion of lipids.",
          "tags": []
         },
         {
          "id": "3.2.2.2.s3",
-         "text": "Proteins are digested by endopeptidases, exopeptidases and membrane-bound dipeptidases.",
+         "text": "Digestion of proteins by endopeptidases, exopeptidases and membrane-bound dipeptidases.",
          "tags": []
         }
        ]
@@ -1032,17 +1032,17 @@ window.BIO = window.BIO || {}; window.BIO.spec = {
        "statements": [
         {
          "id": "3.2.2.3.s1",
-         "text": "The histological structure of the ileum is related to its function in absorption.",
+         "text": "The histological structure of the ileum in relation to its absorptive function.",
          "tags": []
         },
         {
          "id": "3.2.2.3.s2",
-         "text": "Monosaccharides and amino acids are absorbed by diffusion, by active transport and by co-transport with sodium ions.",
+         "text": "The roles of diffusion, active transport and co-transport involving sodium ions in the absorption of monosaccharides and amino acids.",
          "tags": []
         },
         {
          "id": "3.2.2.3.s3",
-         "text": "Micelles assist the absorption of lipids, which are transported as chylomicrons.",
+         "text": "The role of micelles in the absorption of lipids and their transport as chylomicrons.",
          "tags": []
         }
        ]
@@ -1061,12 +1061,12 @@ window.BIO = window.BIO || {}; window.BIO.spec = {
        "statements": [
         {
          "id": "3.2.3.1.s1",
-         "text": "Cholera bacteria secrete a toxin that increases secretion of chloride ions into the lumen of the intestine.",
+         "text": "Cholera bacteria secrete toxins which increase the secretion of chloride ions into the lumen of the intestine.",
          "tags": []
         },
         {
          "id": "3.2.3.1.s2",
-         "text": "This changes the water potential gradient across the intestinal epithelium, causing severe diarrhoea.",
+         "text": "This affects the water potential gradient across the intestinal epithelium and results in severe diarrhoea.",
          "tags": []
         }
        ]
@@ -1078,12 +1078,12 @@ window.BIO = window.BIO || {}; window.BIO.spec = {
        "statements": [
         {
          "id": "3.2.3.2.s1",
-         "text": "Oral rehydration solutions are used to treat cholera and other diarrhoeal diseases.",
+         "text": "The use of oral rehydration solutions (ORS) in the treatment of cholera and other diarrhoeal diseases.",
          "tags": []
         },
         {
          "id": "3.2.3.2.s2",
-         "text": "Discuss the applications and implications of science in developing improved oral rehydration solutions, and the ethical issues of trialling them on humans.",
+         "text": "Discuss the applications and implications of science in developing improved oral rehydration solutions. Discuss the ethical implications of trialling improved oral rehydration solutions on humans.",
          "tags": [
           "E"
          ]
@@ -1104,12 +1104,12 @@ window.BIO = window.BIO || {}; window.BIO.spec = {
        "statements": [
         {
          "id": "3.2.4.1.s1",
-         "text": "The genetic material of HIV is RNA, enclosed in a protein capsid together with the enzymes reverse transcriptase, integrase and protease.",
+         "text": "The structure of a human immunodeficiency virus (HIV) to include: genetic material in the form of RNA; a protein capsid enclosing the genetic material and the enzymes reverse transcriptase, integrase, and protease.",
          "tags": []
         },
         {
          "id": "3.2.4.1.s2",
-         "text": "The envelope, derived from the host cell membrane, contains glycoproteins.",
+         "text": "An envelope originating from the host cell plasma membrane and containing glycoproteins.",
          "tags": []
         }
        ]
@@ -1121,27 +1121,27 @@ window.BIO = window.BIO || {}; window.BIO.spec = {
        "statements": [
         {
          "id": "3.2.4.2.s1",
-         "text": "HIV binds to receptors on CD4 helper T cells, the cells that initiate the body's response to infection.",
+         "text": "HIV binds to receptors on CD4 helper T-cells. These are cells that initiate the body's response to infections.",
          "tags": []
         },
         {
          "id": "3.2.4.2.s2",
-         "text": "The capsid contents (RNA and viral enzymes) are released into the host cell.",
+         "text": "The contents of the HIV capsid including the RNA and the viral enzymes are released into the host cell.",
          "tags": []
         },
         {
          "id": "3.2.4.2.s3",
-         "text": "Viral RNA is reverse transcribed into double-stranded DNA, which integrates into a host chromosome.",
+         "text": "The viral RNA genome is transcribed into double-strand DNA, which is then integrated into a host cell chromosome.",
          "tags": []
         },
         {
          "id": "3.2.4.2.s4",
-         "text": "Integrated viral DNA may later be transcribed to produce new viral RNA and proteins, which are assembled and released as new virus particles.",
+         "text": "The viral DNA may be transcribed producing new viral RNA and proteins. These are packaged and released from the cell as new virus particles, completing the replication cycle.",
          "tags": []
         },
         {
          "id": "3.2.4.2.s5",
-         "text": "Use knowledge of HIV structure and replication to explain how drugs used against HIV/AIDS act, given suitable information.",
+         "text": "Use their knowledge of the structure and replication cycle of HIV to explain the effects of drugs used in treatment of HIV/AIDS when provided with appropriate information.",
          "tags": [
           "E"
          ]
@@ -1162,22 +1162,22 @@ window.BIO = window.BIO || {}; window.BIO.spec = {
        "statements": [
         {
          "id": "3.2.5.1.s1",
-         "text": "Molecules, often proteins, on cell surfaces allow the immune system to identify pathogens, toxins, cells from other organisms of the same species and abnormal body cells.",
+         "text": "A cell has specific molecules on its surface that identify it. These molecules include proteins and enable the immune system to identify pathogens and toxins, cells from other organisms of the same species and abnormal body cells.",
          "tags": []
         },
         {
          "id": "3.2.5.1.s2",
-         "text": "The definition of an antigen; how antigen variability affects disease and its prevention.",
+         "text": "Definition of antigen. The effect of antigen variability on disease and its prevention.",
          "tags": []
         },
         {
          "id": "3.2.5.1.s3",
-         "text": "T cells mediate cell-mediated immunity; B cells mainly mediate humoral immunity, which involves antibody production and release.",
+         "text": "T cells are involved in cell-mediated immunity whereas B cells are primarily responsible for humoral immunity. Humoral immunity involves the production and release of antibodies.",
          "tags": []
         },
         {
          "id": "3.2.5.1.s4",
-         "text": "Phagocytosed pathogens are digested by enzymes from lysosomes.",
+         "text": "Phagocytosis of pathogens and subsequent digestion by lysosomes.",
          "tags": []
         }
        ]
@@ -1194,12 +1194,12 @@ window.BIO = window.BIO || {}; window.BIO.spec = {
         },
         {
          "id": "3.2.5.2.s2",
-         "text": "The definition of an antibody and the structure of an antibody molecule.",
+         "text": "Definition of an antibody and its structure.",
          "tags": []
         },
         {
          "id": "3.2.5.2.s3",
-         "text": "The formation of an antigen-antibody complex leads to destruction of the antigen, limited to agglutination and phagocytosis of bacterial cells.",
+         "text": "The formation of an antigen-antibody complex leading to the destruction of the antigen, limited to agglutination and phagocytosis of bacterial cells.",
          "tags": []
         }
        ]
@@ -1211,22 +1211,22 @@ window.BIO = window.BIO || {}; window.BIO.spec = {
        "statements": [
         {
          "id": "3.2.5.3.s1",
-         "text": "The roles of plasma cells and memory cells in the primary and secondary immune responses.",
+         "text": "The roles of plasma cells and memory cells in producing the primary and secondary immune response.",
          "tags": []
         },
         {
          "id": "3.2.5.3.s2",
-         "text": "Vaccines protect individuals and populations; herd immunity.",
+         "text": "The use of vaccines to provide protection for individuals and populations against disease. The concept of herd immunity.",
          "tags": []
         },
         {
          "id": "3.2.5.3.s3",
-         "text": "The difference between active and passive immunity.",
+         "text": "The differences between active and passive immunity.",
          "tags": []
         },
         {
          "id": "3.2.5.3.s4",
-         "text": "Evaluate methodology, evidence and data relating to the use and trialling of vaccines.",
+         "text": "Evaluate methodology, evidence and data relating to the trialling and use of vaccines.",
          "tags": [
           "E"
          ]
@@ -1247,12 +1247,12 @@ window.BIO = window.BIO || {}; window.BIO.spec = {
        "statements": [
         {
          "id": "3.2.6.1.s1",
-         "text": "The structure of arteries, veins and capillaries in relation to their functions.",
+         "text": "The structure of arteries, veins and capillaries in relation to their function.",
          "tags": []
         },
         {
          "id": "3.2.6.1.s2",
-         "text": "The structure of capillaries in relation to metabolic exchange; the formation of tissue fluid and its return to the circulatory system.",
+         "text": "The structure of capillaries and their importance in metabolic exchange. The formation of tissue fluid and its return to the circulatory system.",
          "tags": []
         }
        ]
@@ -1269,12 +1269,12 @@ window.BIO = window.BIO || {}; window.BIO.spec = {
         },
         {
          "id": "3.2.6.2.s2",
-         "text": "Pressure and volume changes and the associated movements of atrioventricular and semilunar valves during the cardiac cycle.",
+         "text": "Pressure and volume changes and associated movements of the atrioventricular and semilunar valves.",
          "tags": []
         },
         {
          "id": "3.2.6.2.s3",
-         "text": "Cardiac output = heart rate x stroke volume.",
+         "text": "Cardiac output as the product of heart rate and stroke volume.",
          "tags": [
           "M"
          ]
@@ -1302,12 +1302,12 @@ window.BIO = window.BIO || {}; window.BIO.spec = {
        "statements": [
         {
          "id": "3.2.7.1.s1",
-         "text": "Atheroma is lipid-containing material within artery walls and is associated with increased risk of aneurysm and thrombosis.",
+         "text": "Atheroma as the presence of lipid-containing material within the walls of the arteries. The link between atheroma and the increased risk of aneurysm and thrombosis.",
          "tags": []
         },
         {
          "id": "3.2.7.1.s2",
-         "text": "Myocardial infarction results from an interruption to the blood supply to cardiac muscle.",
+         "text": "Myocardial infarction and its cause in terms of an interruption of blood flow to cardiac muscle.",
          "tags": []
         }
        ]
@@ -1319,12 +1319,12 @@ window.BIO = window.BIO || {}; window.BIO.spec = {
        "statements": [
         {
          "id": "3.2.7.2.s1",
-         "text": "The risk factors: diet, blood cholesterol, cigarette smoking and high blood pressure.",
+         "text": "Risk factors associated with coronary heart disease: diet, blood cholesterol, cigarette smoking and high blood pressure.",
          "tags": []
         },
         {
          "id": "3.2.7.2.s2",
-         "text": "Analyse, interpret and evaluate data relating to these risk factors and the incidence of coronary heart disease.",
+         "text": "Analyse, interpret and evaluate data associated with specific risk factors and the incidence of coronary heart disease.",
          "tags": [
           "E"
          ]
@@ -1345,22 +1345,22 @@ window.BIO = window.BIO || {}; window.BIO.spec = {
        "statements": [
         {
          "id": "3.2.8.1.s1",
-         "text": "The structure of a dicotyledonous root in relation to the pathway of water: root hairs, cortex, endodermis and xylem.",
+         "text": "The structure of a dicotyledonous root in relation to the pathway of water from root hairs, through the cortex and endodermis to the xylem.",
          "tags": []
         },
         {
          "id": "3.2.8.1.s2",
-         "text": "The apoplastic and symplastic pathways.",
+         "text": "Apoplastic and symplastic pathways.",
          "tags": []
         },
         {
          "id": "3.2.8.1.s3",
-         "text": "The role of root pressure in the movement of water through the xylem.",
+         "text": "The role of root pressure in moving water through the xylem.",
          "tags": []
         },
         {
          "id": "3.2.8.1.s4",
-         "text": "Transpiration and the effects of light, temperature, humidity and air movement on its rate.",
+         "text": "Transpiration and the effects of light, temperature, humidity and air movement.",
          "tags": []
         }
        ]
@@ -1372,12 +1372,12 @@ window.BIO = window.BIO || {}; window.BIO.spec = {
        "statements": [
         {
          "id": "3.2.8.2.s1",
-         "text": "The mass flow hypothesis for the mechanism of translocation in plants.",
+         "text": "The mass flow hypothesis as an explanation of the mechanism of translocation in plants.",
          "tags": []
         },
         {
          "id": "3.2.8.2.s2",
-         "text": "Analyse and interpret experimental evidence relating to the movement of water in xylem and of organic substances in phloem.",
+         "text": "Analyse and interpret evidence from experiments related to the movement of water through the xylem and organic substances through phloem.",
          "tags": [
           "E"
          ]
@@ -1398,17 +1398,17 @@ window.BIO = window.BIO || {}; window.BIO.spec = {
        "statements": [
         {
          "id": "3.2.9.1.s1",
-         "text": "Viruses cause many important plant diseases and reduce crop yield and quality worldwide.",
+         "text": "Many important plant diseases are caused by viruses. They are responsible for losses in crop production and quality of produce in all parts of the world.",
          "tags": []
         },
         {
          "id": "3.2.9.1.s2",
-         "text": "Symptoms vary and may include yellowing of leaves, leaf distortion and abnormalities in other parts of the plant.",
+         "text": "Infected plants may show a range of symptoms depending on the disease. There may be yellowing of leaves, leaf distortion or abnormalities of other parts of the plant.",
          "tags": []
         },
         {
          "id": "3.2.9.1.s3",
-         "text": "Plants cannot move, so plant viruses usually spread through vectors such as aphids.",
+         "text": "As plants are immobile, transmission of viruses usually involves vectors such as aphids.",
          "tags": []
         }
        ]
@@ -1420,17 +1420,17 @@ window.BIO = window.BIO || {}; window.BIO.spec = {
        "statements": [
         {
          "id": "3.2.9.2.s1",
-         "text": "Aphids have sucking mouthparts called stylets, which they insert into phloem vessels (sieve tubes).",
+         "text": "Aphids have sucking mouthparts called stylets. They feed by inserting the stylets into phloem vessels.",
          "tags": []
         },
         {
          "id": "3.2.9.2.s2",
-         "text": "Phloem sap is under high pressure, so once a phloem vessel is punctured the sap is forced into the aphid's gut.",
+         "text": "Once a phloem vessel is punctured, the sap, which is under high pressure, is forced into the aphid's gut.",
          "tags": []
         },
         {
          "id": "3.2.9.2.s3",
-         "text": "Some aphid species produce winged females that migrate to establish colonies on new host plants.",
+         "text": "Some species produce winged females which migrate to start colonies on a new host plant.",
          "tags": []
         }
        ]
@@ -1454,7 +1454,7 @@ window.BIO = window.BIO || {}; window.BIO.spec = {
         },
         {
          "id": "3.2.10.1.s2",
-         "text": "Interphase has three phases: G1 (increase in protein content, organelles such as mitochondria and ribosomes, and cell size), S (DNA replication) and G2 (rapid growth and protein synthesis).",
+         "text": "The period between mitotic divisions is interphase. Interphase may be divided into three phases. In the G1 phase, a cell increases its protein content and the number of organelles such as mitochondria and ribosomes and grows in size. In the S-phase, DNA is replicated. In the G2 phase rapid cell growth and protein synthesis occur.",
          "tags": []
         }
        ]
@@ -1466,17 +1466,17 @@ window.BIO = window.BIO || {}; window.BIO.spec = {
        "statements": [
         {
          "id": "3.2.10.2.s1",
-         "text": "Mitosis is the division of a eukaryotic cell into two daughter cells with identical DNA.",
+         "text": "The part of the cell cycle during which a eukaryotic cell divides to produce two daughter cells, each with identical DNA is mitosis.",
          "tags": []
         },
         {
          "id": "3.2.10.2.s2",
-         "text": "The behaviour of chromosomes during interphase, prophase, metaphase, anaphase and telophase, including the role of spindle fibres attached to centromeres in separating chromatids.",
+         "text": "The behaviour of chromosomes during interphase, prophase, metaphase, anaphase and telophase. The role of spindle fibres attached to centromeres in the separation of chromatids.",
          "tags": []
         },
         {
          "id": "3.2.10.2.s3",
-         "text": "Recognise interphase and the stages of mitosis in drawings and photographs.",
+         "text": "Recognise interphase and the stages of mitosis from appropriate drawings or photographs.",
          "tags": [
           "E"
          ]
@@ -1490,12 +1490,12 @@ window.BIO = window.BIO || {}; window.BIO.spec = {
        "statements": [
         {
          "id": "3.2.10.3.s1",
-         "text": "In binary fission the circular DNA and any plasmids replicate, then the cytoplasm divides to produce two daughter cells each with one copy of the circular DNA and a variable number of plasmids.",
+         "text": "Prokaryotic cells divide by binary fission. During this process: the circular DNA and plasmids replicate; the cytoplasm replicates to produce two daughter cells. Each of these cells has a single copy of the circular DNA but the number of plasmids may vary.",
          "tags": []
         },
         {
          "id": "3.2.10.3.s2",
-         "text": "Conjugation can transfer DNA between bacteria, including bacteria of different species; this is horizontal gene transmission.",
+         "text": "DNA may also be passed from one species of bacterium to another during conjugation. This is horizontal gene transmission.",
          "tags": []
         }
        ]
@@ -1514,22 +1514,22 @@ window.BIO = window.BIO || {}; window.BIO.spec = {
        "statements": [
         {
          "id": "3.2.11.1.s1",
-         "text": "A gene mutation is a change in the base sequence of DNA; mutations arise spontaneously during DNA replication and mutagenic agents increase their frequency.",
+         "text": "Gene mutations involve a change in the base sequence of DNA. They arise spontaneously during DNA replication. Mutagens are physical or chemical agents that increase the frequency of mutations.",
          "tags": []
         },
         {
          "id": "3.2.11.1.s2",
-         "text": "Base deletion and base substitution are examples of gene mutation.",
+         "text": "Base deletion and base substitution as examples of gene mutation.",
          "tags": []
         },
         {
          "id": "3.2.11.1.s3",
-         "text": "Because the genetic code is degenerate, some mutations do not change the amino acid sequence.",
+         "text": "Because of the degenerative [sic: the standard term is degenerate] nature of the genetic code, not all mutations result in a change in the sequence of the encoded amino acids.",
          "tags": []
         },
         {
          "id": "3.2.11.1.s4",
-         "text": "Predict the effect of a specific mutation on the amino acid sequence, given suitable information about the genetic code.",
+         "text": "Predict the outcome of specific mutations on amino acid sequences when provided with suitable information relating to the genetic code.",
          "tags": [
           "E"
          ]
@@ -1548,24 +1548,24 @@ window.BIO = window.BIO || {}; window.BIO.spec = {
         },
         {
          "id": "3.2.11.2.s2",
-         "text": "Proto-oncogenes stimulate cell division; tumour suppressor genes slow cell division.",
+         "text": "The rate of cell division is controlled by proto-oncogenes that stimulate cell division and by tumour suppressor genes that slow cell division.",
          "tags": []
         },
         {
          "id": "3.2.11.2.s3",
-         "text": "A mutated proto-oncogene (an oncogene) causes excessive cell division; an inactivated tumour suppressor gene allows the rate of division to increase.",
+         "text": "A mutated proto-oncogene, called an oncogene, stimulates cells to divide too quickly. A mutated tumour suppressor gene is inactivated, allowing the rate of cell division to increase.",
          "tags": []
         },
         {
          "id": "3.2.11.2.s4",
-         "text": "Analyse, interpret and evaluate data on risk factors and the incidence of particular cancers.",
+         "text": "Analyse, interpret and evaluate data associated with specific risk factors and the incidence of particular cancers.",
          "tags": [
           "E"
          ]
         },
         {
          "id": "3.2.11.2.s5",
-         "text": "Relate understanding of the cell cycle to the action of cancer drugs.",
+         "text": "Relate their understanding of the cell cycle to drugs used in the treatment of cancer.",
          "tags": [
           "E"
          ]

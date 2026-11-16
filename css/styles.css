@@ -481,7 +481,7 @@ ul.plain { list-style: none; padding: 0; margin: 0; display: grid; gap: .35rem; 
 .bench-steps { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: .35rem; }
 .bstep { font-size: .74rem; font-weight: 600; padding: .25rem .6rem; border-radius: 999px; background: var(--surface-2); color: var(--ink-3); border: 1px solid var(--line); transition: all var(--t); }
 .bstep.done { background: var(--sage-soft); color: #3f6b50; border-color: transparent; }
-.bench-shelf:empty::after { content: attr(data-empty); font-size: .8rem; color: var(--ink-3); align-self: center; padding: .3rem .5rem; }
+.bench-shelf:empty::after { content: attr(data-empty); font-size: .8rem; color: #5b6470; align-self: center; padding: .3rem .5rem; }
 .bench-shelf { grid-column: 1 / -1; display: flex; gap: .5rem; flex-wrap: wrap; padding: .6rem; background: linear-gradient(#fbf7f1, #f1e9df); border: 1px solid #e3d8c9; border-radius: 12px; min-height: 60px; }
 .shelf-item { display: flex; flex-direction: column; align-items: center; gap: .15rem; width: 104px; padding: .4rem .3rem; background: #fff; border: 1px solid var(--line-strong); border-radius: 10px; cursor: grab; font: inherit; font-size: .72rem; font-weight: 600; color: var(--ink-2); text-align: center; touch-action: none; user-select: none; transition: transform var(--t), box-shadow var(--t); animation: fadeUp .4s ease both; }
 .shelf-item:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
@@ -628,7 +628,7 @@ html[data-theme="dark"] .topbar { background: rgba(6,24,20,.88); }
    inside them the light-theme tokens are restored so drawn labels stay dark on light. */
 html[data-theme="dark"] .fig-view, html[data-theme="dark"] .sim .stage, html[data-theme="dark"] .interactive-host svg, html[data-theme="dark"] .figure svg,
 html[data-theme="dark"] .bench-svg, html[data-theme="dark"] .diffusion-canvas, html[data-theme="dark"] .shelf-item, html[data-theme="dark"] .photo-frame.contain,
-html[data-theme="dark"] .q svg, html[data-theme="dark"] .paper-panel, html[data-theme="dark"] .cmap-scroll, html[data-theme="dark"] .notes svg {
+html[data-theme="dark"] .q svg, html[data-theme="dark"] .paper-panel, html[data-theme="dark"] .cmap-scroll, html[data-theme="dark"] .notes svg, html[data-theme="dark"] .cl-legend i {
   --bg: #e6eeeb; --surface: #f6f9f8; --surface-2: #edf3f0; --surface-3: #dde7e3; --line: #c3d3d0; --line-strong: #9fb6af;
   --ink: #061814; --ink-2: #2f4d45; --ink-3: #3f6f62; --ink-4: #6d8a82; --teal: #0f2e27; --teal-strong: #061814; --teal-soft: #d4e1dd;
   --sage: #3f6f62; --sage-soft: #dfe8e4; --mint: #8fb9ab; --mint-soft: #e9f0ed; --amber: #b0802f; --amber-soft: #f1e3c4; --rose: #b4544a; --rose-soft: #f6e1dd; --navy: #0f2e27; --on-accent: #f6f9f8; --sage-ink: #2f5a45; --amber-ink: #7a5512; --rose-ink: #8f3a30; --navy-soft: #e3ebe8;
@@ -655,9 +655,122 @@ section.q.q-target { outline: 3px solid var(--teal); outline-offset: 4px; border
 @media (max-width: 600px) {
   .pane.learn-pane.card.pad-l { padding-left: .6rem; padding-right: .6rem; }
   .notes figure[data-fig] .fig-view { overflow-x: auto; }
-  .notes figure[data-fig] .fig-view > svg { min-width: 520px; }
+  /* release review 2026-11-15: notes figures fit the phone screen (no sideways panning); the + button enlarges them */
   .notes .inline-media > .interactive-host { padding-left: .5rem; padding-right: .5rem; }
 }
 .fig-desc > summary { min-height: 40px; display: flex; align-items: center; cursor: pointer; }
 .figure .fig-tools .btn.sm { min-width: 40px; min-height: 40px; }
 @media (pointer: coarse) { input[type="range"] { min-height: 40px; } }
+
+/* Onboarding dialog and profile (2026-11-09) */
+.ob-backdrop { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; background: color-mix(in srgb, var(--ink) 45%, transparent);
+  padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); overflow-y: auto; }
+.ob-dialog { width: min(520px, 100%); max-height: calc(100dvh - 32px); overflow-y: auto; padding: 1.6rem 1.5rem 1.3rem; box-shadow: var(--shadow); }
+.ob-dialog h2 { margin: .2rem 0 .4rem; font-family: var(--font-display); font-size: 1.55rem; }
+.ob-dialog .lede { margin-bottom: 1.1rem; }
+.ob-field { border: 0; padding: 0; margin: 0 0 1.1rem; min-width: 0; }
+.ob-field > label, .ob-field > legend { display: block; font-weight: 650; margin-bottom: .45rem; padding: 0; }
+.ob-field input[type="text"] { width: 100%; min-height: 44px; padding: .55rem .8rem; border: 1px solid var(--line-strong); border-radius: 10px; font: inherit; background: var(--surface); color: var(--ink); }
+.ob-field input[type="text"]:focus-visible { outline: 2px solid var(--teal); outline-offset: 1px; }
+.ob-opts { display: grid; gap: .5rem; }
+.ob-opt { display: flex; gap: .7rem; align-items: flex-start; padding: .7rem .8rem; border: 1px solid var(--line-strong); border-radius: 12px; cursor: pointer; background: var(--surface); min-height: 44px; }
+.ob-opt:has(input:checked) { border-color: var(--teal); background: color-mix(in srgb, var(--teal) 10%, var(--surface)); }
+.ob-opt input { margin-top: .2rem; width: 1.1rem; height: 1.1rem; accent-color: var(--teal); flex: none; }
+.ob-opt > span { display: grid; gap: .1rem; }
+.ob-opt:focus-within { outline: 2px solid var(--teal); outline-offset: 2px; }
+.ob-err { color: var(--rose-ink); margin: .3rem 0 0; }
+.ob-actions { justify-content: flex-end; margin-top: .4rem; }
+.linkbtn { background: none; border: 0; padding: 0; font: inherit; color: var(--teal-strong, var(--teal)); text-decoration: underline; cursor: pointer; }
+.nav-profile { font-weight: 600; }
+.journey.journey-one { grid-template-columns: minmax(0, 1fr); }
+.fc-due-note { margin: .5rem 0 0; }
+
+/* ---------- Collapsible sidebar (desktop) ---------- */
+.btn.nav-collapse-btn { display: inline-flex; align-items: center; gap: .4rem; }
+.btn.nav-collapse-btn svg { width: 18px; height: 18px; }
+/* Hide/show menu (laptops): the menu column narrows to nothing while the menu slides out to the left, and the reverse.
+   The menu keeps its full width while it moves, so its text never squashes. Animated only after a click (nav-anim), never
+   on page load; no animation with reduced motion. Once hidden, the menu is visibility:hidden, so it leaves the Tab order. */
+.app.nav-collapsed { grid-template-columns: 0px 1fr; }
+.app > .sidebar { min-width: 0; width: var(--sidebar-w); }
+.app.nav-collapsed > .sidebar { width: var(--sidebar-w); transform: translateX(-100%); opacity: 0; visibility: hidden; pointer-events: none; }
+.app.nav-anim { transition: grid-template-columns .32s cubic-bezier(.4, 0, .2, 1); }
+.app.nav-anim > .sidebar { transition: transform .32s cubic-bezier(.4, 0, .2, 1), opacity .24s ease, visibility 0s linear 0s; }
+.app.nav-anim.nav-collapsed > .sidebar { transition: transform .32s cubic-bezier(.4, 0, .2, 1), opacity .24s ease .08s, visibility 0s linear .32s; }
+@media (prefers-reduced-motion: reduce) { .app.nav-anim, .app.nav-anim > .sidebar, .app.nav-anim.nav-collapsed > .sidebar { transition: none; } }
+.reduce-motion .app.nav-anim, .reduce-motion .app.nav-anim > .sidebar, .reduce-motion .app.nav-anim.nav-collapsed > .sidebar { transition: none !important; }
+@media (max-width: 860px) {
+  .btn.nav-collapse-btn { display: none; }
+  .app.nav-collapsed { grid-template-columns: 1fr; }
+  .app > .sidebar { width: min(86vw, 320px); }
+  .app.nav-collapsed > .sidebar { width: min(86vw, 320px); transform: translateX(-100%); opacity: 1; visibility: visible; pointer-events: auto; }
+  .app.nav-collapsed > .sidebar.open { transform: translateX(0); }
+  .app.nav-anim { transition: none; }
+}
+@media print { .btn.nav-collapse-btn { display: none !important; } }
+/* Practical Handbook link in the lab (2026-11-15): the book icon sits inline at text size */
+.handbook-link .ico { width: 1.05em; height: 1.05em; vertical-align: -.16em; margin-right: .2rem; color: var(--teal); flex: none; }
+
+/* Release review (2026-11-15): student view hides internal review status (draft / reviewed / verified / awaiting review).
+   The teacher can show it again by opening the site once with ?teacher=1 (and hide it with ?teacher=0). */
+html:not(.teacher-view) .review-flag,
+html:not(.teacher-view) .badge.status-draft, html:not(.teacher-view) .badge.status-reviewed,
+html:not(.teacher-view) .badge.status-verified, html:not(.teacher-view) .badge.status-approved { display: none !important; }
+/* Static figures: a sensible default size on laptops and large screens. The drawing keeps its proportions and is
+   centred; zooming (+) lifts the cap. Individual figures may set a smaller size of their own. */
+.figure[data-fig] .fig-view > svg:not([style*="max-width: none"]) { max-height: min(62vh, 540px); display: block; margin: 0 auto; }
+/* Sidebar group (Unit 2 cross-topic pages): closed by default, opens itself when one of its pages is active */
+.nav details.nav-group > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: .65rem; padding: .5rem .75rem; border-radius: 10px; color: inherit; }
+.nav details.nav-group > summary::-webkit-details-marker { display: none; }
+.nav details.nav-group > summary::after { content: "▸"; margin-left: auto; opacity: .6; transition: transform .2s; }
+.nav details.nav-group[open] > summary::after { transform: rotate(90deg); }
+.nav details.nav-group > a { padding-left: 2.6rem; font-size: .92em; }
+/* Pop-up keyword definitions in the Learn notes (js/core/glossary.js) */
+.gl-term { all: unset; cursor: pointer; color: inherit; font: inherit; border-bottom: 2px dotted var(--teal, #2f7d6d); text-decoration: none; border-radius: 2px; }
+.gl-term:hover { background: color-mix(in srgb, var(--teal, #2f7d6d) 12%, transparent); }
+.gl-term:focus-visible { outline: 3px solid var(--focus, #2f7d6d); outline-offset: 1px; }
+.gl-term[aria-expanded="true"] { background: #1f5f52; color: #fff; border-bottom-color: transparent; padding: 0 .15em; } /* fixed dark teal: readable in both themes */
+.gl-pop { position: fixed; z-index: 60; background: var(--surface, #fff); color: var(--ink, #10231d); border: 1px solid var(--line, #d7e2dd); border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,.18); padding: .8rem 1rem .9rem; max-width: 380px; }
+.gl-pop[hidden] { display: none; }
+.gl-pop-head { display: flex; align-items: flex-start; justify-content: space-between; gap: .6rem; }
+.gl-pop h3 { margin: 0; font-size: 1.05rem; }
+.gl-pop .gl-def { margin: .45rem 0 0; line-height: 1.5; }
+.gl-pop .gl-where { margin: .5rem 0 0; }
+.gl-close { flex: none; width: 2rem; height: 2rem; border-radius: 8px; border: 1px solid var(--line, #d7e2dd); background: var(--surface-2, #f3f7f5); color: inherit; cursor: pointer; font-size: 1rem; line-height: 1; }
+.gl-close:hover { background: #1f5f52; color: #fff; }
+.gl-pop.gl-sheet { left: 8px !important; right: 8px; bottom: 8px; top: auto !important; width: auto !important; max-width: none; }
+@media (prefers-reduced-motion: no-preference) { .gl-pop:not([hidden]) { animation: gl-in .14s ease-out; } @keyframes gl-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } } }
+/* Diagram labelling questions: figure beside the answer lists on wide screens (release review 2026-11-15) */
+.lbl-split { display: grid; grid-template-columns: minmax(0, 1fr); gap: .8rem; align-items: start; } .lbl-split > * { min-width: 0; }
+@media (min-width: 900px) {
+  .lbl-split { grid-template-columns: minmax(0, 1.25fr) minmax(260px, 1fr); }
+  .lbl-split .lbl-fig { position: sticky; top: 72px; margin: 0; }
+  .lbl-split .lbl-fig .fig-view > svg { max-height: min(70vh, 560px); width: 100%; }
+  .lbl-split .lbl-answers .match-grid { grid-template-columns: auto minmax(0, 1fr); }
+}
+/* Phones: tap a notes figure to enlarge it (js/core/figzoom.js) */
+@media (max-width: 600px) {
+  .notes figure[data-fig] .fig-view, .learn-pane figure[data-fig] .fig-view { cursor: zoom-in; }
+  .notes figure[data-fig] .fig-view::after, .learn-pane figure[data-fig] .fig-view::after { content: "Tap to enlarge"; display: block; text-align: center; font-size: .78rem; color: var(--ink-3, #5b6b66); margin-top: .2rem; }
+}
+.figfull { position: fixed; inset: 0; z-index: 80; background: var(--surface, #fff); display: flex; flex-direction: column; }
+.figfull[hidden] { display: none; }
+.figfull-bar { display: flex; align-items: center; justify-content: space-between; gap: .5rem; padding: .5rem .75rem; border-bottom: 1px solid var(--line, #d7e2dd); }
+.figfull-scroll { flex: 1; overflow: auto; -webkit-overflow-scrolling: touch; padding: .75rem; background: #fff; touch-action: pan-x pan-y pinch-zoom; }
+html.figfull-open, html.figfull-open body { overflow: hidden; }
+/* Icons inside buttons (the phone menu button showed an empty box: its icon had no size) */
+.btn > .ico { width: 18px; height: 18px; flex: none; }
+/* Photographs in the notes: a sensible size, never filling the screen (release review 2026-11-16) */
+.notes .photo, .learn-pane .photo { max-width: 560px; margin-left: auto; margin-right: auto; }
+/* The welcome message sits in the bottom-right corner, clear of the reading column */
+@media (min-width: 861px) { .toast { left: auto; right: 1.2rem; transform: translateY(20px); } .toast.show { transform: none; } }
+/* Sidebar units (teacher's design 2026-11-16): one folding section per unit */
+.nav details.nav-unit > summary { list-style: none; cursor: pointer; display: flex; align-items: baseline; gap: .4rem; padding: .5rem .75rem; border-radius: 10px; font-size: .9rem; font-weight: 600; color: var(--ink-2); }
+.nav details.nav-unit > summary::-webkit-details-marker { display: none; }
+.nav details.nav-unit > summary::before { content: "▸"; font-size: .75em; opacity: .6; transition: transform .2s; display: inline-block; }
+.nav details.nav-unit[open] > summary::before { transform: rotate(90deg); }
+.nav details.nav-unit > summary:hover { background: var(--teal-soft); }
+.nav .nav-unit-name { font-weight: 400; color: var(--ink-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; flex: 1; }
+.nav .nav-tag { font-size: .68rem; font-weight: 700; letter-spacing: .03em; padding: .05rem .4rem; border-radius: 999px; background: var(--surface-2); color: var(--ink-3); border: 1px solid var(--line); flex: none; }
+.nav .nav-sub a.nav-centre { font-weight: 600; }
+.nav .nav-subhead { font-size: .68rem; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-3); margin: .5rem 0 .15rem .75rem; }

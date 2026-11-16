@@ -4,7 +4,7 @@
 window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
 (function (B) {
   const { h, raw, esc } = B.util;
-  const ratioPad = { "3:1": 33.33, "4:3": 75, "16:9": 56.25, "1:1": 100, "2:1": 50 };
+  const ratioPad = { "3:1": 33.33, "4:3": 75, "16:9": 56.25, "1:1": 100, "2:1": 50, "3:2": 66.67, "2:3": 150 };
   function placeholderSVG(label) {
     return `<svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs><pattern id="ph-dots" width="18" height="18" patternUnits="userSpaceOnUse"><circle cx="9" cy="9" r="1.6" fill="#b9c9c4"/></pattern><linearGradient id="ph-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#eef4f2"/><stop offset="1" stop-color="#d6efec"/></linearGradient></defs><rect width="400" height="300" fill="url(#ph-g)"/><rect width="400" height="300" fill="url(#ph-dots)"/><circle cx="200" cy="140" r="58" fill="none" stroke="#9ed9c8" stroke-width="3"/><circle cx="200" cy="140" r="24" fill="#9ed9c8" opacity=".5"/><circle cx="246" cy="112" r="9" fill="#6b9a7f" opacity=".5"/><circle cx="160" cy="170" r="7" fill="#1f8a8a" opacity=".4"/></svg>`;
   }

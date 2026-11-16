@@ -44,7 +44,6 @@ window.BIO = window.BIO || {}; window.BIO.consolidation = window.BIO.consolidati
     { id: "f-3.1.6-x8", ref: R, front: "Sampling: what is the difference between removing bias and reducing the effect of chance?", back: "Bias is removed by the method (random selection); the effect of chance is reduced, never removed, by a larger sample." },
     { id: "f-3.1.6-x9", ref: R, front: "A result is reported as 'mean 12.4 mm (n = 3)'. What is missing and why does it matter?", back: "The SD (spread) and the fact that n = 3 is tiny: without them you cannot judge how variable the data are or how reliable the mean is." },
     { id: "f-3.1.6-x10", ref: R, front: "Two overlapping normal curves with different means: what single change would make you more confident the populations differ?", back: "Larger samples (and a statistical test); the overlap of individuals is real, but the uncertainty in each mean shrinks with n." },
-    { id: "f-3.1.6-x7", ref: R, front: "Link to RP3: how does chromatography show interspecific and intraspecific variation?", back: "Different plant species (and leaves of different colour within a species) contain different proportions of pigments; the chromatogram's bands and Rf values reveal them." },
   ];
   const questions = [
     // A

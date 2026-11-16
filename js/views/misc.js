@@ -112,7 +112,7 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
     const total = B.spec.meta.counts.statements, ticked = Object.keys(st.checklist).length;
     const html = el(h`<div><div class="page-head"><div><div class="eyebrow">Complete Specification Checklist</div><h1>Every examinable statement</h1><p class="lede">${B.spec.meta.counts.units} units · ${B.spec.meta.counts.practicals} required practicals. Tick a statement when you can do it from memory. Ticks are shared with the topic pages.</p></div></div>
       <div class="card mb" id="ckprog"><div class="row" style="justify-content:space-between"><strong class="small">Your progress</strong><span class="small muted"><span class="v">${ticked}</span> of ${total} statements ticked</span></div><div class="progress mt" style="height:12px"><span style="width:${Math.round((100 * ticked) / total)}%"></span></div></div>
-      <div class="notice mb"><strong>Source.</strong> OxfordAQA International AS and A-level Biology (9610), specification version ${m.specVersion}; ${m.validFrom}. Statements are paraphrased: always check the exact wording in the <a href="${m.specPdfUrl}" target="_blank" rel="noopener">official specification PDF</a> (<a href="${m.specPdfAltUrl}" target="_blank" rel="noopener">alternative link</a>).</div>
+      <div class="notice mb"><strong>Source.</strong> OxfordAQA International AS and A-level Biology (9610), specification version ${m.specVersion}; ${m.validFrom}. Units 1 and 2 statements quote the specification wording (Units 3 to 5 are still paraphrased): always check the full context in the <a href="${m.specPdfUrl}" target="_blank" rel="noopener">official specification PDF</a> (<a href="${m.specPdfAltUrl}" target="_blank" rel="noopener">alternative link</a>).</div>
       ${raw(sections)}
       <details class="acc"><summary>Required practicals (${B.spec.practicals.length})</summary><div class="acc-body"><ul>${raw(B.spec.practicals.map((p) => h`<li><a href="#/lab/${p.n}">RP${p.n}</a> (${p.level}, ${p.unit}): ${p.title}</li>`).join(""))}</ul></div></details>
       <details class="acc"><summary>Mathematical requirements (section 7)</summary><div class="acc-body"><ul>${raw(B.spec.maths.map((x) => h`<li>${x.id}: ${x.text}</li>`).join(""))}</ul><p class="small muted">${B.spec.mathsNote}</p></div></details></div>`);
@@ -131,7 +131,7 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
     r("/consolidate/:t", (t) => B.views.consolidation(t)); r("/consolidate/:t/:tab", (t, tab) => B.views.consolidation(t, tab));
     r("/lab", () => B.views.lab()); r("/lab/:n", (n) => B.views.lab(n)); r("/lab/:n/alt", (n) => B.views.lab(n, "alt"));
     r("/maths", () => B.views.maths()); r("/maths/:id", (id) => B.views.maths(id));
-    r("/flashcards", () => B.views.flashcards()); r("/flashcards/:ref", (ref) => B.views.flashcards(ref));
+    if (B.views.flashcardRoutes) B.views.flashcardRoutes(r); else { r("/flashcards", () => B.views.flashcards()); r("/flashcards/:ref", (ref) => B.views.flashcards(ref)); }
     r("/synoptic", B.views.synoptic);
     r("/unit/:u", (u) => B.views.unitHub(u)); r("/unit/:u/map", (u) => B.views.unitMap(u)); r("/unit/:u/:tab", (u, tab) => B.views.unitHub(u, tab));
     r("/cluster/:id", (id) => B.views.cluster(id)); r("/cluster/:id/:tab", (id, tab) => B.views.cluster(id, tab));

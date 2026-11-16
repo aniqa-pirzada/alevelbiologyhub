@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Biology Revision · OxfordAQA 9610</title>
-<meta name="description" content="Independent revision platform for OxfordAQA International AS and A-level Biology (9610), created by Aniqa Pirzada. Not endorsed by OxfordAQA.">
+<title>Biology Lab · OxfordAQA 9610</title>
+<meta name="description" content="Biology Lab: independent revision for OxfordAQA International AS and A-level Biology (9610). Not affiliated with or endorsed by OxfordAQA.">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <script>/* set the theme before first paint (no flash): saved choice, else device setting */
 try { var p = (JSON.parse(localStorage.getItem("bio9610.v1") || "{}").prefs || {}).theme; document.documentElement.dataset.theme = p ? p : (window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"); } catch (e) { document.documentElement.dataset.theme = "light"; }</script>
@@ -14,6 +14,8 @@ try { var p = (JSON.parse(localStorage.getItem("bio9610.v1") || "{}").prefs || {
 <link rel="stylesheet" href="css/styles.css">
 <link rel="stylesheet" href="css/unit-hub.css">
 <link rel="stylesheet" href="css/papers.css">
+<link rel="stylesheet" href="css/flashcards.css">
+<link rel="stylesheet" href="css/interactive-layout.css">
 </head>
 <body>
 <noscript><p style="padding:2rem;font-family:sans-serif">This revision platform needs JavaScript enabled.</p></noscript>
@@ -65,6 +67,37 @@ try { var p = (JSON.parse(localStorage.getItem("bio9610.v1") || "{}").prefs || {
   <script src="data/content/_cholera-art.js"></script>
   <script src="data/content/3.2.3.1.js"></script>
   <script src="data/content/3.2.3.2.js"></script>
+  <script src="data/content/_hiv-art.js"></script>
+  <script src="data/content/3.2.4.1.js"></script>
+  <script src="data/content/3.2.4.2.js"></script>
+  <script src="data/content/_immune-art.js"></script>
+  <script src="data/content/3.2.5.1.js"></script>
+  <script src="data/content/3.2.5.2.js"></script>
+  <script src="data/content/3.2.5.3.js"></script>
+  <script src="data/content/_heart-art.js"></script>
+  <script src="data/content/3.2.6.1.js"></script>
+  <script src="data/content/3.2.6.2.js"></script>
+  <script src="data/content/_plant-model.js"></script>
+  <script src="data/content/_cvd-art.js"></script>
+  <script src="data/content/3.2.7.1.js"></script>
+  <script src="data/content/3.2.7.2.js"></script>
+  <script src="data/content/_xylem-art.js"></script>
+  <script src="data/content/3.2.8.1.js"></script>
+  <script src="data/content/_phloem-art.js"></script>
+  <script src="data/content/3.2.8.2.js"></script>
+  <script src="data/content/_aphid-art.js"></script>
+  <script src="data/content/3.2.9.1.js"></script>
+  <script src="data/content/3.2.9.2.js"></script>
+  <script src="data/content/_division-art.js"></script>
+  <script src="data/content/3.2.10.1.js"></script>
+  <script src="data/content/3.2.10.2.js"></script>
+  <script src="data/content/_fission-art.js"></script>
+  <script src="data/content/3.2.10.3.js"></script>
+  <script src="data/content/_mutation-art.js"></script>
+  <script src="data/content/3.2.11.1.js"></script>
+  <script src="data/content/3.2.11.2.js"></script>
+  <script src="data/content/_roottip-model.js"></script>
+  <script src="data/content/_pulse-model.js"></script>
 <script src="data/consolidation/3.1.1.js"></script>
 <script src="data/consolidation/3.1.2.js"></script>
   <script src="data/consolidation/3.1.3.js"></script>
@@ -79,23 +112,53 @@ try { var p = (JSON.parse(localStorage.getItem("bio9610.v1") || "{}").prefs || {
   <script src="data/consolidation/3.2.1.js"></script>
   <script src="data/consolidation/3.2.2.js"></script>
   <script src="data/consolidation/3.2.3.js"></script>
+  <script src="data/consolidation/3.2.4.js"></script>
+  <script src="data/consolidation/3.2.5.js"></script>
+  <script src="data/consolidation/3.2.6.js"></script>
+  <script src="data/consolidation/3.2.7.js"></script>
+  <script src="data/consolidation/3.2.8.js"></script>
+  <script src="data/consolidation/3.2.9.js"></script>
+  <script src="data/consolidation/3.2.10.js"></script>
+  <script src="data/consolidation/3.2.11.js"></script>
   <script src="data/clusters/3.2.1-3.2.3.js"></script>
+  <script src="data/clusters/3.2.4-3.2.5.js"></script>
+  <script src="data/clusters/3.2.6-exchange.js"></script>
+  <script src="data/clusters/3.2.7-3.2.9.js"></script>
   <script src="data/papers/bl01-a.js"></script>
   <script src="data/papers/bl01-b.js"></script>
+  <script src="data/papers/bl02-a.js"></script>
+  <script src="data/papers/bl02-b.js"></script>
   <script src="data/unit1-map.js"></script>
+  <script src="data/unit2-map.js"></script>
 <script src="data/practicals.js"></script>
+<script src="data/practicals/rp6.js"></script>
+<script src="data/practicals/rp4.js"></script>
+<script src="data/practicals/rp5.js"></script>
 <script src="data/maths.js"></script>
 <script src="data/images.js"></script>
 <script src="data/placements.js"></script>
+<script src="data/placements/3.2.4.js"></script>
+<script src="data/placements/3.2.5.js"></script>
+<script src="data/placements/3.2.6.js"></script>
+<script src="data/placements/3.2.7.js"></script>
+<script src="data/placements/3.2.8.1.js"></script>
+<script src="data/placements/3.2.8.2.js"></script>
+<script src="data/placements/3.2.9.js"></script>
+<script src="data/placements/3.2.10.1.js"></script>
+<script src="data/placements/3.2.10.3.js"></script>
+<script src="data/placements/3.2.11.js"></script>
+<script src="data/placements/release-2026-11.js"></script>
   <!-- Restricted material (Exampro past-paper bank) is kept outside the distributable build in ../oxbio-restricted (Batch 9 directive, 2026-11-04; EXAMPRO_IMPORT.md). Optional loader: js/core/banks.js loads restricted/manifest.js only if it exists and records an authorisation. -->
   <script src="js/core/banks.js"></script>
 <!-- Core -->
 <script src="js/core/util.js"></script>
 <script src="js/core/store.js"></script>
+<script src="js/core/profile.js"></script>
 <script src="js/core/progress.js"></script>
 <script src="js/core/flashcards.js"></script>
 <script src="js/core/questions.js"></script>
 <script src="js/core/search.js"></script>
+<script src="js/core/ix-layout.js"></script>
 <!-- Views -->
 <script src="js/views/charts.js"></script>
 <script src="js/views/photo.js"></script>
@@ -112,12 +175,29 @@ try { var p = (JSON.parse(localStorage.getItem("bio9610.v1") || "{}").prefs || {
   <script src="js/views/interactives-disease.js"></script>
   <script src="js/views/interactives-digest.js"></script>
   <script src="js/views/interactives-cholera.js"></script>
+  <script src="js/views/interactives-hiv.js"></script>
+  <script src="js/views/interactives-immune.js"></script>
+  <script src="js/views/interactives-heart.js"></script>
+  <script src="js/views/interactives-cvd.js"></script>
+  <script src="js/views/interactives-xylem.js"></script>
+  <script src="js/views/interactives-phloem.js"></script>
+  <script src="js/views/interactives-aphid.js"></script>
+  <script src="js/views/interactives-division.js"></script>
+  <script src="js/views/interactives-fission.js"></script>
+  <script src="js/views/interactives-mutation.js"></script>
 <script src="js/views/dashboard.js"></script>
+<script src="js/views/onboarding.js"></script>
+<script src="data/glossary.js"></script>
+<script src="js/core/glossary.js"></script>
+<script src="js/core/figzoom.js"></script>
 <script src="js/views/library.js"></script>
 <script src="js/views/bench.js"></script>
   <script src="js/views/bench-osmosis.js"></script>
   <script src="js/views/bench-chroma.js"></script>
   <script src="js/views/bench-trypsin.js"></script>
+  <script src="js/views/bench-potometer.js"></script>
+  <script src="js/views/bench-roottip.js"></script>
+  <script src="js/views/bench-pulse.js"></script>
   <script src="js/views/lab.js"></script>
 <script src="js/views/flashcards.js"></script>
 <script src="js/views/maths.js"></script>

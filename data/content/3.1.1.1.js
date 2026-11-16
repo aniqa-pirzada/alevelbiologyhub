@@ -16,7 +16,7 @@ window.BIO.content["3.1.1.1"] = {
 <li>Monosaccharide + monosaccharide → disaccharide + water (bond formed: <strong>glycosidic</strong>)</li>
 <li>Amino acid + amino acid → dipeptide + water (bond formed: <strong>peptide</strong>)</li>
 <li>Glycerol + fatty acid → monoglyceride + water (bond formed: <strong>ester</strong>)</li>
-<li>Nucleotide + nucleotide → dinucleotide + water (bond formed: <strong>phosphodiester</strong>)</li>
+<li>Nucleotide + nucleotide → dinucleotide + water (you meet nucleotides and polynucleotides in 3.1.7)</li>
 </ul>
 <p>Because each join releases one water molecule, joining <em>n</em> monomers into one chain releases <em>n − 1</em> water molecules. This is a common calculation in exam questions.</p>
 
@@ -24,55 +24,33 @@ window.BIO.content["3.1.1.1"] = {
 <p>Hydrolysis is the reverse: a <strong>water molecule is used</strong> to break the covalent bond between two units. The water supplies the H to one fragment and the OH to the other, regenerating the original functional groups. Digestion (3.2.2) is hydrolysis catalysed by enzymes: for example, amylase hydrolyses the glycosidic bonds in starch to release maltose.</p>
 <p>Note that in cells both reactions are enzyme-catalysed. Condensation is energetically "uphill" and is driven by ATP, which is why building polymers is part of a cell's energy budget.</p>
 
-<h2 data-stmt="3.1.1.1.s1">Why this matters: structure gives function</h2>
+<h2 data-stmt="3.1.1.1.s1">Lipids: condensation without a polymer</h2>
 <p>Lipids are an exception to the monomer and polymer pattern: a triglyceride is built by condensation (three ester bonds) but it is not a polymer, because it is not a chain of repeating units. Examiners like this distinction.</p>
 
 <div class="misconception"><strong>Common misconceptions.</strong>
 <ul>
 <li>"Water is <em>produced</em> in hydrolysis." No: water is <em>used</em> in hydrolysis and <em>released</em> in condensation. Fix it in your memory with the word itself: hydro (water) lysis (splitting), splitting <em>with</em> water.</li>
-<li>"Condensation forms hydrogen bonds." The bond formed is <strong>covalent</strong> (glycosidic, peptide, ester, phosphodiester). Hydrogen bonds are weak attractions (within a molecule or between molecules) that help hold shapes together; they are not the product of condensation.</li>
+<li>"Condensation forms hydrogen bonds." The bond formed is <strong>covalent</strong> (glycosidic, peptide or ester). Hydrogen bonds are weak attractions (within a molecule or between molecules) that help hold shapes together; they are not the product of condensation.</li>
 <li>"A triglyceride is a polymer." It is not; it is a single molecule assembled from four parts, not a chain of repeating monomers.</li>
 </ul></div>
 
 <div class="examtip"><strong>Exam focus.</strong> When asked to "describe how two monomers join", give three things: (1) a condensation reaction, (2) the name of the bond, (3) that a molecule of water is removed. Marks are usually one for each. For "how is the polymer broken down", name hydrolysis, say a water molecule is <em>added</em> to break the named bond, and mention the enzyme if the context gives one.</div>
 `,
-  diagrams: [
-    {
-      id: "d-3.1.1.1-1", title: "Condensation and hydrolysis (schematic)", status: "reviewed",
-      caption: "Two monomers join by condensation, forming a covalent bond and releasing water. Hydrolysis uses water to break that bond. The shapes are schematic: they do not represent real molecular geometry.",
-      alt: "Schematic showing two monomer blocks with an H and an OH group facing each other. An arrow labelled condensation points right to a joined dimer with a covalent bond and a separate water molecule. An arrow labelled hydrolysis points left from the dimer plus water back to the two monomers.",
-      svg: `<svg viewBox="0 0 760 260" width="760" role="img" aria-label="Condensation and hydrolysis schematic">
-<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#3c4f63"/></marker></defs>
-<g font-size="14" fill="#16263a">
- <rect x="30" y="70" width="120" height="70" rx="12" fill="#d6efec" stroke="#1f8a8a" stroke-width="2"/><text x="90" y="112" text-anchor="middle" font-weight="600">Monomer</text>
- <text x="158" y="112" font-weight="700" fill="#166f70">H</text>
- <text x="192" y="112" font-weight="700" fill="#166f70">OH</text>
- <rect x="222" y="70" width="120" height="70" rx="12" fill="#e2efe6" stroke="#6b9a7f" stroke-width="2"/><text x="282" y="112" text-anchor="middle" font-weight="600">Monomer</text>
- <path d="M360 95 H 430" stroke="#3c4f63" stroke-width="2" marker-end="url(#ar)"/><text x="395" y="84" text-anchor="middle" font-size="12" font-weight="600">condensation</text>
- <path d="M430 125 H 360" stroke="#3c4f63" stroke-width="2" marker-end="url(#ar)"/><text x="395" y="146" text-anchor="middle" font-size="12" font-weight="600">hydrolysis</text>
- <rect x="450" y="70" width="110" height="70" rx="12" fill="#d6efec" stroke="#1f8a8a" stroke-width="2"/><text x="505" y="112" text-anchor="middle" font-weight="600">Monomer</text>
- <rect x="564" y="90" width="26" height="30" fill="#16263a"/><text x="577" y="150" text-anchor="middle" font-size="11">covalent bond</text>
- <rect x="594" y="70" width="110" height="70" rx="12" fill="#e2efe6" stroke="#6b9a7f" stroke-width="2"/><text x="649" y="112" text-anchor="middle" font-weight="600">Monomer</text>
- <text x="577" y="48" text-anchor="middle" font-weight="700">+ H<tspan baseline-shift="sub" font-size="10">2</tspan>O released</text>
- <text x="577" y="200" text-anchor="middle" font-weight="700">+ H<tspan baseline-shift="sub" font-size="10">2</tspan>O used</text>
- <text x="380" y="235" text-anchor="middle" font-size="12" fill="#6b7d8f">Bond names: glycosidic (sugars), peptide (amino acids), ester (lipids), phosphodiester (nucleotides)</text>
-</g></svg>`
-    }
-  ],
+  diagrams: [],
   interactive: {
     id: "i-3.1.1.1", title: "Animate: condensation and hydrolysis",
-    note: "Schematic animation. The blocks represent monomers, not atoms; the water molecule is shown to emphasise that it is released on joining and consumed on splitting.",
+    note: "Each block stands for a whole monomer, not for its atoms. Water is released when two monomers join and used when they are split. Bond names: glycosidic (sugars), peptide (amino acids), ester (lipids).",
     kind: "condensation"
   },
   examFocus: `<ul>
-<li><strong>Terminology to use precisely:</strong> condensation, hydrolysis, covalent bond, glycosidic / peptide / ester / phosphodiester bond, monomer, polymer, macromolecule.</li>
+<li><strong>Terminology to use precisely:</strong> condensation, hydrolysis, covalent bond, glycosidic / peptide / ester bond, monomer, polymer, macromolecule.</li>
 <li><strong>Calculation:</strong> n monomers joined in a chain release n − 1 water molecules. A branched polymer still releases one water per bond formed.</li>
 <li><strong>Pitfall:</strong> writing "bond" without naming it loses the mark. Writing "hydrogen bond" is wrong.</li>
 <li><strong>Links to practical skills:</strong> biochemical tests (3.1.1.2 to 3.1.1.4) detect the products of hydrolysis, for example reducing sugars after acid hydrolysis of sucrose.</li>
 </ul>`,
   synoptic: [
     { ref: "3.2.2.2", text: "Digestion is enzyme-catalysed hydrolysis of carbohydrates, lipids and proteins." },
-    { ref: "3.1.7.3", text: "DNA replication joins nucleotides by condensation (DNA polymerase forms phosphodiester bonds)." },
+    { ref: "3.1.7.3", text: "DNA polymerase joins nucleotides by condensation when DNA is replicated." },
     { ref: "3.4.7.1", text: "Glycogenesis (glucose to glycogen) joins glucose units by condensation; in glycogenolysis the liver breaks glycogen down again to release glucose." },
     { ref: "3.1.4.3", text: "ATP is synthesised from ADP and phosphate by condensation and hydrolysed to release energy." },
   ],
@@ -86,9 +64,9 @@ window.BIO.content["3.1.1.1"] = {
       explanation: "Hydrolysis uses water to split polymers into monomers." },
     { id: "q-3.1.1.1-qc3", ref: "3.1.1.1", stmts: ["3.1.1.1.s2"], type: "mcq", marks: 1, stem: "How many molecules of water are released when 12 amino acids join to form a single polypeptide chain?",
       options: ["12", "11", "13", "6"], answer: 1, explanation: "Each peptide bond releases one water; 12 units need 11 bonds." },
-    { id: "q-3.1.1.1-qc4", ref: "3.1.1.1", stmts: ["3.1.1.1.s2", "3.1.1.2.s3", "3.1.1.3.s1", "3.1.1.4.s3"], type: "match", marks: 4, stem: "Match each pair of monomers to the bond formed between them by condensation.",
-      pairs: [{ left: "Two monosaccharides", right: "Glycosidic bond" }, { left: "Two amino acids", right: "Peptide bond" }, { left: "Glycerol and a fatty acid", right: "Ester bond" }, { left: "Two nucleotides", right: "Phosphodiester bond" }],
-      explanation: "Each class of biological molecule has its own named covalent bond." },
+    { id: "q-3.1.1.1-qc4", ref: "3.1.1.1", stmts: ["3.1.1.1.s2", "3.1.1.2.s3", "3.1.1.3.s1", "3.1.1.4.s3"], type: "match", marks: 3, stem: "Match each pair of molecules to the bond formed between them by condensation.",
+      pairs: [{ left: "Two monosaccharides", right: "Glycosidic bond" }, { left: "Two amino acids", right: "Peptide bond" }, { left: "Glycerol and a fatty acid", right: "Ester bond" }],
+      explanation: "Each class of biological molecule has its own named covalent bond: glycosidic in carbohydrates, peptide in proteins and ester in lipids." },
   ],
   flashcards: [
     { id: "f-3.1.1.1-1", front: "Define a monomer.", back: "A small molecule that can be joined to other similar molecules to make a polymer, e.g. a monosaccharide, amino acid or nucleotide." },

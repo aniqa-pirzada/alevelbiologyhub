@@ -21,9 +21,11 @@ window.BIO = window.BIO || {}; window.BIO.interactives = window.BIO.interactives
   const sci = (s) => { const t = String(s); if (/virus/i.test(t)) return esc(t); const m = t.match(/^([A-Z][a-z]+ [a-z]+)(.*)$/); return m ? `<em>${esc(m[1])}</em>${esc(m[2])}` : esc(t); };
   // Specification status of a named pathogen (teacher decisions d30/d31): only cholera (3.2.3) and HIV (3.2.4) are
   // named in the specification; every other example carries a stretch and challenge badge.
-  const SC = `<span class="badge navy" title="beyond the specification: an example, not something to learn">stretch and challenge</span>`;
-  const specBadge = (x) => x.spec ? `<span class="badge teal" title="named in the specification">on the specification: ${esc(x.spec)}</span>` : SC;
-  const SCKEY = `<p class="tiny muted" style="margin:.3rem 0 0"><span class="badge navy">stretch and challenge</span> beyond the specification: an example to show the idea, not something to learn. <span class="badge teal">on the specification</span> named in the specification (cholera, 3.2.3; HIV, 3.2.4).</p>`;
+  // Release review (R5-44): three labels only (required, supporting, stretch); the page key explains them once, so no
+  // legend is repeated here, and cholera and HIV (named in the specification) carry no pill.
+  const SC = `<span class="badge amber" title="goes a little beyond the specification">stretch</span>`;
+  const specBadge = (x) => x.spec ? "" : SC;
+  const SCKEY = "";
   const src = (k) => { const s = M().SRC[k]; return `<p class="tiny muted">Source: <a href="${s.url}" target="_blank" rel="noopener">${esc(s.cite)}</a>.</p>`; };
 
   // Tabs with roving focus
@@ -42,8 +44,8 @@ window.BIO = window.BIO || {}; window.BIO.interactives = window.BIO.interactives
   B.interactives.disEntry = function (spec, host) {
     const items = spec.items || []; const uid = uidOf(); const Z = A().ZONES;
     host.innerHTML = head(spec, "explore the interfaces") + `
-      <div class="grid grid-2 mt" style="align-items:start">
-        <div style="min-width:0"><div class="figure"><div class="fig-view" id="en-fig-${uid}">${A().interfacesFig({ hot: true, keys: items.map((x) => x.zone) })}</div></div>
+      <div class="grid grid-2 mt ix-grid-pic" style="align-items:start">
+        <div style="min-width:0"><div class="figure"><div class="fig-view" id="en-fig-${uid}">${A().interfacesFig({ hot: true, notes: false, keys: items.map((x) => x.zone) })}</div><p class="tiny muted" style="margin:.3rem .3rem 0">${A().INTERFACE_NOTES.join(" ")}</p></div>
           <p class="tiny muted">Each coloured system and its label is a button: Tab to it and press Enter or Space, or use the row of buttons.</p></div>
         <div style="min-width:0"><div role="tablist" aria-label="interfaces" id="en-tabs-${uid}" style="${WRAP}"></div><div id="en-body-${uid}" class="mt"></div></div>
       </div>`;
@@ -54,23 +56,25 @@ window.BIO = window.BIO || {}; window.BIO.interactives = window.BIO.interactives
       const it = items[i], z = Z[it.zone], pane = panes[i];
       pane.innerHTML = `<div class="card"><div style="${WRAP};justify-content:space-between"><h4 style="margin:0;color:var(--ink)">${esc(it.title)}</h4><span class="badge ${it.level === "required" ? "teal" : ""}">${esc(it.level)}</span></div>
         <p class="small mt"><strong>Why pathogens can cross it.</strong> ${esc(it.why)}</p>
-        <h5 class="small mt" style="margin-bottom:.3rem">Checked examples</h5>${SCKEY}
+        <h5 class="small mt" style="margin-bottom:.3rem">${it.examples.length > 1 ? "Examples" : "Example"}</h5>
         ${it.examples.map((x) => `<div class="card mt" style="padding:.6rem .8rem;border-left:4px solid ${z.c}"><div style="${WRAP}"><strong class="small">${sci(x.name)}</strong><span class="badge ${x.type === "virus" ? "amber" : "sage"}">${esc(x.type)}</span>${specBadge(x)}</div><p class="small" style="margin:.3rem 0 0"><strong>Route:</strong> ${esc(x.route)}</p><p class="small" style="margin:.2rem 0 0"><strong>What it does:</strong> ${esc(x.effect)}</p></div>`).join("")}
-        <p class="small mt"><span class="badge">supporting</span> <strong>Defences.</strong> ${esc(it.defences)}</p></div>
-        <h4 class="mt">Explain what you see</h4><div data-r="q"></div>`;
-      (it.questions || []).forEach((q) => $('[data-r="q"]', pane).append(B.questions.render(q)));
+</div>`;
     };
     let showTab;
     const highlight = (k) => $$("[data-zone]", fig).forEach((g) => { const on = g.dataset.zone === k; g.style.opacity = on ? "1" : "0.45"; g.setAttribute("aria-pressed", on); });
     showTab = tabs(host, `en-tabs-${uid}`, items.map((x) => x.title), (i) => { if (!built.has(i)) { build(i); built.add(i); } panes.forEach((p, k) => (p.hidden = k !== i)); highlight(items[i].zone); fade(panes[i]); }, panes);
     const pick = (g) => { const i = items.findIndex((x) => x.zone === g.dataset.zone); if (i >= 0) showTab(i); };
     $$("[data-zone]", fig).forEach((g) => { g.addEventListener("click", () => pick(g)); g.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(g); g.focus(); } }); });
+    // R5-09: the questions are no longer squeezed into the side panel. All of them are rendered once, after the explorer,
+    // so the page moves them to Check yourself together.
+    const qbox = document.createElement("div"); qbox.className = "mt"; host.append(qbox);
+    items.forEach((it) => (it.questions || []).forEach((q) => qbox.append(B.questions.render(q))));
   };
 
   // ======================================== B. Disease Mechanism Challenge ========================================
   B.interactives.disMechanism = function (spec, host) {
     const cases = spec.items || [], cats = spec.categories || [], myths = spec.myths || []; const uid = uidOf();
-    const catLabel = (k) => { const c = cats.find((x) => x.k === k) || {}; return (c.label || k) + (c.stretch ? " (stretch and challenge)" : ""); };
+    const catLabel = (k) => { const c = cats.find((x) => x.k === k) || {}; return (c.label || k) + (c.stretch ? " (stretch)" : ""); };
     const done = new Map(); let cur = 0;
     host.innerHTML = head(spec, "case by case") + `
       <div class="card">${SCKEY}<div style="${WRAP}" class="mt"><label class="small" for="mc-sel-${uid}">Case:</label><select id="mc-sel-${uid}">${cases.map((c, i) => `<option value="${i}">${i + 1}. ${esc(c.label)}</option>`).join("")}</select>
@@ -80,7 +84,7 @@ window.BIO = window.BIO || {}; window.BIO.interactives = window.BIO.interactives
         <div style="${WRAP}" class="mt"><button type="button" class="btn sm primary" id="mc-check-${uid}">Check</button></div>
         <div id="mc-fb-${uid}" class="mt" aria-live="polite"></div>
         <p class="small muted mt" id="mc-score-${uid}" aria-live="polite"></p></div>
-      <div class="card mt"><h4>Generalisation check</h4><p class="small">Is each statement true or false? Sweeping claims about all bacteria or all viruses usually fail. ${SC} The examples in the feedback are stretch and challenge examples.</p><div id="mc-myths-${uid}"></div></div>
+      <div class="card mt"><h4>Generalisation check</h4><p class="small">Is each statement true or false? Sweeping claims about all bacteria or all viruses usually fail.</p><div id="mc-myths-${uid}"></div></div>
       <h4 class="mt">Questions on the challenge</h4><div id="mc-q-${uid}"></div>`;
     const $u = (k) => $(`#mc-${k}-${uid}`, host);
     const score = () => { const n = done.size, best = [...done.values()].filter((v) => v === "best").length; $u("score").textContent = `Cases checked: ${n} of ${cases.length}. Best answer on the first try: ${best}.`; };

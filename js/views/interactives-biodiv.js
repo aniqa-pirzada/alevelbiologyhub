@@ -1,5 +1,6 @@
-// Interactives for 3.1.11 Biodiversity within a community. Kinds: bdvSeqLab (3.1.11.1), bdvInvestigator and
-// bdvConservation (3.1.11.2). All calculations come from B.biodivModel (data/content/_biodiv-art.js), so numbers on
+// Interactives for 3.1.11 Biodiversity within a community. Kinds: bdvSeqLab (3.1.11.1) and bdvInvestigator (3.1.11.2).
+// (The Conservation Decision Challenge was removed in the release review of 2026-11-15: its scenarios are now ordinary
+// page questions in data/content/3.1.11.2.js.) All calculations come from B.biodivModel (data/content/_biodiv-art.js), so numbers on
 // screen and the answers to the embedded questions come from the same functions. Embedded questions are rendered with
 // B.questions.render (marked, recorded, counted towards mastery). Every control is a native button, select, radio or
 // input; the sequence row uses a roving tab stop (arrow keys, Home, End). Nothing animates when reduced motion is
@@ -15,7 +16,7 @@ window.BIO = window.BIO || {}; window.BIO.interactives = window.BIO.interactives
   const MONO = "ui-monospace,Menlo,Consolas,monospace";
   const COL = { same: "#d6efec", sub: "#f6dede", gap: "#eceff3", none: "#fff" };
 
-  // Tabs with roving focus (shared by the three interactives)
+  // Tabs with roving focus
   const tabs = (host, id, labels, onShow, panes) => {
     const bar = $(`#${id}`, host); let cur = 0;
     bar.innerHTML = labels.map((l, i) => `<button class="btn sm" role="tab" id="${id}-t${i}" data-i="${i}" aria-selected="${i === 0}" tabindex="${i === 0 ? 0 : -1}"${panes && panes[i] ? ` aria-controls="${panes[i].id}"` : ""}>${esc(l)}</button>`).join("");
@@ -32,7 +33,7 @@ window.BIO = window.BIO || {}; window.BIO.interactives = window.BIO.interactives
   B.interactives.bdvSeqLab = function (spec, host) {
     const cases = spec.items || []; const uid = uidOf();
     host.innerHTML = head(spec, "illustrative sequences") + `
-      <div class="notice small"><strong>Conventions used here.</strong> Sequences are written 5′→3′. Base sequences are compared on the same strand: mRNA with the DNA <strong>coding</strong> strand, U counting as equal to T. Gap positions (–) are <strong>excluded</strong> from the positions compared unless you choose to count them as differences; the number of gaps is always shown. Sequences of unequal length are never compared position by position until aligned.</div>
+      <div class="notice small"><strong>Conventions used here.</strong> Base sequences are written 5′→3′ and compared on the same strand: mRNA with the DNA <strong>coding</strong> strand, U counting as equal to T. Amino-acid sequences are written from the N-terminus (first amino acid) to the C-terminus. Gap positions (–) are <strong>excluded</strong> from the positions compared unless you choose to count them as differences; the number of gaps is always shown. Sequences of unequal length are never compared position by position until aligned.</div>
       <div class="row mt" role="tablist" aria-label="comparison cases" id="sl-tabs-${uid}" style="flex-wrap:wrap"></div>
       <div id="sl-body" class="mt"></div>`;
     const body = $("#sl-body", host);
@@ -42,14 +43,14 @@ window.BIO = window.BIO || {}; window.BIO.interactives = window.BIO.interactives
     const build = (i) => {
       const c = cases[i], pane = panes[i];
       const state = { pair: (c.pair || [0, 1]).slice(), region: 0, aligned: false, naive: false, rc: false, gaps: "exclude", marks: new Set(), revealed: false, aa: false, checked: null };
-      pane.innerHTML = `<div class="card"><h4>${esc(c.title)}</h4><p class="small">${esc(c.intro)}</p>
+      pane.innerHTML = `<div class="card"><h4>${esc(c.title)}</h4><p class="small">${esc(c.intro)}</p>${c.key ? `<p class="tiny muted">${esc(c.key)}</p>` : ""}
         <div class="row" data-r="controls" style="flex-wrap:wrap;gap:.5rem"></div>
         <div data-r="flag" class="mt" aria-live="polite"></div>
         <div data-r="names" class="small mt"></div>
         <div data-r="align" class="mt" style="display:flex;flex-wrap:wrap;gap:2px;max-width:100%"></div>
         <div class="row mt" style="flex-wrap:wrap;gap:.5rem"><button class="btn sm" data-a="check">Check my marking</button><button class="btn sm primary" data-a="reveal">Reveal the comparison</button><button class="btn sm" data-a="clear">Clear marks</button>${c.translate ? '<label class="small"><input type="checkbox" data-a="aa"> show amino acids</label>' : ""}</div>
         <div data-r="fb" class="mt" aria-live="polite"></div><div data-r="aa" class="mt"></div><div data-r="out" class="mt"></div></div>
-        <h4 class="mt">Questions on this case</h4><div data-r="q"></div>`;
+        <div data-r="q"></div>`;
       const q = (k) => $(`[data-r="${k}"]`, pane);
       // controls per case
       let ctl = "";
@@ -70,7 +71,8 @@ window.BIO = window.BIO || {}; window.BIO.interactives = window.BIO.interactives
       };
       const draw = () => {
         const { a, b } = seqs(); const r = M().compare(a.seq, b.seq, { gaps: state.gaps, tu: !!c.tu }); state.r = r;
-        q("names").innerHTML = `<strong>Top row:</strong> ${esc(a.name)} (${esc(a.type)}, 5′→3′, ${M().clean(a.seq).replace(/-/g, "").length} ${a.type === "amino-acid sequence" ? "amino acids" : "bases"}). <strong>Bottom row (buttons):</strong> ${esc(b.name)} (${esc(b.type)}, 5′→3′, ${M().clean(b.seq).replace(/-/g, "").length} ${b.type === "amino-acid sequence" ? "amino acids" : "bases"}). Press a bottom-row position to mark it as a difference; use the arrow keys to move along the row.`;
+        const desc = (x) => { const prot = x.type === "amino-acid sequence", n = M().clean(x.seq).replace(/-/g, "").length; return `${esc(x.type)}, ${prot ? "N-terminus to C-terminus" : "5′→3′"}, ${n} ${prot ? "amino acids" : "bases"}`; };
+        q("names").innerHTML = `<strong>Top row:</strong> ${esc(a.name)} (${desc(a)}). <strong>Bottom row (buttons):</strong> ${esc(b.name)} (${desc(b)}). Press a bottom-row position to mark it as a difference; use the arrow keys to move along the row.`;
         let flag = "";
         if (c.rc && !state.rc) flag = `<div class="notice amber small"><strong>Flag: different strands.</strong> Species H's sequence is the complementary strand written 5′→3′, so its bases are not equivalent to species G's coding strand position by position. Any similarity calculated now is meaningless (shown below only so you can see the problem: ${M().fix(r.pct, 1)} %). Reverse complement it first.</div>`;
         if (c.tu) flag = `<div class="notice small">One sequence is DNA, the other mRNA. U in the mRNA is treated as equal to T in the coding strand: those positions are <strong>not</strong> differences.</div>`;
@@ -99,7 +101,7 @@ window.BIO = window.BIO || {}; window.BIO.interactives = window.BIO.interactives
             q("out").innerHTML = `<div class="card"><h4>The comparison</h4><ul class="small"><li>Positions in the alignment: <strong>${r.length}</strong></li>${gapLine}<li>Positions compared: <strong>${r.denom}</strong></li><li>Identical positions: <strong>${r.identical}</strong></li><li>Substitutions (×): <strong>${r.subs}</strong></li><li>Differences counted: <strong>${r.differences}</strong></li></ul>
               <p class="small mt"><strong>Percentage similarity</strong> = identical ÷ positions compared × 100 = ${r.identical} ÷ ${r.denom} × 100 = <strong>${M().fix(r.pct, 1)} %</strong> (1 d.p.). ${r.gapCols ? `With the other gap convention it would be ${M().fix(state.gaps === "exclude" ? (100 * r.identical) / r.length : (100 * r.identical) / r.compared, 1)} %: always state which you used.` : ""}</p>
               ${c.rc && !state.rc ? `<p class="small" style="color:var(--rose-ink)"><strong>This value is not valid</strong>: the sequences are on different strands.</p>` : ""}
-              <p class="small muted">${CAVEAT}</p></div>`; }
+              ${c.after ? c.after() : ""}<p class="small muted">${CAVEAT}</p></div>`; }
           else if (state.naive) { const nv = M().naive(seqs().a.seq, seqs().b.seq); q("out").innerHTML = `<div class="card"><p class="small" style="color:var(--rose-ink)"><strong>Unaligned comparison (invalid):</strong> ${nv.same} of ${nv.n} positions match (${M().fix(nv.pct, 1)} %). The deletion shifts every later base, so most "differences" here are artefacts. Align the sequences to compare equivalent positions.</p><p class="small muted">${CAVEAT}</p></div>`; }
           else q("out").innerHTML = `<p class="small muted">No comparison can be made until the sequences are aligned.</p>`;
         } else q("out").innerHTML = "";
@@ -123,91 +125,57 @@ window.BIO = window.BIO || {}; window.BIO.interactives = window.BIO.interactives
       (c.questions || []).forEach((qq) => q("q").append(B.questions.render(qq)));
       draw();
     };
-    tabs(host, `sl-tabs-${uid}`, cases.map((c) => c.label), (i) => { if (!built.has(i)) { build(i); built.add(i); } panes.forEach((p, k) => (p.hidden = k !== i)); }, panes);
+    cases.forEach((c, i) => { build(i); built.add(i); }); // built at once, so every case's questions are present for the page renderer
+    tabs(host, `sl-tabs-${uid}`, cases.map((c) => c.label), (i) => panes.forEach((p, k) => (p.hidden = k !== i)), panes);
   };
 
   // ======================================== 2. Biodiversity Investigator ========================================
+  // Choose a community, change the abundances with − and + (richness, N and d update live), and work through the
+  // calculation of d one step at a time. (Counting symbols by eye and a side-by-side comparison were removed in the
+  // release review of 2026-11-15: the comparison repeats figure d-3.1.11.2-1.) Values are rounded only for display.
   B.interactives.bdvInvestigator = function (spec, host) {
     const keys = spec.communities || Object.keys(M().COMMUNITIES); const uid = uidOf(); const CM = M().COMMUNITIES;
     host.innerHTML = head(spec, "illustrative counts") + `
       <div class="row" style="flex-wrap:wrap;gap:.5rem"><label class="small">Community: <select id="iv-com-${uid}">${keys.map((k) => `<option value="${k}">${esc(CM[k].title)}</option>`).join("")}</select></label><button class="btn sm" id="iv-reset-${uid}">Reset counts</button></div>
       <p class="small muted mt" id="iv-place-${uid}"></p>
-      <div class="grid grid-2 mt"><div><div class="figure"><div class="fig-view" id="iv-view-${uid}"></div></div><p class="tiny muted">Each species has its own shape and letter. Dotted lines divide the sample area into quarters to help you count.</p></div>
-        <div><div class="card"><h4>1. Count, then check</h4><p class="small">Count each species in the sampling view and enter your counts (n). Then enter N, the total.</p><div id="iv-count-${uid}"></div><div class="row mt" style="flex-wrap:wrap;gap:.5rem"><button class="btn sm" id="iv-check-${uid}">Check my counts</button></div><div id="iv-cfb-${uid}" class="small mt" aria-live="polite"></div></div>
-        <div class="card mt"><h4>2. Change the abundances</h4><p class="small">Use − and + to change how many individuals of each species there are (0 to 60). The view, richness and d update.</p><div id="iv-edit-${uid}"></div></div></div></div>
-      <div class="card mt"><h4>3. Calculate d step by step</h4><p class="small"><strong>d = N(N − 1) ÷ Σn(n − 1)</strong>, N = total number of organisms of all species, n = total number of organisms of each species.</p><div class="row" style="flex-wrap:wrap;gap:.5rem"><button class="btn sm primary" id="iv-next-${uid}">Show next step</button><button class="btn sm" id="iv-all-${uid}">Show all steps</button><button class="btn sm" id="iv-hide-${uid}">Hide steps</button><span class="small muted" id="iv-stepn-${uid}" aria-live="polite"></span></div><div id="iv-steps-${uid}" class="mt" aria-live="polite"></div></div>
-      <div class="card mt"><h4>4. Compare two communities</h4><div class="row" style="flex-wrap:wrap;gap:.5rem"><label class="small">First: <select id="iv-c1-${uid}"></select></label><label class="small">Second: <select id="iv-c2-${uid}"></select></label></div><div id="iv-cmp-${uid}" class="mt"></div></div>
-      <p class="tiny muted mt"><strong>Model notes.</strong> The index is calculated exactly as the specification gives it, with whole-number counts; values are rounded only for display (2 decimal places). When Σn(n − 1) = 0 (no organisms, one organism, or every species represented by one individual) the formula cannot be used and no value is shown. Counts are illustrative, invented for teaching.</p>
-      <h4 class="mt">Questions on the investigator</h4><div id="iv-q-${uid}"></div>`;
+      <div class="ix ix-even"><div class="ix-body"><div class="ix-stage"><div class="figure"><div class="fig-view" id="iv-view-${uid}" style="max-width:320px;margin:0 auto"></div></div></div>
+        <div class="ix-panel"><div class="card"><h4>Change the abundances</h4><p class="small">Use − and + to change the number of individuals of each species (0 to 100).</p><div id="iv-edit-${uid}"></div></div></div></div></div>
+      <div class="card mt"><h4>Calculate d step by step</h4><p class="small"><strong>d = N(N − 1) ÷ Σn(n − 1)</strong>, N = total number of organisms of all species, n = total number of organisms of each species.</p><div class="row" style="flex-wrap:wrap;gap:.5rem"><button class="btn sm primary" id="iv-next-${uid}">Show next step</button><button class="btn sm" id="iv-all-${uid}">Show all steps</button><button class="btn sm" id="iv-hide-${uid}">Hide steps</button><span class="small muted" id="iv-stepn-${uid}" aria-live="polite"></span></div><div id="iv-steps-${uid}" class="mt" aria-live="polite"></div></div>
+      <p class="tiny muted mt">Counts are illustrative, invented for teaching.</p>
+      <div id="iv-q-${uid}"></div>`;
     const $u = (id) => $(`#iv-${id}-${uid}`, host);
     let key = keys[0], counts = [], names = [], sy = [], step = 0;
     const LT = (k) => A().LETTERS[sy[k]]; // each species keeps its own symbol (shape and letter) across communities
-    const load = (k) => { key = k; counts = CM[k].species.map((s) => s[1]); names = CM[k].species.map((s) => s[0]); sy = M().syms(k); step = 0; $u("place").textContent = CM[k].place + (CM[k].note ? ". " + CM[k].note.replace(/\.$/, "") : "") + "."; $u("cfb").innerHTML = ""; renderCount(); renderAll(); };
-    const renderCount = () => { $u("count").innerHTML = `<div style="display:grid;grid-template-columns:auto 1fr auto;gap:.3rem .5rem;align-items:center">${names.map((nm, k) => `<span aria-hidden="true"><svg viewBox="0 0 22 22" width="22" height="22">${A().symbol(sy[k], 11, 11, 9)}</svg></span><label class="small" for="iv-n${k}-${uid}">${LT(k)}: ${esc(nm)}</label><input id="iv-n${k}-${uid}" class="gap-input" inputmode="numeric" autocomplete="off" style="width:4.5em" aria-label="your count of ${esc(nm)}">`).join("")}<span></span><label class="small" for="iv-nN-${uid}"><strong>N (total)</strong></label><input id="iv-nN-${uid}" class="gap-input" inputmode="numeric" autocomplete="off" style="width:4.5em" aria-label="your total N"></div>`; };
+    const load = (k) => { key = k; counts = CM[k].species.map((s) => s[1]); names = CM[k].species.map((s) => s[0]); sy = M().syms(k); step = 0; $u("place").textContent = CM[k].place + (CM[k].note ? ". " + CM[k].note.replace(/\.$/, "") : "") + "."; renderAll(); };
     const result = () => M().index(counts);
     const renderAll = () => {
-      $u("view").innerHTML = A().quadratSVG(counts, names, { seed: 101 + keys.indexOf(key), syms: sy }); fade($u("view").firstElementChild);
+      $u("view").innerHTML = A().quadratSVG(counts, names, { seed: 101 + keys.indexOf(key), syms: sy, size: 280 }); fade($u("view").firstElementChild);
       const r = result();
-      $u("edit").innerHTML = `<div style="display:grid;grid-template-columns:1fr auto auto auto;gap:.3rem .4rem;align-items:center">${names.map((nm, k) => `<span class="small">${LT(k)}: ${esc(nm)}</span><button class="btn sm" data-k="${k}" data-d="-1" aria-label="one fewer ${esc(nm)}" ${counts[k] <= 0 ? "disabled" : ""}>−</button><output class="small" style="min-width:2.2em;text-align:center" aria-live="polite">${counts[k]}</output><button class="btn sm" data-k="${k}" data-d="1" aria-label="one more ${esc(nm)}" ${counts[k] >= 60 ? "disabled" : ""}>+</button>`).join("")}</div><p class="small mt">Species richness: <strong>${r.richness}</strong> · N = <strong>${r.N}</strong> · d = <strong>${r.ok ? M().fix(r.d) : "cannot be calculated"}</strong></p>`;
-      renderSteps(); renderCompare();
+      $u("edit").innerHTML = `<div style="display:grid;grid-template-columns:1fr auto auto auto;gap:.3rem .4rem;align-items:center">${names.map((nm, k) => `<span class="small">${LT(k)}: ${esc(nm)}</span><button class="btn sm" data-k="${k}" data-d="-1" aria-label="one fewer ${esc(nm)}" ${counts[k] <= 0 ? "disabled" : ""}>−</button><output class="small" style="min-width:2.2em;text-align:center" aria-live="polite">${counts[k]}</output><button class="btn sm" data-k="${k}" data-d="1" aria-label="one more ${esc(nm)}" ${counts[k] >= 100 ? "disabled" : ""}>+</button>`).join("")}</div><p class="small mt">Species richness: <strong>${r.richness}</strong> · N = <strong>${r.N}</strong> · d = <strong>${r.ok ? M().fix(r.d) : "cannot be calculated"}</strong></p>`;
+      renderSteps();
     };
     const renderSteps = () => {
       const r = result(); const total = 5; $u("stepn").textContent = step ? `Step ${step} of ${total}` : ""; $u("next").disabled = step >= total;
       if (!step) { $u("steps").innerHTML = ""; return; }
       const show = (s) => step >= s;
-      const rows = names.map((nm, k) => `<tr><td><span title="${esc(nm)}">${LT(k)}</span><span class="sr-only">: ${esc(nm)}</span></td><td>${counts[k]}</td><td>${show(2) ? counts[k] - 1 : ""}</td><td>${show(2) ? `<strong>${counts[k] * (counts[k] - 1)}</strong>` : ""}</td></tr>`).join("");
-      let out = `<p class="tiny muted">Species are shown by their letters, as in the sampling view and the count list.</p><div style="overflow-x:auto;max-width:100%"><table class="tbl" style="display:table;width:100%;table-layout:fixed"><thead><tr><th scope="col" style="width:22%;white-space:normal">Species</th><th scope="col" style="white-space:normal">n</th><th scope="col" style="white-space:normal">n − 1</th><th scope="col" style="width:34%;white-space:normal">n(n − 1)</th></tr></thead><tbody>${rows}<tr><th scope="row" style="white-space:normal">Totals</th><th style="white-space:normal">N = ${r.N}</th><th></th><th style="white-space:normal;overflow-wrap:anywhere">${show(3) ? `Σn(n − 1) = ${r.sigma}` : ""}</th></tr></tbody></table></div><ol class="small">`;
-      out += `<li><strong>N</strong> = ${counts.join(" + ")} = <strong>${r.N}</strong></li>`;
+      const rows = names.map((nm, k) => `<tr><td><span title="${esc(nm)}">${LT(k)}</span><span class="sr-only">: ${esc(nm)}</span></td><td>${counts[k]}</td><td>${show(2) ? (counts[k] > 0 ? counts[k] - 1 : "–") : ""}</td><td>${show(2) ? `<strong>${counts[k] * (counts[k] - 1)}</strong>` : ""}</td></tr>`).join("");
+      let out = `<p class="tiny muted">Species are shown by their letters, as in the sampling view.</p><div style="overflow-x:auto;max-width:100%"><table class="tbl" style="display:table;width:100%;table-layout:fixed"><thead><tr><th scope="col" style="width:22%;white-space:normal">Species</th><th scope="col" style="white-space:normal">n</th><th scope="col" style="white-space:normal">n − 1</th><th scope="col" style="width:34%;white-space:normal">n(n − 1)</th></tr></thead><tbody>${rows}<tr><th scope="row" style="white-space:normal">Totals</th><th style="white-space:normal">N = ${r.N}</th><th></th><th style="white-space:normal;overflow-wrap:anywhere">${show(3) ? `Σn(n − 1) = ${r.sigma}` : ""}</th></tr></tbody></table></div><ol class="small">`;
+      const sumOf = (parts, total) => (parts.length > 1 ? `${parts.join(" + ")} = <strong>${total}</strong>` : `<strong>${total}</strong>`);
+      out += `<li><strong>N</strong> = ${sumOf(counts, r.N)}</li>`;
       if (show(2)) out += `<li>For each species, n(n − 1). A species with n = 1 gives 1 × 0 = 0; a species with n = 0 gives 0.</li>`;
-      if (show(3)) out += `<li><strong>Σn(n − 1)</strong> = ${r.terms.join(" + ")} = <strong>${r.sigma}</strong></li>`;
+      if (show(3)) out += `<li><strong>Σn(n − 1)</strong> = ${sumOf(r.terms, r.sigma)}</li>`;
       if (show(4)) out += `<li><strong>N(N − 1)</strong> = ${r.N} × ${r.N - 1 < 0 ? "(−1)" : r.N - 1} = <strong>${r.top}</strong></li>`;
       if (show(5)) out += r.ok ? `<li><strong>d</strong> = ${r.top} ÷ ${r.sigma} = ${M().fix(r.d, 4)}… = <strong>${M().fix(r.d)}</strong> (2 d.p.)${r.richness === 1 ? " (one species only: d = 1, the lowest possible value)" : ""}</li>` : `<li><strong>d cannot be calculated.</strong> ${esc(r.reason)}</li>`;
       $u("steps").innerHTML = out + "</ol>"; $u("next").disabled = step >= total;
     };
-    const cmpKeys = ["__current", ...keys];
-    const label = (k) => (k === "__current" ? "Current community (with your changes)" : CM[k].title);
-    $u("c1").innerHTML = cmpKeys.map((k) => `<option value="${k}">${esc(label(k))}</option>`).join(""); $u("c2").innerHTML = $u("c1").innerHTML;
-    const [d1, d2] = spec.compare || [keys[0], keys[1]]; $u("c1").value = d1; $u("c2").value = d2;
-    const renderCompare = () => {
-      const pick = (k) => (k === "__current" ? { title: "Current: " + CM[key].title, ns: counts.slice(), names, sy } : { title: CM[k].title, ns: CM[k].species.map((s) => s[1]), names: CM[k].species.map((s) => s[0]), sy: M().syms(k) });
-      const a = pick($u("c1").value), b = pick($u("c2").value); const ra = M().index(a.ns), rb = M().index(b.ns);
-      const bar = (x, r) => { const N = r.N || 1; return `<div style="display:flex;height:22px;border-radius:6px;overflow:hidden;border:1px solid #c8d2dc" role="img" aria-label="relative abundance: ${x.names.map((nm, k) => `${nm} ${x.ns[k]}`).join(", ")}">${x.ns.map((n, k) => (n ? `<div title="${esc(x.names[k])}: ${n}" style="width:${(100 * n) / N}%;background:${A().colours.PAL[x.sy[k] % 8]};color:#fff;font-size:11px;font-weight:700;text-align:center;line-height:22px;overflow:hidden">${(100 * n) / N >= 6 ? A().LETTERS[x.sy[k]] : ""}</div>` : "")).join("")}</div>`; };
-      const card = (x, r) => `<div class="card"><h4 class="small">${esc(x.title)}</h4>${bar(x, r)}<p class="small mt">Richness <strong>${r.richness}</strong> · N = ${r.N} · d = <strong>${r.ok ? M().fix(r.d) : "cannot be calculated"}</strong></p></div>`;
-      let verdict = "";
-      if (ra.ok && rb.ok) { const hi = ra.d > rb.d ? a : rb.d > ra.d ? b : null; verdict = hi ? `<strong>${esc(hi.title)}</strong> is more diverse (higher d).` : "The two values of d are equal."; if (ra.richness === rb.richness && hi) verdict += " Both have the same species richness, so the difference comes from how evenly the individuals are spread among the species."; else if (hi && ((ra.d > rb.d) !== (ra.richness > rb.richness)) && ra.richness !== rb.richness) verdict += " Note that the community with more species does not have the higher d here: evenness matters too."; verdict += " Compare values of d only for samples collected in the same way."; }
-      else verdict = "At least one community has no value of d, so the two cannot be compared with this index.";
-      $u("cmp").innerHTML = `<div class="grid grid-2">${card(a, ra)}${card(b, rb)}</div><p class="small mt">${verdict}</p>`;
-    };
     $u("com").addEventListener("change", (e) => load(e.target.value));
     $u("reset").addEventListener("click", () => load(key));
-    $u("edit").addEventListener("click", (e) => { const b = e.target.closest("button[data-k]"); if (!b) return; const k = +b.dataset.k; counts[k] = Math.max(0, Math.min(60, counts[k] + +b.dataset.d)); renderAll(); const nb = $(`button[data-k="${k}"][data-d="${b.dataset.d}"]`, $u("edit")); if (nb && !nb.disabled) nb.focus(); else { const alt = $(`button[data-k="${k}"]:not([disabled])`, $u("edit")); if (alt) alt.focus(); } });
+    $u("edit").addEventListener("click", (e) => { const b = e.target.closest("button[data-k]"); if (!b) return; const k = +b.dataset.k; counts[k] = Math.max(0, Math.min(100, counts[k] + +b.dataset.d)); renderAll(); const nb = $(`button[data-k="${k}"][data-d="${b.dataset.d}"]`, $u("edit")); if (nb && !nb.disabled) nb.focus(); else { const alt = $(`button[data-k="${k}"]:not([disabled])`, $u("edit")); if (alt) alt.focus(); } });
     $u("next").addEventListener("click", () => { step = Math.min(5, step + 1); renderSteps(); });
     $u("all").addEventListener("click", () => { step = 5; renderSteps(); });
     $u("hide").addEventListener("click", () => { step = 0; $u("next").disabled = false; renderSteps(); });
-    $u("c1").addEventListener("change", renderCompare); $u("c2").addEventListener("change", renderCompare);
-    $u("check").addEventListener("click", () => {
-      const r = result(); let right = 0, wrong = []; names.forEach((nm, k) => { const v = $(`#iv-n${k}-${uid}`, host).value.trim(); const ok = v !== "" && B.util.answerMatches(v, String(counts[k])); $(`#iv-n${k}-${uid}`, host).classList.toggle("ok", ok); $(`#iv-n${k}-${uid}`, host).classList.toggle("bad", !ok); if (ok) right++; else wrong.push(LT(k)); });
-      const vN = $(`#iv-nN-${uid}`, host).value.trim(); const okN = vN !== "" && B.util.answerMatches(vN, String(r.N)); $(`#iv-nN-${uid}`, host).classList.toggle("ok", okN); $(`#iv-nN-${uid}`, host).classList.toggle("bad", !okN);
-      $u("cfb").innerHTML = `<div class="feedback ${right === names.length && okN ? "ok" : "neutral"}"><strong>${right} of ${names.length} species counted correctly${okN ? "; N correct" : "; check N"}.</strong> ${wrong.length ? `Recount species ${wrong.join(", ")}: count one quarter of the sample area at a time.` : ""} ${!okN ? "N is the sum of all the counts." : ""}</div>`;
-    });
     load(key);
     (spec.items || []).flatMap((it) => it.questions || []).forEach((q) => $u("q").append(B.questions.render(q)));
   };
 
-  // ======================================== 3. Conservation Decision Challenge ========================================
-  B.interactives.bdvConservation = function (spec, host) {
-    const sc = spec.items || []; const uid = uidOf();
-    host.innerHTML = head(spec, "evidence and trade-offs") + `
-      <div class="notice small"><strong>How this works.</strong> Each scenario gives evidence and several options with their gains and costs. Choose the option you would recommend (your choice is not marked: different, well-argued choices are all valid), then write your justification in the question below and self-mark it against the scheme. Labels show which material is real (with sources) and which is hypothetical or illustrative.</div>
-      <div class="row mt" role="tablist" aria-label="scenarios" id="cd-tabs-${uid}" style="flex-wrap:wrap"></div><div id="cd-body-${uid}" class="mt"></div>`;
-    const body = $(`#cd-body-${uid}`, host);
-    const panes = sc.map((s, i) => { const d = document.createElement("div"); d.hidden = true; d.setAttribute("role", "tabpanel"); d.id = `cd-pane-${uid}-${i}`;
-      d.innerHTML = `<div class="card"><div class="row" style="justify-content:space-between;flex-wrap:wrap;gap:.4rem;min-width:0"><h4 style="min-width:0">${esc(s.title)}</h4><span class="badge ${/Real/.test(s.tag) ? "teal" : "amber"}" style="white-space:normal;max-width:100%;line-height:1.35">${esc(s.tag)}</span></div><p class="small">${s.context}</p><h4 class="small mt">Evidence</h4><div style="overflow-x:auto">${s.evidence}</div>
-        <fieldset class="mt" style="border:0;padding:0;margin:0"><legend><strong class="small">Options: which would you recommend?</strong></legend>${s.options.map(([o, tr], k) => `<div class="card mt" style="padding:.6rem .8rem"><label class="small"><input type="radio" name="cd-${uid}-${i}" value="${k}"> <strong>${esc(o)}</strong></label><p class="small muted" style="margin:.3rem 0 0 1.6rem">${esc(tr)}</p></div>`).join("")}</fieldset>
-        <div class="small mt" data-r="pick" aria-live="polite"></div></div><h4 class="mt">Interpret the evidence, then justify your choice</h4><div data-r="q"></div>`;
-      body.append(d); (s.questions || []).forEach((q) => $('[data-r="q"]', d).append(B.questions.render(q)));
-      d.addEventListener("change", (e) => { if (e.target.type !== "radio" || !e.target.name.startsWith("cd-")) return; const o = s.options[+e.target.value][0]; $('[data-r="pick"]', d).innerHTML = `<div class="feedback neutral">You chose <strong>${esc(o)}</strong>. There is no single correct answer. A strong justification uses the evidence (quote values), weighs a benefit against a cost for both food production and biodiversity, and says what further evidence would help. Write it in the self-marked question below.</div>`; });
-      return d; });
-    tabs(host, `cd-tabs-${uid}`, sc.map((s) => s.label), (i) => panes.forEach((p, k) => (p.hidden = k !== i)), panes);
-  };
 })(window.BIO);

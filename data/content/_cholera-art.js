@@ -102,17 +102,17 @@ window.BIO = window.BIO || {};
     hyper: { title: "Cholera, over-concentrated sugar and salt", order: "BCL", drink: "drink: far too concentrated", worse: true, cap: ["Co-transport happens, but the lumen holds so much solute that its water potential is far below the cells'.", "More water moves out of the cells into the lumen by osmosis: dehydration gets worse."] },
   };
 
-  // epithelium(mode, { step, animate, ladder, width }) : the core drawing. step limits what is shown (simulator).
+  // epithelium(mode, { step, ladder, width }) : the core drawing. step limits what is shown (simulator).
   const epithelium = (mode = "normal", o = {}) => {
-    uid(); const M = MODES[mode] || MODES.normal; const step = o.step == null ? 99 : o.step; const anim = !!o.animate;
+    uid(); const M = MODES[mode] || MODES.normal; const step = o.step == null ? 99 : o.step;
     const chol = mode !== "normal"; const secretes = chol; const hasCo = mode === "normal" || mode === "ors" || mode === "hyper";
     const label = `${M.title}. Section through the small intestine wall with the lumen at the top, three epithelial cells with microvilli in the middle and a blood capillary at the bottom.`;
-    let s = open(760, 440, label, defsAll() + (anim ? `<style>.cho-flow${U}{stroke-dasharray:12 7;animation:choflow${U} 1.1s linear infinite}@keyframes choflow${U}{to{stroke-dashoffset:-19}}@media (prefers-reduced-motion: reduce){.cho-flow${U}{animation:none}}</style>` : ""));
+    let s = open(760, 440, label, defsAll());
     s += T(20, 20, M.title, { a: "start", s: 13, w: 700 });
     // lumen, tissue fluid, capillary
     s += `<rect x="20" y="30" width="560" height="112" fill="#fdf5df"/>` + T(30, 48, "LUMEN of the small intestine", { a: "start", s: 11, w: 700, c: "#7a5a12" });
     if (M.drink) s += `<rect x="215" y="36" width="${M.drink.length * 6 + 14}" height="17" rx="8" fill="#fff" stroke="#c9a24a"/>` + T(222, 48.5, M.drink, { a: "start", s: 10, w: 600, c: "#7a5a12" });
-    s += `<rect x="20" y="292" width="560" height="48" fill="#f2f7f4"/>` + T(30, 306, "basal membrane", { a: "start", s: 9.5, w: 500, c: GREY }) + T(30, 330, "tissue fluid", { a: "start", s: 9.5, w: 500, c: GREY });
+    s += `<rect x="20" y="292" width="560" height="48" fill="#f2f7f4"/>` + T(30, 308, "basal membrane", { a: "start", s: 10, w: 500, c: GREY }) + L(104, 303, 116, 293, { c: GREY, w: 1 }) + T(30, 330, "tissue fluid", { a: "start", s: 9.5, w: 500, c: GREY });
     s += `<rect x="20" y="342" width="560" height="62" rx="28" fill="#fbe3e3" stroke="#b4504f" stroke-width="1.5"/>` + T(40, 377, "BLOOD in a capillary", { a: "start", s: 11, w: 700, c: "#8f3434" });
     [250, 330, 410, 520].forEach((x, i) => { s += `<ellipse cx="${x}" cy="${370 + (i % 2) * 12}" rx="13" ry="7" fill="#f3b7b7" stroke="#c46a6a" stroke-width="1"/>`; });
     // cells with microvilli and nuclei
@@ -144,13 +144,13 @@ window.BIO = window.BIO || {};
       s += `<g opacity="${coOp}"><rect x="290" y="126" width="30" height="30" rx="6" fill="#f6e7c4" stroke="${NA}" stroke-width="1.4"/>`;
       s += L(297, 78, 297, 198, { c: NA, w: 2.6, m: "na" }) + L(313, 78, 313, 198, { c: GLU, w: 2.6, m: "glu" });
       s += T(291, 74, "Na⁺", { a: "end", s: 11, w: 800, c: NA }) + T(319, 74, "glucose", { a: "start", s: 11, w: 800, c: GLU });
-      s += T(305, 214, "Na⁺–glucose", { s: 9.5, w: 700, c: INK }) + T(305, 226, "co-transporter", { s: 9.5, w: 700, c: INK }) + `</g>`;
-      if (!hasCo) { const t = { cholera: ["(still works: not", "blocked by the toxin)"], salt: ["(no glucose: little", "co-transport)"], glucose: ["(some, with Na⁺", "from the lumen)"], water: ["(nothing extra", "to carry)"] }[mode] || ["", ""]; s += T(305, 237, t[0], { s: 9, w: 600, c: GREY }) + T(305, 247, t[1], { s: 9, w: 600, c: GREY }); }
+      s += T(305, 212, "Na⁺–glucose", { s: 9.5, w: 700, c: INK }) + T(305, 226, "co-transporter", { s: 9.5, w: 700, c: INK }) + `</g>`;
+      if (!hasCo) { const t = { cholera: ["(still works: not", "blocked by the toxin)"], salt: ["(no glucose: little", "co-transport)"], glucose: ["(some, with Na⁺", "from the lumen)"], water: ["(nothing extra", "to carry)"] }[mode] || ["", ""]; s += T(305, 241, t[0], { s: 9, w: 600, c: GREY }) + T(305, 255, t[1], { s: 9, w: 600, c: GREY }); }
     }
     if (step >= pumpStep) {
-      s += `<g opacity="${coOp}"><circle cx="257" cy="292" r="12" fill="#f6e7c4" stroke="${NA}" stroke-width="1.4"/>` + T(257, 256, "ATP", { s: 9.5, w: 700, c: NA });
+      s += `<g opacity="${coOp}"><circle cx="257" cy="292" r="12" fill="#f6e7c4" stroke="${NA}" stroke-width="1.4"/>` + T(273, 290, "ATP", { s: 9.5, w: 700, c: NA, a: "start" }); // round 2: beside the pump, clear of the co-transporter note
       s += L(251, 270, 251, 336, { c: NA, w: 2.2, m: "na" }) + L(264, 334, 264, 272, { c: KC, w: 2.2, m: "k" });
-      s += T(244, 332, "3Na⁺", { a: "end", s: 9.5, w: 700, c: NA }) + T(270, 332, "2K⁺", { a: "start", s: 9.5, w: 700, c: KC });
+      s += T(245, 333, "3Na⁺", { a: "end", s: 11, w: 700, c: NA }) + T(270, 333, "2K⁺", { a: "start", s: 11, w: 700, c: KC });
       s += T(244, 304, "Na⁺/K⁺ pump", { a: "end", s: 9.5, w: 600, c: NA });
       s += `<rect x="340" y="281" width="13" height="23" rx="3" fill="#d6eedd" stroke="${GLU}" stroke-width="1.3"/>` + L(346.5, 238, 346.5, 336, { c: GLU, w: 2.2, m: "glu" }) + T(356, 322, "glucose", { a: "start", s: 9.5, w: 700, c: GLU }) + `</g>`;
     }
@@ -160,9 +160,9 @@ window.BIO = window.BIO || {};
     if (step >= wStep) {
       const xs = M.worse ? [450, 485, 520] : [455, 515];
       const wv = mode === "water" || mode === "salt" || mode === "glucose" ? 2.6 : M.worse ? 4.2 : 3.6;
-      xs.forEach((x) => { s += down ? L(x, 60, x, 388, { c: WAT, w: wv, m: "w", cls: anim ? `cho-flow${U}` : "" }) : L(x, 388, x, 60, { c: WAT, w: wv, m: "w", cls: anim ? `cho-flow${U}` : "" }); });
+      xs.forEach((x) => { s += down ? L(x, 60, x, 388, { c: WAT, w: wv, m: "w" }) : L(x, 388, x, 60, { c: WAT, w: wv, m: "w" }); });
       s += `<rect x="463" y="${down ? 168 : 168}" width="44" height="30" rx="5" fill="#ffffff" opacity="0.92"/>` + T(485, 181, "H₂O", { s: 12, w: 800, c: WAT }) + T(485, 194, "osmosis", { s: 9, w: 600, c: WAT });
-      if (M.worse) s += `<rect x="446" y="226" width="78" height="26" rx="5" fill="#ffffff" opacity="0.92"/>` + T(485, 236, "more water", { s: 9.5, w: 700, c: WAT }) + T(485, 247, "drawn out", { s: 9.5, w: 700, c: WAT });
+      if (M.worse) s += `<rect x="444" y="202" width="82" height="28" rx="5" fill="#ffffff" opacity="0.92"/>` + T(485, 213, "more water", { s: 10, w: 700, c: WAT }) + T(485, 225, "drawn out", { s: 10, w: 700, c: WAT }); // R5-36: clear of the nucleus
     }
     // ---- water-potential ladder ----
     const ladStep = mode === "normal" ? 3 : mode === "cholera" ? 5 : 0;

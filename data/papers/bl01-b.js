@@ -14,7 +14,7 @@ window.BIO = window.BIO || {}; window.BIO.papers = window.BIO.papers || {};
     let s = `<svg viewBox="0 0 640 430" width="640" ${FONT} role="img" aria-label="Drawing made from a transmission electron micrograph of part of a silk gland cell. Structure A is a set of parallel membranes studded with dots. Structure B is a stack of curved flattened sacs with small vesicles at its edges. M is an oval organelle with folded inner membranes. Part of the nucleus is at the bottom left. A scale bar is at the bottom right.">`;
     s += `<rect x="0" y="0" width="640" height="430" fill="#fff"/>`;
     // lumen and apical plasma membrane with microvilli
-    s += `<rect x="20" y="14" width="600" height="34" fill="#f4f7fa"/>` + T(320, 36, "lumen of silk gland", { s: 12, c: GREY, style: "italic" });
+    s += `<rect x="20" y="14" width="600" height="34" fill="#f4f7fa"/>` + T(320, 38, "lumen of silk gland", { s: 18, c: GREY, style: "italic" });
     let mv = "M20 62"; for (let x = 20; x < 620; x += 20) mv += ` L${x + 4} 62 L${x + 4} 50 Q${x + 8} 45 ${x + 12} 50 L${x + 12} 62 L${x + 20} 62`;
     s += `<path d="${mv}" fill="none" stroke="${INK}" stroke-width="2"/>`;
     // secretory vesicles near the apical membrane
@@ -49,11 +49,11 @@ window.BIO = window.BIO || {}; window.BIO.papers = window.BIO.papers || {};
     [70, 130, 190, 245].forEach((x) => { const t = (x - 20) / 270; const y = (1 - t) * (1 - t) * 334 + 2 * (1 - t) * t * 272.5 + t * t * 356; s += `<rect x="${x - 3}" y="${(y - 6).toFixed(1)}" width="6" height="12" fill="#fff"/>`; });
     [[60, 380], [95, 365], [150, 395], [210, 380], [250, 405], [120, 415], [180, 360]].forEach(([x, y], i) => { s += `<circle cx="${x}" cy="${y}" r="${4 + (i % 3)}" fill="#c4cbd6"/>`; });
     // labels
-    const lab = (lx, ly, x2, y2, t) => `<line x1="${lx}" y1="${ly}" x2="${x2}" y2="${y2}" stroke="${INK}" stroke-width="1.2"/>` + T(lx + (lx < x2 ? -10 : 10), ly + 5, t, { s: 16, w: 700 });
+    const lab = (lx, ly, x2, y2, t) => `<line x1="${lx}" y1="${ly}" x2="${x2}" y2="${y2}" stroke="${INK}" stroke-width="1.2"/>` + T(lx + (lx < x2 ? -10 : 10), ly + 7, t, { s: 22, w: 700 });
     s += lab(30, 112, 70, 133, "A") + lab(610, 152, 560, 150, "B") + lab(470, 352, 470, 316, "");
-    s += T(470, 364, "M", { s: 16, w: 700 });
+    s += T(470, 370, "M", { s: 22, w: 700 });
     // scale bar: 120 units represents 2 µm (mitochondrion M is 90 units long)
-    s += `<line x1="480" y1="404" x2="600" y2="404" stroke="${INK}" stroke-width="4"/>` + T(540, 422, "2 µm", { s: 13, w: 600 });
+    s += `<line x1="480" y1="404" x2="600" y2="404" stroke="${INK}" stroke-width="4"/>` + T(540, 426, "2 µm", { s: 20, w: 700 });
     return s + `</svg>`;
   })();
 
@@ -173,11 +173,11 @@ window.BIO = window.BIO || {}; window.BIO.papers = window.BIO.papers || {};
     let s = `<svg viewBox="0 0 600 395" width="600" ${FONT} role="img" aria-label="Frequency polygons of the mass of 100 date fruits from each of two farms. Farm A, solid line with circles, is narrow and tall with a peak of 31 fruits in the 11 to 12 gram class. Farm B, dashed line with squares, is wider and lower with a peak of 16 fruits in the 9 to 10 gram class.">`;
     s += `<rect x="0" y="0" width="600" height="395" fill="#fff"/>`;
     for (let m = xmin; m <= xmax; m++) s += `<line x1="${px(m)}" y1="${Y0}" x2="${px(m)}" y2="${Y1}" stroke="${GRID}"/>`;
-    for (let n = 0; n <= ymax; n += 5) s += `<line x1="${X0}" y1="${py(n)}" x2="${X1}" y2="${py(n)}" stroke="${GRID}"/>` + `<line x1="${X0 - 5}" y1="${py(n)}" x2="${X0}" y2="${py(n)}" stroke="${INK}"/>` + T(X0 - 9, py(n) + 6, n, { s: 17, a: "end" });
+    for (let n = 0; n <= ymax; n += 5) s += `<line x1="${X0}" y1="${py(n)}" x2="${X1}" y2="${py(n)}" stroke="${GRID}"/>` + `<line x1="${X0 - 5}" y1="${py(n)}" x2="${X0}" y2="${py(n)}" stroke="${INK}"/>` + T(X0 - 9, py(n) + 6, n, { s: 20, a: "end" });
     s += `<rect x="${X0}" y="${Y0}" width="${X1 - X0}" height="${Y1 - Y0}" fill="none" stroke="${INK}" stroke-width="1.4"/>`;
-    for (let m = xmin; m <= xmax; m += 2) s += `<line x1="${px(m)}" y1="${Y1}" x2="${px(m)}" y2="${Y1 + 5}" stroke="${INK}"/>` + T(px(m), Y1 + 24, m, { s: 17 });
-    s += T((X0 + X1) / 2, 378, "Mass of fruit / g", { s: 17, w: 600 });
-    s += T(24, (Y0 + Y1) / 2, "Number of fruits", { s: 17, w: 600, rot: -90 });
+    for (let m = xmin; m <= xmax; m += 2) s += `<line x1="${px(m)}" y1="${Y1}" x2="${px(m)}" y2="${Y1 + 5}" stroke="${INK}"/>` + T(px(m), Y1 + 26, m, { s: 20 });
+    s += T((X0 + X1) / 2, 378, "Mass of fruit / g", { s: 20, w: 600 });
+    s += T(24, (Y0 + Y1) / 2, "Number of fruits", { s: 20, w: 600, rot: -90 });
     const pts = (D, lo, hi) => { const a = []; for (let k = lo; k <= hi; k++) a.push([k + 0.5, D[k] || 0]); return a; };
     const A = pts(farmA, 7, 16), Bp = pts(farmB, 2, 16);
     s += `<polyline points="${Bp.map(([m, n]) => `${px(m).toFixed(1)},${py(n).toFixed(1)}`).join(" ")}" fill="none" stroke="#a5531c" stroke-width="2" stroke-dasharray="7 5"/>`;
@@ -185,8 +185,8 @@ window.BIO = window.BIO || {}; window.BIO.papers = window.BIO.papers || {};
     s += `<polyline points="${A.map(([m, n]) => `${px(m).toFixed(1)},${py(n).toFixed(1)}`).join(" ")}" fill="none" stroke="#1e3a5f" stroke-width="2.2"/>`;
     A.forEach(([m, n]) => { s += `<circle cx="${px(m).toFixed(1)}" cy="${py(n).toFixed(1)}" r="4.5" fill="#1e3a5f"/>`; });
     // legend in the top margin, above the plot area (clear of both curves)
-    s += `<line x1="84" y1="24" x2="118" y2="24" stroke="#1e3a5f" stroke-width="2.2"/><circle cx="101" cy="24" r="4.5" fill="#1e3a5f"/>` + T(126, 29, "Farm A (drip irrigation)", { s: 15, a: "start" });
-    s += `<line x1="334" y1="24" x2="368" y2="24" stroke="#a5531c" stroke-width="2" stroke-dasharray="7 5"/><rect x="347" y="20" width="8" height="8" fill="#fff" stroke="#a5531c" stroke-width="2"/>` + T(376, 29, "Farm B (flood irrigation)", { s: 15, a: "start" });
+    s += `<line x1="84" y1="24" x2="118" y2="24" stroke="#1e3a5f" stroke-width="2.2"/><circle cx="101" cy="24" r="4.5" fill="#1e3a5f"/>` + T(126, 30, "Farm A (drip)", { s: 18, a: "start" });
+    s += `<line x1="334" y1="24" x2="368" y2="24" stroke="#a5531c" stroke-width="2" stroke-dasharray="7 5"/><rect x="347" y="20" width="8" height="8" fill="#fff" stroke="#a5531c" stroke-width="2"/>` + T(376, 30, "Farm B (flood)", { s: 18, a: "start" });
     return s + `</svg>`;
   })();
 
@@ -323,7 +323,7 @@ window.BIO = window.BIO || {}; window.BIO.papers = window.BIO.papers || {};
             model: "A is rough endoplasmic reticulum. B is the Golgi apparatus.",
             commonErrors: "Writing 'endoplasmic reticulum' without 'rough': the ribosomes on the membranes are the identifying feature. Calling the Golgi stack 'cristae' or 'thylakoids'." },
           { id: "p-bl01b-01-2", label: "01.2", ref: "3.1.2.1", stmts: ["3.1.2.1.s6"], ao: ["AO2"], type: "short", marks: 2,
-            stem: "In the original micrograph the scale bar was 24 mm long and the image of mitochondrion <strong>M</strong> was 18 mm long.\nCalculate the actual length of mitochondrion <strong>M</strong>. Give your answer in µm.",
+            stem: "The scale bar in Figure 1 represents 2 µm. In the original micrograph the scale bar was 24 mm long and the image of mitochondrion <strong>M</strong> was 18 mm long.\nCalculate the actual length of mitochondrion <strong>M</strong>. Give your answer in µm.",
             scheme: [{ point: "Magnification = ×12 000 (24 000 µm ÷ 2 µm) OR correct ratio method shown (18 ÷ 24 × 2)", marks: 1 }, { point: "1.5 µm (correct answer with no working = 2 marks; 0.0015 mm or 1500 nm = 1 mark only, as the answer must be in µm)", marks: 1 }],
             model: "Magnification = image size ÷ actual size = 24 mm ÷ 2 µm = 24 000 µm ÷ 2 µm = ×12 000. Actual length of M = 18 mm ÷ 12 000 = 18 000 µm ÷ 12 000 = 1.5 µm. (Or: M is 18/24 of the scale bar, and 18/24 × 2 µm = 1.5 µm.)",
             commonErrors: "Not converting mm to µm (giving 0.0015). Inverting the formula (12 000 ÷ 18). Writing the magnification as 12 or 1 200 after a slip in unit conversion." },

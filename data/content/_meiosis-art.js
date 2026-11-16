@@ -21,7 +21,7 @@ window.BIO = window.BIO || {};
   const INK = "#16263a", GREY = "#6b7d8f", TEAL = "#1f8a8a", NAVY = "#1e3a5f", AMBER = "#c8902a", MINT = "#d6efec";
   const MAT = "#c0504d", PAT = "#2f6db5", CELL = "#f8f3e6", CELLS = "#b49a63";
   const COL = { M: MAT, P: PAT, F1: "#1e3f7a", F2: "#6fa3dc", M1: "#8e2f2c", M2: "#e39a8f" };
-  const W = 9, SP = 12; // chromatid stroke width; centre-to-centre spacing of sister chromatids
+  const W = 9, SP = 14; // chromatid stroke width; centre-to-centre spacing of sister chromatids
   const T = (x, y, s, o = {}) => `<text x="${x}" y="${y}" text-anchor="${o.a || "middle"}" font-size="${o.s || 12}" font-weight="${o.w || 500}" fill="${o.c || INK}"${o.i ? ' font-style="italic"' : ""}>${s}</text>`;
   const L = (x1, y1, x2, y2, o = {}) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${o.c || INK}" stroke-width="${o.w || 1.5}"${o.d ? ` stroke-dasharray="${o.d}"` : ""}${o.cap ? ` stroke-linecap="${o.cap}"` : ""}${o.m ? ` marker-end="url(#${o.m}${U})"` : ""}/>`;
   // Marker ids are suffixed per drawing so that copies of one diagram on a page never share an id.
@@ -71,7 +71,7 @@ window.BIO = window.BIO || {};
 
   // ================= DRAWING PRIMITIVES =================
   const colAt = (cd, p) => { const g = cd.segs.find((s) => p >= s.a && p <= s.b) || cd.segs[0]; return COL[g.o]; };
-  const tag = (x, y, t, c) => `<rect x="${x - 5.5}" y="${y - 6.5}" width="11" height="13" rx="3" fill="#fff" stroke="${c}" stroke-width="1.4"/>` + T(x, y + 3.6, t, { s: 9.5, w: 700 });
+  const tag = (x, y, t, c) => `<rect x="${x - 6.5}" y="${y - 7.5}" width="13" height="15" rx="3" fill="#fff" stroke="${c}" stroke-width="1.4"/>` + T(x, y + 4.3, t, { s: 12, w: 700 });
   function chromatid(cd, x, y0, len, clip) {
     let s = "";
     for (const g of cd.segs) {
@@ -92,7 +92,7 @@ window.BIO = window.BIO || {};
   }
   // A homologous pair side by side (the left homologue L, the right homologue R), with the recombinant chromatid of each
   // placed on the inside so that any exchange is between non-sister chromatids. chiasma: draw the crossing strands.
-  const BD = 13; // half the distance between the centromeres of the two homologues in a pair
+  const BD = 16; // half the distance between the centromeres of the two homologues in a pair
   function biv(Lc, Rc, x, y0, o = {}) {
     const ordL = Lc.cds[0].rec ? [Lc.cds[1], Lc.cds[0]] : Lc.cds; const ordR = Rc.cds[1].rec ? [Rc.cds[1], Rc.cds[0]] : Rc.cds;
     const f = o.f, len = Lc.len; let s = "";
@@ -119,7 +119,7 @@ window.BIO = window.BIO || {};
     if (lay === "row") {
       const gap = o.gap || 30; const ws = items.map(itemW); const tot = ws.reduce((a, b) => a + b, 0) + gap * (items.length - 1);
       const hmax = Math.max(...items.map(itemLen)); rx = Math.max(tot / 2 + 48, o.minR || 60); ry = Math.max(hmax / 2 + 38, o.minR || 60);
-      let x = -tot / 2; const jig = o.jig === false ? [0] : [-7, 6, -3, 8, -6, 4, -8, 5];
+      let x = -tot / 2; const jig = o.jig === true ? [-7, 6, -3, 8, -6, 4, -8, 5] : [0]; // release review 2026-11-15: chromosomes on one baseline by default, so homologues do not look like different lengths
       items.forEach((it, i) => { const cx = x + ws[i] / 2; s += drawItem(it, cx, -itemLen(it) / 2 + jig[i % jig.length], tags); x += ws[i] + gap; });
     } else {
       const gap = 14; const tot = items.map(itemLen).reduce((a, b) => a + b, 0) + gap * (items.length - 1); const wmax = Math.max(...items.map(itemW));
@@ -157,7 +157,7 @@ window.BIO = window.BIO || {};
     uid(); const c = stageCell(m, pt, side, o); const k = Math.min(o.k || 1, (o.maxH || 190) / c.ry); const w = Math.ceil(2 * c.rx * k + 24), hgt = Math.ceil(2 * c.ry * k + 24 + (o.caption ? 22 : 0));
     return svg(w, hgt, o.aria || "drawing of a cell with chromosomes", place(c, w / 2, c.ry * k + 12, k) + (o.caption ? T(w / 2, hgt - 8, o.caption, { s: 11, c: GREY }) : ""), o.width || w);
   }
-  const legend = (x, y) => `<rect x="${x}" y="${y - 9}" width="22" height="9" rx="4" fill="${MAT}"/>` + T(x + 28, y, "maternal", { a: "start", s: 11 }) + `<rect x="${x + 92}" y="${y - 9}" width="22" height="9" rx="4" fill="${PAT}"/>` + T(x + 120, y, "paternal", { a: "start", s: 11 }) + `<rect x="${x + 186}" y="${y - 9}" width="20" height="9" rx="4" fill="${INK}"/>` + T(x + 212, y, "centromere", { a: "start", s: 11 });
+  const legend = (x, y) => `<rect x="${x}" y="${y - 10}" width="22" height="10" rx="4" fill="${MAT}"/>` + T(x + 28, y, "maternal", { a: "start", s: 13.5 }) + `<rect x="${x + 100}" y="${y - 10}" width="22" height="10" rx="4" fill="${PAT}"/>` + T(x + 128, y, "paternal", { a: "start", s: 13.5 }) + `<rect x="${x + 200}" y="${y - 10}" width="20" height="10" rx="4" fill="${INK}"/>` + T(x + 226, y, "centromere", { a: "start", s: 13.5 });
   const arrow = (x1, y1, x2, y2, col = GREY) => L(x1, y1, x2, y2, { c: col, w: 2, m: "ma" });
 
   // ================= DIAGRAMS =================
@@ -166,19 +166,19 @@ window.BIO = window.BIO || {};
     uid(); const m = build("two", { cross: [true, false], orient: [true, true] }); const n = 2;
     let s = `<defs>${marker("ma", GREY)}</defs>`;
     const cols = [95, 280, 470, 660, 860]; const titles = [["Parent cell", "before DNA replication"], ["DNA has replicated", "each chromosome: 2 chromatids"], ["Homologous pairs form;", "crossing over"], ["After the first division", "homologous chromosomes separated"], ["After the second division", "sister chromatids separated"]];
-    titles.forEach(([a, b], i) => { s += T(cols[i], 22, a, { s: 12.5, w: 700 }) + T(cols[i], 38, b, { s: 10.5, c: GREY }); });
+    titles.forEach(([a, b], i) => { s += T(cols[i], 22, a, { s: 12.5, w: 700 }) + T(cols[i], 38, b, { s: 12, c: GREY }); });
     const c1 = stageCell(m, "g1"), c2 = stageCell(m, "rep"), c3 = stageCell(m, "cross");
     s += place(c1, cols[0], 200, 0.64) + place(c2, cols[1], 200, 0.6) + place(c3, cols[2], 200, 0.74);
     const d0 = stageCell(m, "afterI", 0, { envelope: true }), d1 = stageCell(m, "afterI", 1, { envelope: true });
     s += place(d0, cols[3], 125, 0.72) + place(d1, cols[3], 285, 0.72);
-    const gy = [100, 190, 280, 370]; m.gametes.forEach((g, i) => { s += place(stageCell(m, "end", i, { minR: 50 }), cols[4] - 18, gy[i], 0.52) + T(cols[4] + 40, gy[i] + 4, m.gametes[i].map((c) => c.cds[0].al.map((a) => a.t).join("")).join(" "), { s: 10.5, w: 700, a: "start" }); });
+    const gy = [100, 190, 280, 370]; m.gametes.forEach((g, i) => { s += place(stageCell(m, "end", i, { minR: 50 }), cols[4] - 18, gy[i], 0.52) + T(cols[4] + 40, gy[i] + 4, m.gametes[i].map((c) => c.cds[0].al.map((a) => a.t).join("")).join(" "), { s: 12, w: 700, a: "start" }); });
     s += arrow(160, 200, 198, 200) + arrow(362, 200, 392, 200) + arrow(548, 186, 600, 140) + arrow(548, 214, 600, 270) + arrow(712, 115, 800, 100) + arrow(712, 135, 800, 185) + arrow(712, 275, 800, 275) + arrow(712, 295, 800, 362);
-    s += T(560, 116, "division I", { s: 10.5, c: TEAL, w: 700 }) + T(760, 210, "division II", { s: 10.5, c: TEAL, w: 700 });
+    s += T(560, 116, "division I", { s: 12, c: TEAL, w: 700 }) + T(760, 210, "division II", { s: 12, c: TEAL, w: 700 });
     // counts table
     const rows = [(c) => `${c.chromosomes} chromosomes per cell`, (c) => (c.chromatidsPer === 1 ? "1 chromatid per chromosome" : "2 chromatids per chromosome"), (c) => `DNA per cell: ${c.dnaX === 1 ? "x" : c.dnaX + "x"}`, (c) => c.ploidy];
     const pts = ["g1", "rep", "cross", "afterI", "end"]; s += `<rect x="8" y="420" width="944" height="94" rx="10" fill="#f4f7f9" stroke="#dfe6ec"/>`;
     rows.forEach((fn, r) => { const y = 440 + r * 21; pts.forEach((p, i) => { const c = counts(p, n); s += T(cols[i], y, fn(c), { s: r === 3 ? 12.5 : 11.5, w: r === 3 ? 700 : 500, c: r === 3 ? (c.ploidy === "diploid" ? NAVY : TEAL) : INK }); }); });
-    s += legend(250, 536) + T(700, 536, "x = DNA content of one gamete", { s: 11, c: GREY });
+    s += legend(250, 536) + T(700, 536, "x = DNA content of one gamete", { s: 12, c: GREY });
     return svg(960, 546, "Overview of meiosis in a cell with two homologous pairs: a diploid parent cell replicates its DNA, homologous chromosomes pair and cross over, the first division separates homologous chromosomes into two haploid cells, and the second division separates sister chromatids to give four genetically different haploid cells; counts of chromosomes, chromatids and DNA are given under each panel", s);
   }
 
@@ -187,23 +187,23 @@ window.BIO = window.BIO || {};
     uid(); let s = `<defs>${marker("ma", GREY)}</defs>`; const p = ORGS.two.pairs[0], q = ORGS.two.pairs[1];
     const un = homologue(p, "M", false), rM = homologue(p, "M"), rP = homologue(p, "P"), other = homologue(q, "P");
     const y0 = 70;
-    s += T(90, 26, "Before replication", { s: 12, w: 700 }) + T(90, 41, "1 chromosome =", { s: 10.5, c: GREY }) + T(90, 54, "1 DNA molecule", { s: 10.5, c: GREY });
+    s += T(90, 26, "Before replication", { s: 12, w: 700 }) + T(90, 41, "1 chromosome =", { s: 12, c: GREY }) + T(90, 54, "1 DNA molecule", { s: 12, c: GREY });
     s += chr(un, 90, y0);
-    s += T(270, 26, "After replication", { s: 12, w: 700 }) + T(270, 41, "still 1 chromosome,", { s: 10.5, c: GREY }) + T(270, 54, "made of 2 sister chromatids", { s: 10.5, c: GREY });
+    s += T(270, 26, "After replication", { s: 12, w: 700 }) + T(270, 41, "still 1 chromosome,", { s: 12, c: GREY }) + T(270, 54, "made of 2 sister chromatids", { s: 12, c: GREY });
     s += chr(rM, 270, y0);
-    s += L(250, y0 + 70, 216, y0 + 92, { c: GREY, w: 1 }) + T(212, y0 + 104, "sister chromatids", { s: 10.5, a: "end" }) + T(212, y0 + 117, "(identical copies)", { s: 10, a: "end", c: GREY });
-    s += L(285, y0 + p.cen * p.len, 298, y0 + p.cen * p.len - 14, { c: GREY, w: 1 }) + T(301, y0 + p.cen * p.len - 16, "centromere", { s: 10.5, a: "start" });
+    s += L(250, y0 + 70, 216, y0 + 92, { c: GREY, w: 1 }) + T(212, y0 + 104, "sister chromatids", { s: 12, a: "end" }) + T(212, y0 + 117, "(identical copies)", { s: 12, a: "end", c: GREY });
+    s += L(285, y0 + p.cen * p.len, 298, y0 + p.cen * p.len - 14, { c: GREY, w: 1 }) + T(301, y0 + p.cen * p.len - 16, "centromere", { s: 12, a: "start" });
     s += `<rect x="372" y="12" width="250" height="250" rx="12" fill="#f6f9fb" stroke="#dfe6ec"/>`;
-    s += T(497, 32, "A homologous pair", { s: 12.5, w: 700 }) + T(497, 47, "(both replicated)", { s: 10.5, c: GREY });
+    s += T(497, 32, "A homologous pair", { s: 12.5, w: 700 }) + T(497, 47, "(both replicated)", { s: 12, c: GREY });
     s += biv(rM, rP, 470, y0 + 4, {});
     const yA = y0 + 4 + 0.13 * p.len, yB = y0 + 4 + 0.84 * p.len;
-    s += L(504, yA, 532, yA, { c: GREY, w: 1 }) + T(536, yA - 2, "same locus,", { s: 10, a: "start" }) + T(536, yA + 10, "alleles A and a", { s: 10, a: "start" });
-    s += L(504, yB, 532, yB, { c: GREY, w: 1 }) + T(536, yB - 2, "same locus,", { s: 10, a: "start" }) + T(536, yB + 10, "alleles B and b", { s: 10, a: "start" });
-    s += T(436, y0 + 112, "maternal", { s: 10.5, c: MAT, w: 700, a: "end" }) + T(505, y0 + 112, "paternal", { s: 10.5, c: PAT, w: 700, a: "start" });
-    s += T(497, 196, "same length, same centromere position,", { s: 10.5 }) + T(497, 210, "same genes at the same loci;", { s: 10.5 }) + T(497, 224, "the alleles may differ", { s: 10.5 }) + T(497, 246, "one from each parent", { s: 10.5, c: GREY });
-    s += T(700, 26, "Not homologous", { s: 12, w: 700 }) + T(700, 41, "with the pair shown", { s: 10.5, c: GREY });
+    s += L(504, yA, 532, yA, { c: GREY, w: 1 }) + T(536, yA - 2, "same locus,", { s: 12, a: "start" }) + T(536, yA + 10, "alleles A and a", { s: 12, a: "start" });
+    s += L(504, yB, 532, yB, { c: GREY, w: 1 }) + T(536, yB - 2, "same locus,", { s: 12, a: "start" }) + T(536, yB + 10, "alleles B and b", { s: 12, a: "start" });
+    s += T(436, y0 + 112, "maternal", { s: 12, c: MAT, w: 700, a: "end" }) + T(505, y0 + 112, "paternal", { s: 12, c: PAT, w: 700, a: "start" });
+    s += T(497, 196, "same length, same centromere position,", { s: 12 }) + T(497, 210, "same genes at the same loci;", { s: 12 }) + T(497, 224, "the alleles may differ", { s: 12 }) + T(497, 246, "one from each parent", { s: 12, c: GREY });
+    s += T(700, 26, "Not homologous", { s: 12, w: 700 }) + T(700, 41, "with the pair shown", { s: 12, c: GREY });
     s += chr(other, 700, y0 + 10);
-    s += T(700, y0 + 84, "different length,", { s: 10.5 }) + T(700, y0 + 98, "centromere and genes", { s: 10.5 });
+    s += T(700, y0 + 84, "different length,", { s: 12 }) + T(700, y0 + 98, "centromere and genes", { s: 12 });
     s += legend(250, 290);
     return svg(780, 300, "An unreplicated chromosome, a replicated chromosome made of two sister chromatids joined at a centromere, a homologous pair (one maternal and one paternal chromosome of the same length and centromere position carrying alleles A and a, and B and b, at the same loci) and a shorter chromosome that is not homologous with them", s);
   }
@@ -213,18 +213,18 @@ window.BIO = window.BIO || {};
     uid(); let s = `<defs>${marker("ma", GREY)}</defs>`; const p = ORGS.two.pairs[0];
     const M0 = homologue(p, "M"), P0 = homologue(p, "P"); const M1 = homologue(p, "M"), P1 = homologue(p, "P"); crossPair(p, M1, P1);
     const y0 = 66; const xs = [120, 380, 640];
-    [["1  Homologous chromosomes pair", "4 chromatids side by side"], ["2  Non-sister chromatids cross", "at a chiasma, break and rejoin"], ["3  Sections have been exchanged", "new combinations of alleles"]].forEach(([a, b], i) => { s += T(xs[i], 22, a, { s: 12, w: 700 }) + T(xs[i], 38, b, { s: 10.5, c: GREY }); });
+    [["1  Homologous chromosomes pair", "4 chromatids side by side"], ["2  Non-sister chromatids cross", "at a chiasma, break and rejoin"], ["3  Sections have been exchanged", "new combinations of alleles"]].forEach(([a, b], i) => { s += T(xs[i], 22, a, { s: 12, w: 700 }) + T(xs[i], 38, b, { s: 12, c: GREY }); });
     s += biv(M0, P0, xs[0], y0, {});
     // panel 2: the crossing strands of the two non-sister chromatids, each keeping its own colour
     s += biv(M1, P1, xs[1], y0, { f: p.f, chiasma: true });
-    const yf = y0 + p.f * p.len; s += L(xs[1] + 2, yf + 2, xs[1] + 46, yf + 64, { c: GREY, w: 1 }) + T(xs[1] + 48, yf + 76, "chiasma", { s: 11, a: "start", w: 700 });
+    const yf = y0 + p.f * p.len; s += L(xs[1] + 2, yf + 2, xs[1] + 46, yf + 64, { c: GREY, w: 1 }) + T(xs[1] + 48, yf + 76, "chiasma", { s: 12, a: "start", w: 700 });
     // panel 3: homologues drawn apart so that each chromatid can be read
     const pl = (c, x) => chr(c, x, y0, { cds: c.cds });
     s += pl({ ...M1, cds: [M1.cds[0], M1.cds[1]] }, xs[2] - 34) + pl({ ...P1, cds: [P1.cds[0], P1.cds[1]] }, xs[2] + 34);
-    s += T(xs[2] - 34, y0 + p.len + 24, "maternal", { s: 10.5, c: MAT, w: 700 }) + T(xs[2] + 34, y0 + p.len + 24, "paternal", { s: 10.5, c: PAT, w: 700 });
-    s += T(xs[2], y0 + p.len + 46, "AB and ab: parental", { s: 10.5 }) + T(xs[2], y0 + p.len + 61, "Ab and aB: recombinant (new)", { s: 10.5, w: 700 });
+    s += T(xs[2] - 34, y0 + p.len + 24, "maternal", { s: 12, c: MAT, w: 700 }) + T(xs[2] + 34, y0 + p.len + 24, "paternal", { s: 12, c: PAT, w: 700 });
+    s += T(xs[2], y0 + p.len + 46, "AB and ab: parental", { s: 12 }) + T(xs[2], y0 + p.len + 61, "Ab and aB: recombinant (new)", { s: 12, w: 700 });
     s += arrow(175, 112, 335, 112) + arrow(430, 112, 580, 112);
-    s += T(390, 246, "Only non-sister chromatids (one from each homologue) exchange sections; sister chromatids of one chromosome do not.", { s: 10.5, c: GREY });
+    s += T(390, 246, "Only non-sister chromatids (one from each homologue) exchange sections; sister chromatids of one chromosome do not.", { s: 12, c: GREY });
     s += legend(250, 272);
     return svg(780, 282, "Crossing over in three steps: a homologous pair of replicated chromosomes carrying alleles A and B (maternal) and a and b (paternal); two non-sister chromatids cross at a chiasma, break and rejoin; the result is four chromatids with allele combinations AB, Ab, aB and ab, two of them recombinant", s);
   }
@@ -233,18 +233,18 @@ window.BIO = window.BIO || {};
   function segregation() {
     uid(); let s = `<defs>${marker("ma", GREY)}</defs>`;
     const rows = [[true, true], [true, false]]; const ys = [130, 340];
-    s += T(130, 22, "First division: pairs on the equator", { s: 12, w: 700 }) + T(400, 22, "Two haploid cells", { s: 12, w: 700 }) + T(640, 22, "Gametes (after the second division)", { s: 12, w: 700 });
+    s += T(130, 22, "First division: pairs on the equator", { s: 13.5, w: 700 }) + T(400, 22, "Two haploid cells", { s: 13.5, w: 700 }) + T(640, 22, "Gametes (after the second division)", { s: 13.5, w: 700 });
     rows.forEach((orient, r) => { const m = build("two", { cross: [false, false], orient }); const y = ys[r];
-      s += T(18, y - 86, r === 0 ? "Arrangement 1" : "Arrangement 2", { s: 11, w: 700, a: "start", c: TEAL });
+      s += T(18, y - 86, r === 0 ? "Arrangement 1" : "Arrangement 2", { s: 13.5, w: 700, a: "start", c: TEAL });
       s += place(stageCell(m, "metI", 0, { tags: false }), 130, y, 0.62);
       s += place(stageCell(m, "afterI", 0, { tags: false, minR: 52, jig: false }), 400, y - 50, 0.55) + place(stageCell(m, "afterI", 1, { tags: false, minR: 52, jig: false }), 400, y + 50, 0.55);
       s += arrow(212, y - 10, 340, y - 44) + arrow(212, y + 10, 340, y + 44) + arrow(452, y - 50, 562, y - 50) + arrow(452, y + 50, 562, y + 50);
       const desc = (cs) => cs.map((c, k) => (c.o === "M" ? "maternal" : "paternal") + (k === 0 ? " long" : " short")).join(" + ");
-      s += place(stageCell(m, "end", 0, { tags: false, minR: 44, jig: false }), 610, y - 50, 0.5) + T(660, y - 54, desc(m.divI[0]), { s: 10, a: "start" }) + T(660, y - 41, "(×2)", { s: 10, a: "start", c: GREY });
-      s += place(stageCell(m, "end", 2, { tags: false, minR: 44, jig: false }), 610, y + 50, 0.5) + T(660, y + 46, desc(m.divI[1]), { s: 10, a: "start" }) + T(660, y + 59, "(×2)", { s: 10, a: "start", c: GREY }); });
+      s += place(stageCell(m, "end", 0, { tags: false, minR: 44, jig: false }), 610, y - 50, 0.5) + T(660, y - 54, desc(m.divI[0]) + " (×2)", { s: 13.5, a: "start" });
+      s += place(stageCell(m, "end", 2, { tags: false, minR: 44, jig: false }), 610, y + 50, 0.5) + T(660, y + 46, desc(m.divI[1]) + " (×2)", { s: 13.5, a: "start" }); });
     s += L(16, 236, 944, 236, { c: "#dfe6ec", w: 1 });
-    s += T(480, 462, "Each pair lines up independently of the other, so either homologue can face either pole: 2 pairs give 2² = 4 combinations of maternal and paternal chromosomes.", { s: 11 });
-    s += T(480, 479, "Crossing over is left out here so that independent segregation can be seen on its own.", { s: 10.5, c: GREY }) + legend(330, 502);
+    s += T(480, 462, "Each pair lines up independently, so 2 pairs give 2² = 4 combinations of maternal and paternal chromosomes.", { s: 13.5 });
+    s += T(480, 480, "Crossing over is left out so that independent segregation can be seen on its own.", { s: 13.5, c: GREY }) + legend(330, 502);
     return svg(960, 512, "Independent segregation: two homologous pairs can line up on the equator in two different arrangements; arrangement 1 gives gametes with both maternal chromosomes or both paternal chromosomes, arrangement 2 gives gametes with one maternal and one paternal chromosome; four combinations in total", s);
   }
 
@@ -252,43 +252,42 @@ window.BIO = window.BIO || {};
   function dnaGraph() {
     uid(); let s = `<defs>${marker("ma", INK)}</defs>`; const x0 = 90, y0 = 260, sx = 1, sy = 50; // 1x = 50 px
     s += L(x0, y0, x0, 30, { m: "ma" }) + L(x0, y0, 720, y0, { m: "ma" });
-    [0, 1, 2, 3, 4].forEach((k) => { s += L(x0 - 5, y0 - k * sy, x0, y0 - k * sy) + T(x0 - 10, y0 - k * sy + 4, k === 0 ? "0" : k === 1 ? "x" : k + "x", { a: "end", s: 11.5 }); if (k) s += L(x0, y0 - k * sy, 700, y0 - k * sy, { c: "#e6ecf1", w: 1 }); });
-    s += T(30, 150, "DNA content per cell", { s: 11.5, w: 600 }).replace("<text", `<text transform="rotate(-90 30 150)"`);
+    [0, 1, 2, 3, 4].forEach((k) => { s += L(x0 - 5, y0 - k * sy, x0, y0 - k * sy) + T(x0 - 10, y0 - k * sy + 4, k === 0 ? "0" : k === 1 ? "x" : k + "x", { a: "end", s: 12 }); if (k) s += L(x0, y0 - k * sy, 700, y0 - k * sy, { c: "#e6ecf1", w: 1 }); });
+    s += T(30, 150, "DNA content per cell", { s: 12, w: 600 }).replace("<text", `<text transform="rotate(-90 30 150)"`);
     const pts = [[x0, 2], [190, 2], [270, 4], [420, 4], [420, 2], [560, 2], [560, 1], [690, 1]]; void sx;
     s += `<polyline points="${pts.map(([x, v]) => `${x},${y0 - v * sy}`).join(" ")}" fill="none" stroke="${TEAL}" stroke-width="3" stroke-linejoin="round"/>`;
-    s += T(140, y0 + 18, "parent cell", { s: 10.5 }) + T(230, y0 + 18, "DNA replication", { s: 10.5 }) + T(345, y0 + 18, "pairing, crossing over", { s: 10.5 }) + T(420, y0 + 34, "first division", { s: 10.5, w: 700, c: TEAL }) + T(490, y0 + 18, "two cells", { s: 10.5 }) + T(560, y0 + 34, "second division", { s: 10.5, w: 700, c: TEAL }) + T(625, y0 + 18, "four cells", { s: 10.5 });
-    s += T(140, y0 - 2 * sy - 8, "2x (diploid)", { s: 10.5 }) + T(345, y0 - 4 * sy - 8, "4x", { s: 10.5, w: 700 }) + T(490, y0 - 2 * sy - 8, "2x (haploid, 2 chromatids)", { s: 10.5 }) + T(625, y0 - sy - 8, "x (gamete)", { s: 10.5, w: 700 });
-    s += T(724, y0 + 4, "time", { s: 11, a: "start" }) + T(400, 312, "x = the DNA content of one haploid gamete. Each division halves the DNA in a cell; only the first halves the chromosome number.", { s: 10.5, c: GREY });
+    s += T(140, y0 + 18, "parent cell", { s: 12 }) + T(230, y0 + 18, "DNA replication", { s: 12 }) + T(345, y0 + 18, "pairing, crossing over", { s: 12 }) + T(420, y0 + 34, "first division", { s: 12, w: 700, c: TEAL }) + T(490, y0 + 18, "two cells", { s: 12 }) + T(560, y0 + 34, "second division", { s: 12, w: 700, c: TEAL }) + T(625, y0 + 18, "four cells", { s: 12 });
+    s += T(140, y0 - 2 * sy - 8, "2x (diploid)", { s: 12 }) + T(345, y0 - 4 * sy - 8, "4x", { s: 12, w: 700 }) + T(442, y0 - 2 * sy - 8, "2x (haploid, 2 chromatids)", { s: 12, a: "start" }) + T(625, y0 - sy - 8, "x (gamete)", { s: 12, w: 700 });
+    s += T(724, y0 + 4, "time", { s: 12, a: "start" }) + T(400, 312, "x = DNA content of one gamete. Both divisions halve the DNA; only the first halves the chromosome number.", { s: 12, c: GREY });
     return svg(760, 322, "Graph of DNA content per cell through meiosis: 2x in the parent cell, rising to 4x during DNA replication, falling to 2x at the first division and to x at the second division", s);
   }
 
-  // D6. Random fertilisation: 4 kinds of sperm × 4 kinds of egg = 16 combinations (n = 2, crossing over ignored).
+  // D6. Random fertilisation (release review 2026-11-15): 4 kinds of sperm × 4 kinds of egg = 16 combinations, drawn as a
+  // plain grid with row and column headers only (the earlier version used a second colour code inside every cell).
   function fertilisation() {
-    uid(); let s = ""; const stick = (x, y, len, c) => `<line x1="${x}" y1="${y}" x2="${x}" y2="${y + len}" stroke="${c}" stroke-width="6" stroke-linecap="round"/>`;
-    const gam = (x, y, a, b, r = 22) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${CELL}" stroke="${CELLS}" stroke-width="1.5"/>` + stick(x - 6, y - 14, 28, a) + stick(x + 6, y - 8, 16, b);
-    const F = [["F1", "F1"], ["F1", "F2"], ["F2", "F1"], ["F2", "F2"]], Mo = [["M1", "M1"], ["M1", "M2"], ["M2", "M1"], ["M2", "M2"]];
-    const gx = 360, gy = 142, dx = 150, dy = 80;
-    s += T(gx + 1.5 * dx, 26, "Sperm from the father: 2² = 4 kinds", { s: 12, w: 700, c: NAVY });
-    s += T(130, gy + 1.5 * dy - 10, "Eggs from the", { s: 12, w: 700, c: MAT }) + T(130, gy + 1.5 * dy + 6, "mother: 4 kinds", { s: 12, w: 700, c: MAT });
-    F.forEach(([a, b], i) => { s += gam(gx + i * dx, 66, COL[a], COL[b]); });
-    Mo.forEach(([a, b], j) => { s += gam(250, gy + j * dy, COL[a], COL[b]); });
-    F.forEach(([a, b], i) => Mo.forEach(([c, d], j) => { const x = gx + i * dx, y = gy + j * dy; s += `<rect x="${x - 44}" y="${y - 30}" width="88" height="60" rx="10" fill="#fff" stroke="#dfe6ec"/>` + stick(x - 24, y - 18, 34, COL[a]) + stick(x - 12, y - 18, 34, COL[c]) + stick(x + 12, y - 9, 18, COL[b]) + stick(x + 24, y - 9, 18, COL[d]); }));
-    s += T(480, 436, "In this grid only: blue = from the father, red = from the mother; the shade shows which grandparent each chromosome came from.", { s: 10.5, c: GREY, w: 700 }) + T(480, 455, "Any sperm can fuse with any egg: 4 × 4 = 16 combinations of chromosomes in the zygote, (2ⁿ)² with n = 2. Crossing over is ignored.", { s: 11 });
-    const key = (x, c, t) => `<rect x="${x}" y="470" width="20" height="8" rx="4" fill="${c}"/>` + T(x + 26, 478, t, { a: "start", s: 10.5 });
-    s += key(70, COL.F1, "father's chromosome from his father") + key(320, COL.F2, "from his mother") + key(470, COL.M1, "mother's chromosome from her father") + key(730, COL.M2, "from her mother");
-    return svg(960, 486, "Grid showing random fertilisation: four kinds of sperm, each with a different combination of the father's two chromosomes, and four kinds of egg combine to give sixteen different zygotes", s);
+    uid(); let s = ""; const x0 = 150, y0 = 96, cw = 112, ch = 46; const sperm = ["P", "Q", "R", "S"], egg = ["W", "X", "Y", "Z"];
+    s += T(x0 + 2 * cw, 30, "4 kinds of sperm (one father, n = 2: 2² = 4)", { s: 14, w: 700, c: NAVY });
+    s += T(x0 - 57, y0 - 32, "4 kinds of egg", { s: 13, w: 700, c: MAT }) + T(x0 - 57, y0 - 15, "(one mother)", { s: 12.5, c: MAT });
+    sperm.forEach((k, i) => { s += `<rect x="${x0 + i * cw + 4}" y="${y0 - 44}" width="${cw - 8}" height="34" rx="17" fill="#e7eef8" stroke="${PAT}" stroke-width="1.6"/>` + T(x0 + i * cw + cw / 2, y0 - 22, "sperm " + k, { s: 13, w: 700, c: NAVY }); });
+    egg.forEach((k, j) => { s += `<rect x="${x0 - 104}" y="${y0 + j * ch + 6}" width="94" height="34" rx="17" fill="#f8e9e8" stroke="${MAT}" stroke-width="1.6"/>` + T(x0 - 57, y0 + j * ch + 28, "egg " + k, { s: 13, w: 700, c: MAT }); });
+    sperm.forEach((a, i) => egg.forEach((b, j) => { s += `<rect x="${x0 + i * cw + 4}" y="${y0 + j * ch + 4}" width="${cw - 8}" height="${ch - 8}" rx="6" fill="#fff" stroke="#c9d3dc"/>` + T(x0 + i * cw + cw / 2, y0 + j * ch + 28, `zygote ${a}${b}`, { s: 13 }); }));
+    s += T(x0 + 2 * cw - 50, y0 + 4 * ch + 30, "Any sperm can fuse with any egg: 4 × 4 = 16 combinations in the zygote, (2ⁿ)² with n = 2.", { s: 13, w: 600 }) + T(x0 + 2 * cw - 50, y0 + 4 * ch + 50, "Crossing over is ignored; it makes the number far larger.", { s: 12.5, c: GREY });
+    return svg(620, 346, "Grid showing random fertilisation: four kinds of sperm across the top and four kinds of egg down the side combine to give sixteen different zygotes", s);
   }
 
   // D7. Telling the divisions apart in a drawing.
   function whichDivision() {
     uid(); let s = ""; const m = build("two", { cross: [true, false], orient: [true, false] });
     const xs = [160, 480, 800];
-    const head = [["First division of meiosis", "homologous chromosomes in pairs on the equator"], ["Second division of meiosis", "single chromosomes on the equator; haploid number"], ["Mitosis (3.2.10, for comparison)", "single chromosomes on the equator; diploid number"]];
-    head.forEach(([a, b], i) => { s += T(xs[i], 24, a, { s: 12.5, w: 700, c: i === 2 ? GREY : INK }) + T(xs[i], 40, b, { s: 10.5, c: GREY }); });
-    [["metI", xs[0]], ["metII", xs[1]], ["mitosis", xs[2]]].forEach(([pt, x]) => { const c = stageCell(m, pt, 0, { tags: false }); s += place(c, x, 182, Math.min(0.8, 128 / c.ry)); });
+    const head = [["First division of meiosis", "homologous pairs on the equator"], ["Second division of meiosis", "single chromosomes; haploid number"], ["Mitosis (3.2.10, for comparison)", "single chromosomes; diploid number"]];
+    head.forEach(([a, b], i) => { s += T(xs[i], 24, a, { s: 14, w: 700, c: i === 2 ? GREY : INK }) + T(xs[i], 40, b, { s: 13.5, c: GREY }); });
+    // release review 2026-11-15: all three cells drawn at the same scale and the same outline size, so only the
+    // chromosomes differ (mitotic chromosomes stay in one column on the equator, as they do in mitosis)
+    const cs3 = [["metI", xs[0]], ["metII", xs[1]], ["mitosis", xs[2]]].map(([pt, x]) => [stageCell(m, pt, 0, { tags: false }), x]); const RX = Math.max(...cs3.map(([c]) => c.rx)), RY = Math.max(...cs3.map(([c]) => c.ry)); const k3 = Math.min(0.8, 128 / RY, 150 / RX);
+    cs3.forEach(([c, x]) => { const cc = Object.assign({}, c, { svg: c.svg.replace(/<ellipse cx="0" cy="0" rx="[\d.]+" ry="[\d.]+" fill="/, `<ellipse cx="0" cy="0" rx="${RX}" ry="${RY}" fill="`) }); s += place(cc, x, 182, k3); });
     const facts = [["4 chromosomes (count the centromeres)", "each chromosome: 2 chromatids", "diploid: homologues side by side, one each", "side of the equator; chiasmata visible"], ["2 chromosomes", "each chromosome: 2 chromatids", "haploid: no two chromosomes match", "(sister chromatids may differ: crossing over)"], ["4 chromosomes", "each chromosome: 2 chromatids", "diploid: matching chromosomes present", "but NOT paired; no chiasmata"]];
-    facts.forEach((f, i) => f.forEach((t, k) => { s += T(xs[i], 330 + k * 16, t, { s: 10.5, w: k === 0 ? 700 : 500 }); }));
-    s += T(480, 404, "Spindle poles left and right (grey dots); dashed line = equator.", { s: 10.5, c: GREY }) + T(480, 419, "Whole homologues face opposite poles in the first division; sister chromatids face opposite poles in the second division and in mitosis.", { s: 10.5, c: GREY });
+    facts.forEach((f, i) => f.forEach((t, k) => { s += T(xs[i], 330 + k * 16, t, { s: 13.5, w: k === 0 ? 700 : 500 }); }));
+    s += T(480, 404, "Spindle poles left and right (grey dots); dashed line = equator.", { s: 13.5, c: GREY }) + T(480, 419, "Whole homologues face opposite poles in the first division; sister chromatids face opposite poles in the second division and in mitosis.", { s: 13.5, c: GREY });
     s += legend(330, 444);
     return svg(960, 454, "Three dividing cells compared: in the first division of meiosis homologous pairs sit on the equator; in the second division the haploid number of single chromosomes sits on the equator; in mitosis the diploid number of single chromosomes sits on the equator without pairing", s);
   }

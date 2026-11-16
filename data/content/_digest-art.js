@@ -21,75 +21,114 @@ window.BIO = window.BIO || {};
   const hex = (x, y, r = 9, fill = "#fbe9c8", stroke = AMBER) => { let p = ""; for (let k = 0; k < 6; k++) { const a = Math.PI / 6 + (k * Math.PI) / 3; p += `${k ? "L" : "M"}${(x + r * Math.cos(a)).toFixed(1)} ${(y + r * Math.sin(a)).toFixed(1)} `; } return `<path d="${p}Z" fill="${fill}" stroke="${stroke}" stroke-width="1.5"/>`; };
   const pent = (x, y, r = 9, fill = "#f6dede", stroke = ROSE) => { let p = ""; for (let k = 0; k < 5; k++) { const a = -Math.PI / 2 + (k * 2 * Math.PI) / 5; p += `${k ? "L" : "M"}${(x + r * Math.cos(a)).toFixed(1)} ${(y + r * Math.sin(a)).toFixed(1)} `; } return `<path d="${p}Z" fill="${fill}" stroke="${stroke}" stroke-width="1.5"/>`; };
   const bead = (x, y, fill = "#e4ebf5", r = 9) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${fill}" stroke="${NAVY}" stroke-width="1.5"/>`;
-  const ion = (x, y, lab, col) => `<circle cx="${x}" cy="${y}" r="9" fill="#fff" stroke="${col}" stroke-width="2"/>${T(x, y + 3.5, lab, { s: 8.5, w: 700, c: col })}`;
+  // BIG (set only while a drawing is made with big: true, for an interactive that scales it down): larger ion glyphs
+  let BIG = false;
+  const ion = (x, y, lab, col) => BIG ? `<circle cx="${x}" cy="${y}" r="14" fill="#fff" stroke="${col}" stroke-width="2"/>${T(x, y + 4.8, lab, { s: 13.5, w: 700, c: col })}` : `<circle cx="${x}" cy="${y}" r="9" fill="#fff" stroke="${col}" stroke-width="2"/>${T(x, y + 3.5, lab, { s: 8.5, w: 700, c: col })}`;
   const na = (x, y) => ion(x, y, "Na⁺", NAVY), kk = (x, y) => ion(x, y, "K⁺", SAGE);
   const glc = (x, y) => hex(x, y, 8);
   const cut = (x, y, col = ROSE) => `<path d="M${x - 6} ${y - 14} L${x + 6} ${y + 14} M${x + 6} ${y - 14} L${x - 6} ${y + 14}" stroke="${col}" stroke-width="2.5"/>`;
 
   // =====================================================================================================
-  // 1. Gross structure of the digestive system (anterior view). mode: "labels" | "numbered" | "none".
+  // 1. Gross structure of the digestive system, drawn on a public-domain textbook diagram
+  //    (assets/img/digestive-blank.jpg, 1100 x 2521 px; Mariana Ruiz (LadyofHats) and Jmarchn, Wikimedia Commons,
+  //    public domain; no labels in the image). The trunk is a FRONT view (person's right on the viewer's left: liver
+  //    and caecum on the left of the page); the head and neck are a section seen from the side, facing the viewer's
+  //    left. Every label, leader, number and hotspot below is an SVG overlay in the image's own pixel coordinates, so
+  //    it stays aligned at every width and zoom. Each leader dot was placed by eye on the structure and checked on
+  //    zoomed crops of the image (author report ADIG).
+  //    mode: "labels" | "numbered" | "none". o.highlight: a part key; o.interactive: hotspots focusable with hover
+  //    styling; o.titles: false hides the <title> tooltips (the 'find it' challenge).
   //    Assessed structures (3.2.2.1): oesophagus, stomach, duodenum, ileum, colon, rectum, salivary glands, pancreas.
-  //    Context only (grey, marked "context"): liver, gall bladder, jejunum, anus. Each organ is a <g data-part>.
+  //    Context only (grey, marked "context"): liver, gall bladder, bile duct, pancreatic duct, jejunum, anus.
   // =====================================================================================================
   const ASSESSED = ["salivary", "oesophagus", "stomach", "duodenum", "pancreas", "ileum", "colon", "rectum"];
   const NUMBERS = { salivary: 1, oesophagus: 2, stomach: 3, duodenum: 4, pancreas: 5, ileum: 6, colon: 7, rectum: 8 };
-  function digestiveSystem({ mode = "labels" } = {}) {
-    uid();
-    const W = 600, H = 820;
-    let s = svgOpen(W, H, "front view of the human digestive system showing the salivary glands, oesophagus, stomach, duodenum, pancreas, ileum, colon and rectum, with the liver, gall bladder, jejunum and anus as context");
-    // body outline (person facing the viewer)
-    s += `<path d="M272 205 C 230 214, 172 220, 152 250 L 142 300 C 136 420, 140 560, 150 700 C 160 762, 222 802, 300 806 C 378 802, 440 762, 450 700 C 460 560, 464 420, 458 300 L 448 250 C 428 220, 370 214, 328 205 Z" fill="#fbf7f1" stroke="#cdbba5" stroke-width="2"/>`;
-    s += `<rect x="272" y="150" width="56" height="62" fill="#fbf7f1" stroke="#cdbba5" stroke-width="2"/>`;
-    s += `<ellipse cx="300" cy="95" rx="58" ry="70" fill="#fbf7f1" stroke="#cdbba5" stroke-width="2"/><rect x="273" y="150" width="54" height="20" fill="#fbf7f1"/>`;
-    s += `<ellipse cx="241" cy="98" rx="6" ry="14" fill="#fbf7f1" stroke="#cdbba5" stroke-width="1.5"/><ellipse cx="359" cy="98" rx="6" ry="14" fill="#fbf7f1" stroke="#cdbba5" stroke-width="1.5"/>`;
-    s += `<circle cx="280" cy="80" r="4" fill="#cdbba5"/><circle cx="320" cy="80" r="4" fill="#cdbba5"/><path d="M300 86 l-5 18 h10" fill="none" stroke="#cdbba5" stroke-width="1.5"/><path d="M284 132 q16 8 32 0" fill="none" stroke="#b57d6e" stroke-width="2.5"/>`;
-    // diaphragm (context, unlabelled)
-    s += P("M146 300 C 220 266, 380 266, 454 300", { c: "#cdbba5", w: 1.5, d: "5 4" });
-    // salivary glands: parotid (beside the ear) and submandibular (under the jaw), both sides, with ducts to the mouth
-    const lob = (x, y) => [[0, 0], [7, 3], [-6, 5], [2, 9], [-2, -6], [6, -5]].map(([dx, dy]) => `<circle cx="${x + dx}" cy="${y + dy}" r="5.5" fill="#f2d7c4" stroke="#a8674c" stroke-width="1.2"/>`).join("");
-    s += `<g data-part="salivary">${lob(252, 114)}${lob(348, 114)}${lob(268, 158)}${lob(332, 158)}${L(258, 120, 282, 128, { c: "#a8674c", w: 1.2, d: "3 2" })}${L(342, 120, 318, 128, { c: "#a8674c", w: 1.2, d: "3 2" })}${L(272, 152, 292, 138, { c: "#a8674c", w: 1.2, d: "3 2" })}${L(328, 152, 308, 138, { c: "#a8674c", w: 1.2, d: "3 2" })}</g>`;
-    // liver (context) and gall bladder (context); bile duct to the duodenum
-    s += `<g data-part="liver"><path d="M150 300 C 200 278, 262 280, 290 294 C 294 312, 284 326, 268 336 C 240 356, 200 384, 164 394 C 150 370, 146 330, 150 300 Z" fill="#ead2c8" stroke="#a87866" stroke-width="2"/></g>`;
-    s += `<g data-part="gallbladder"><ellipse cx="238" cy="388" rx="11" ry="16" fill="#dcebc8" stroke="#6b8a4a" stroke-width="2"/>${L(242, 403, 258, 440, { c: "#6b8a4a", w: 2 })}</g>`;
-    // pancreas drawn before the stomach (it lies behind the stomach), head inside the curve of the duodenum
-    s += `<g data-part="pancreas"><path d="M262 470 C 262 455, 280 452, 300 458 C 330 466, 370 452, 410 448 C 421 450, 421 463, 410 466 C 370 474, 335 482, 305 488 C 285 494, 264 488, 262 470 Z" fill="#f3e2b5" stroke="${AMBER}" stroke-width="2"/>${[[285, 472], [320, 472], [355, 466], [390, 459]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="2.5" fill="${AMBER}" opacity=".6"/>`).join("")}${P("M408 457 C 370 463, 335 470, 300 474 C 284 476, 270 478, 256 481", { c: "#8a5a10", w: 2.2, lc: "round" })}</g>`;
-    // oesophagus: pharynx (dashed, behind the mouth) then the muscular tube through the diaphragm to the stomach
-    const tube = (d, w, outer, inner) => `<path d="${d}" stroke="${outer}" stroke-width="${w}" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="${d}" stroke="${inner}" stroke-width="${w - 4}" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
-    s += P("M300 140 L300 168", { c: "#b57d6e", w: 1.5, d: "3 3" });
-    s += `<g data-part="oesophagus">${tube("M300 168 L300 300 C300 322, 306 334, 318 344", 14, "#a8674c", "#efc2b1")}</g>`;
-    // stomach: J-shaped, on the person's left (viewer's right); pylorus leads to the duodenum
-    s += `<g data-part="stomach"><path d="M314 340 C 330 312, 392 312, 404 352 C 416 400, 396 452, 350 462 C 322 468, 298 456, 284 446 L 288 428 C 306 436, 328 430, 336 410 C 342 388, 330 366, 320 352 Z" fill="#f1c9bd" stroke="#a8674c" stroke-width="2.5"/>${P("M352 345 C 372 370, 378 410, 360 440", { c: "#c99484", w: 1.2, d: "4 3" })}${P("M372 338 C 392 372, 392 420, 372 448", { c: "#c99484", w: 1.2, d: "4 3" })}</g>`;
-    // duodenum: C-shaped loop from the pylorus around the head of the pancreas
-    s += `<g data-part="duodenum">${tube("M286 437 C 262 437, 252 448, 250 468 C 248 492, 256 508, 280 510 C 298 512, 314 508, 320 498", 15, "#a8674c", "#f5d3c4")}</g>`;
-    // small intestine coils (jejunum then ileum), drawn before the colon, which lies in front of them
-    s += `<g data-part="jejunum">${tube("M320 498 C 330 515, 342 540, 350 561 L 245 562 C 225 563, 225 590, 245 591 L 368 593 C 388 594, 388 620, 368 621", 14, "#b88a7a", "#f7e1d8")}</g>`;
-    s += `<g data-part="ileum">${tube("M368 621 L 245 623 C 225 624, 225 650, 245 651 L 368 653 C 388 654, 388 680, 368 681 L 245 683 C 226 684, 218 690, 206 690", 14, "#a8674c", "#f5d3c4")}</g>`;
-    // colon: caecum (lower left of the page), ascending, transverse, descending, sigmoid; then rectum and anus
-    s += `<g data-part="colon"><ellipse cx="192" cy="694" rx="17" ry="20" fill="#ead9b8" stroke="#8a6a3a" stroke-width="2.5"/>${tube("M192 690 L192 545 C192 532, 200 528, 214 528 L 392 528 C 406 528, 412 534, 412 548 L 412 690 C 412 715, 390 722, 360 722 C 332 722, 312 724, 302 736", 24, "#8a6a3a", "#ead9b8")}${[560, 600, 640].map((y) => L(181, y, 203, y, { c: "#b49a6a", w: 1.2 }) + L(401, y, 423, y, { c: "#b49a6a", w: 1.2 })).join("")}${[260, 320, 360].map((x) => L(x, 517, x, 539, { c: "#b49a6a", w: 1.2 })).join("")}</g>`;
-    s += `<g data-part="rectum">${tube("M302 734 L300 772", 22, "#7a5a2e", "#dcc79e")}</g>`;
-    s += `<g data-part="anus"><path d="M292 784 h16" stroke="#7a5a2e" stroke-width="3"/></g>`;
+  const DIG_IMG = { src: "assets/img/digestive-blank.jpg", w: 1100, h: 2521, vb: [-380, 0, 1980, 2290],
+    credit: "Diagram: Mariana Ruiz (LadyofHats) and Jmarchn, Wikimedia Commons, public domain; labels added" };
+  // Release review (2026-11-15, R5-01): the drawing is shortened so that it fits a laptop screen beside its controls.
+  // The image rows CUT[0] to CUT[1] (the oesophagus in the chest, with nothing else drawn there) are left out and the
+  // rest of the trunk moves up by CUT[1] - CUT[0]; a break mark is drawn across the oesophagus at the join. Shapes,
+  // labels and leader dots stay in image coordinates below and are mapped by dy() when drawn.
+  const CUT = [830, 1110], CUT_D = CUT[1] - CUT[0];
+  const dy = (y) => (y <= CUT[0] ? y : y >= CUT[1] ? y - CUT_D : CUT[0]);
+  const mapPath = (d) => d.replace(/([ML])\s*(-?[\d.]+)[ ,](-?[\d.]+)/g, (m, c, x, y) => `${c}${x} ${dy(+y)}`);
+  // hotspot outlines (image pixels). Drawn in this order, so later shapes lie on top where they overlap (as in the
+  // image: oesophagus and stomach over the liver edge, pancreas over the stomach, colon over the duodenum and coils).
+  const DIG_SHAPES = [
+    ["liver", ["M212 1450 L236 1378 L300 1330 L420 1306 L560 1298 L700 1296 L812 1318 L800 1345 L700 1372 L630 1430 L560 1482 L470 1540 L400 1570 L330 1622 L262 1690 L228 1712 L212 1640 L206 1540 Z"]],
+    ["gallbladder", ["M236 1526 L262 1502 L340 1494 L430 1500 L478 1512 L476 1532 L430 1546 L330 1556 L258 1552 Z"]],
+    ["salivary", ["M500 362 L548 356 L568 380 L572 430 L562 482 L544 512 L512 518 L492 488 L490 420 Z", "M422 546 L440 528 L478 526 L500 540 L496 566 L470 578 L436 574 Z", "M348 500 L380 494 L430 504 L432 526 L396 534 L352 526 Z"]],
+    ["oesophagus", ["M548 610 L582 610 L578 800 L568 900 L572 1000 L582 1100 L590 1200 L598 1300 L606 1410 L600 1452 L566 1440 L552 1380 L540 1300 L526 1200 L518 1100 L518 1000 L528 900 L544 800 Z"]],
+    ["stomach", ["M600 1458 L650 1410 L720 1376 L800 1362 L845 1390 L862 1470 L860 1560 L836 1622 L792 1664 L720 1700 L650 1714 L590 1706 L548 1652 L512 1594 L540 1586 L600 1604 L632 1592 L612 1500 Z"]],
+    ["duodenum", ["M516 1582 L470 1560 L410 1564 L366 1594 L342 1640 L338 1700 L346 1752 L372 1770 L428 1770 L420 1712 L432 1664 L470 1646 L520 1640 L534 1608 Z"]],
+    ["pancreas", ["M432 1666 L472 1648 L530 1644 L600 1612 L680 1582 L760 1560 L830 1530 L858 1556 L850 1602 L780 1640 L700 1676 L620 1700 L566 1722 L560 1770 L436 1770 L424 1730 Z"]],
+    ["jejunum", ["M316 1900 L460 1904 L620 1880 L760 1854 L880 1852 L884 1990 L700 2010 L520 2030 L314 2040 Z"]],
+    ["ileum", ["M314 2040 L520 2030 L700 2010 L884 1990 L880 2084 L770 2140 L700 2200 L650 2262 L560 2292 L452 2292 L404 2262 L330 2180 L312 2110 Z"]],
+    ["colon", ["M204 1722 L250 1706 L310 1712 L322 1770 L312 1900 L306 2100 L340 2142 L408 2160 L412 2232 L380 2262 L300 2276 L246 2262 L216 2200 L182 2100 L174 1900 L178 1790 Z",
+      "M310 1720 L450 1764 L650 1758 L760 1716 L840 1660 L872 1650 L870 1760 L850 1848 L700 1862 L500 1904 L350 1912 L314 1872 Z",
+      "M846 1700 L900 1642 L944 1700 L948 1900 L936 2120 L902 2230 L842 2300 L760 2340 L680 2346 L610 2322 L592 2290 L600 2262 L650 2252 L700 2256 L760 2232 L820 2150 L850 2000 L842 1800 Z"]],
+    ["rectum", ["M505 2282 L592 2282 L596 2370 L590 2450 L566 2490 L548 2498 L522 2470 L506 2400 Z"]],
+    ["anus", ["M530 2494 L570 2494 L572 2520 L528 2520 Z"]],
+  ];
+  // labels: [part, lines, side ("L" | "R"), label y, [leader dots], context?]. Label columns sit outside the image
+  // (left column ends at x = -30, right column starts at x = 1130); leaders are straight and ordered so none cross.
+  const DIG_LABELS = [
+    ["liver", ["liver"], "L", 1392, [[296, 1420]], true],
+    ["gallbladder", ["gall bladder"], "L", 1496, [[300, 1525]], true],
+    ["bileduct", ["bile duct"], "L", 1600, [[497, 1557]], true],
+    ["duodenum", ["duodenum"], "L", 1700, [[368, 1642]]],
+    ["colon", ["colon", "(large intestine)"], "L", 1962, [[240, 1956]]],
+    ["ileum", ["ileum"], "L", 2228, [[480, 2200]]],
+    ["salivary", ["salivary glands"], "R", 478, [[534, 440], [466, 548]]],
+    ["oesophagus", ["oesophagus"], "R", 806, [[548, 800]]],
+    ["stomach", ["stomach"], "R", 1452, [[742, 1462]]],
+    ["pancreas", ["pancreas"], "R", 1592, [[720, 1600]]],
+    ["pancduct", ["pancreatic duct"], "R", 1700, [[640, 1655]], true],
+    ["jejunum", ["jejunum"], "R", 1896, [[752, 1900]], true],
+    ["rectum", ["rectum"], "R", 2398, [[552, 2400]]],
+    ["anus", ["anus"], "R", 2486, [[550, 2506]], true],
+  ];
+  const DG_HL = "#e09a00";
+  function digestiveSystem(o = {}) {
+    if (typeof o === "string") o = { mode: o };
+    const mode = o.mode || "labels"; uid(); const u = U; const [vx, vy, vw, vh] = DIG_IMG.vb;
+    const hl = new Set([].concat(o.highlight || []));
+    const aria = "Front view of the human digestive system (the person's right side is on the viewer's left; the head is shown in section from the side; the oesophagus is drawn shorter than in life)" + (mode === "labels" ? ", labelled: salivary glands, oesophagus, stomach, duodenum, pancreas, ileum, colon and rectum, with the liver, gall bladder, bile duct, pancreatic duct, jejunum and anus as context" : mode === "numbered" ? ", with the eight structures named in the specification numbered 1 to 8" : "");
+    const css = `<style>.dg${u} .hs{fill:#fff;fill-opacity:0;stroke:none}.dg${u} [data-part]{outline:none}` +
+      (o.interactive ? `.dg${u} [data-part]{cursor:pointer}.dg${u} [data-part]:hover .hs,.dg${u} [data-part]:focus .hs{fill:${DG_HL};fill-opacity:.2;stroke:${DG_HL};stroke-width:7}.dg${u} [data-part]:focus-visible .hs{stroke:#0f2e27;stroke-dasharray:18 8}` : "") +
+      `.dg${u} .hl .hs,.dg${u} .hlon .hs{fill:${DG_HL};fill-opacity:.3;stroke:#7a4a00;stroke-width:8}</style>`;
+    const clip = `<clipPath id="ct${u}"><rect x="0" y="0" width="${DIG_IMG.w}" height="${CUT[0]}"/></clipPath><clipPath id="cb${u}"><rect x="0" y="${CUT[0]}" width="${DIG_IMG.w}" height="${DIG_IMG.h}"/></clipPath>`;
+    let s = `<svg viewBox="${vx} ${vy} ${vw} ${vh}" width="${o.width || 560}" role="img" aria-label="${aria}" class="dg${u}" font-family="system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif" style="max-width:100%;min-width:${o.minWidth === undefined ? 340 : o.minWidth}px;height:auto"><defs>${css}${clip}</defs>`;
+    s += `<rect x="${vx}" y="${vy}" width="${vw}" height="${vh}" fill="#ffffff"/><image href="${DIG_IMG.src}" x="0" y="0" width="${DIG_IMG.w}" height="${DIG_IMG.h}" clip-path="url(#ct${u})"/><image href="${DIG_IMG.src}" x="0" y="${-CUT_D}" width="${DIG_IMG.w}" height="${DIG_IMG.h}" clip-path="url(#cb${u})"/>`;
+    // break mark across the oesophagus where the drawing is shortened
+    const bw = (yy) => `M496 ${yy} q13 -9 26 0 t26 0 t26 0 t26 0 t26 0`;
+    s += `<path d="${bw(CUT[0] - 9)} L626 ${CUT[0] + 9} q-13 9 -26 0 t-26 0 t-26 0 t-26 0 t-26 0 Z" fill="#fff" stroke="none"/><path d="${bw(CUT[0] - 9)}" fill="none" stroke="${GREY}" stroke-width="4"/><path d="${bw(CUT[0] + 9)}" fill="none" stroke="${GREY}" stroke-width="4"/>`;
+    s += T(-360, 64, "person's RIGHT side", { s: 46, w: 800, c: NAVY, a: "start" }) + T(-360, 114, "(on your left)", { s: 44, w: 600, c: GREY, a: "start" });
+    s += T(1580, 64, "person's LEFT side", { s: 46, w: 800, c: NAVY, a: "end" }) + T(1580, 114, "(on your right)", { s: 44, w: 600, c: GREY, a: "end" });
+    // hotspots (always present, so the drawing can be highlighted; focusable only when interactive)
+    const names = { liver: "Liver", gallbladder: "Gall bladder", salivary: "Salivary glands", oesophagus: "Oesophagus", stomach: "Stomach", duodenum: "Duodenum", pancreas: "Pancreas", jejunum: "Jejunum", ileum: "Ileum", colon: "Colon", rectum: "Rectum", anus: "Anus" };
+    for (const [k, ds] of DIG_SHAPES) s += `<g data-part="${k}"${hl.has(k) ? ' class="hlon"' : ""}>${o.interactive && o.titles !== false ? `<title>${names[k]}</title>` : ""}${ds.map((d) => `<path class="hs" d="${mapPath(d)}"/>`).join("")}</g>`;
     if (mode !== "none") {
-      // label(part, text, label x, label y, target x, target y, side, context?)
-      const labs = [
-        ["salivary", "salivary glands", 132, 110, 246, 114, "L"], ["liver", "liver", 132, 326, 196, 334, "L", true], ["gallbladder", "gall bladder", 132, 392, 228, 390, "L", true],
-        ["duodenum", "duodenum", 132, 470, 250, 470, "L"], ["ileum", "ileum", 132, 652, 234, 652, "L"],
-        ["oesophagus", "oesophagus", 468, 236, 302, 236, "R"], ["stomach", "stomach", 468, 384, 390, 384, "R"], ["pancreas", "pancreas", 468, 456, 412, 457, "R"],
-        ["jejunum", "jejunum", 468, 572, 384, 577, "R", true], ["colon", "colon", 468, 626, 418, 626, "R"], ["rectum", "rectum", 468, 752, 310, 754, "R"], ["anus", "anus", 468, 790, 309, 785, "R", true],
-      ];
-      for (const [part, text, tx, ty, px, py, side, ctx] of labs) {
-        const lx = side === "L" ? tx + 4 : tx - 4;
-        s += `<g data-label="${part}">${L(lx, ty - 4, px, py, { c: ctx ? "#9aa7b3" : GREY, w: 1 })}<circle cx="${px}" cy="${py}" r="2.2" fill="${ctx ? "#9aa7b3" : INK}"/>`;
-        if (mode === "numbered" && !ctx) s += `<circle cx="${side === "L" ? tx - 12 : tx + 12}" cy="${ty - 4}" r="12" fill="${NAVY}"/>${T(side === "L" ? tx - 12 : tx + 12, ty, NUMBERS[part], { s: 12, w: 700, c: "#fff" })}`;
-        else if (ctx) s += T(tx, ty - 2, text, { s: 11.5, c: GREY, a: side === "L" ? "end" : "start", i: true }) + T(tx, ty + 11, "(context)", { s: 9.5, c: GREY, a: side === "L" ? "end" : "start" });
-        else s += T(tx, ty, text, { s: 13.5, w: 700, a: side === "L" ? "end" : "start" });
+      const lead = (x1, y1, x2, y2, c) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#fff" stroke-width="7" stroke-opacity=".85"/><line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${c}" stroke-width="3"/><circle cx="${x2}" cy="${y2}" r="7" fill="${c}" stroke="#fff" stroke-width="2.5"/>`;
+      for (const [part, lines, side, ly0, dots, ctx] of DIG_LABELS) {
+        if (mode === "numbered" && (part === "bileduct" || part === "pancduct")) continue; // the ducts would point the way to 4 and 5
+        const ly = dy(ly0);
+        const L = side === "L", tx = L ? -30 : 1130, a = L ? "end" : "start", c = ctx ? "#6d7b88" : INK;
+        const num = mode === "numbered" && !ctx;
+        const R = 46; // number badge radius (numbered mode)
+        const sx = num ? (L ? -30 - R : 1130 + R) : (L ? -18 : 1118), sy = ly - 15;
+        s += `<g data-label="${part}" pointer-events="none">${dots.map(([px, py]) => lead(L ? sx + (num ? R : 0) : sx - (num ? R : 0), sy, px, dy(py), c)).join("")}`;
+        if (num) s += `<circle cx="${sx}" cy="${sy}" r="${R}" fill="${NAVY}" stroke="#fff" stroke-width="4"/>${T(sx, sy + 18, NUMBERS[part], { s: 52, w: 800, c: "#fff" })}`;
+        else if (ctx) s += T(tx, ly, lines[0], { s: 48, w: 600, c, a, i: true }) + T(tx, ly + 44, "(context)", { s: 44, c, a });
+        else s += lines.map((t, i) => T(tx, ly + i * 46, t, i ? { s: 44, w: 600, c: GREY, a } : { s: 54, w: 800, c, a })).join("");
         s += "</g>";
       }
-      // ducts (not numbered): pancreatic juice and bile both reach the duodenum through ducts
-      if (mode === "labels") s += `<g data-label="ducts">${L(464, 494, 330, 472, { c: GREY, w: 1 })}<circle cx="330" cy="472" r="2.2" fill="${INK}"/>${T(468, 498, "pancreatic duct", { s: 11.5, w: 600, a: "start" })}${L(136, 424, 254, 432, { c: "#9aa7b3", w: 1 })}<circle cx="254" cy="432" r="2" fill="#9aa7b3"/>${T(132, 426, "bile duct", { s: 10.5, c: GREY, a: "end", i: true })}</g>`;
     }
-    s += T(300, 816, "Schematic front view: the person's right side is on the left of the page. Bold = named in the specification; grey = context.", { s: 9.5, c: GREY });
+    // o.credit === false (the explorer): the image credit is shown as HTML text under the drawing instead (DIG_CREDIT)
+    if (o.credit !== false) s += T(-360, 2276, DIG_CREDIT, { s: 30, c: GREY, a: "start" });
     return s + "</svg>";
   }
+  const DIG_CREDIT = "Image: public domain (LadyofHats, Jmarchn); labels added";
 
   // =====================================================================================================
   // 2. Carbohydrate digestion: starch → maltose (amylase) → glucose (membrane-bound maltase); other disaccharides.
@@ -99,8 +138,9 @@ window.BIO = window.BIO || {};
     let s = svgOpen(760, 360, "starch is hydrolysed by amylase to maltose, and maltose by the membrane-bound disaccharidase maltase to glucose; sucrose and lactose are hydrolysed by sucrase and lactase") + `<defs>${mk("cd", INK)}</defs>`;
     s += T(110, 22, "starch (polysaccharide)", { s: 12.5, w: 700 }) + T(390, 22, "maltose (disaccharide)", { s: 12.5, w: 700 }) + T(660, 22, "glucose (monosaccharide)", { s: 12.5, w: 700 });
     // starch: chain of glucose units
-    for (let k = 0; k < 8; k++) { const x = 30 + k * 23; s += hex(x, 70); if (k < 7) s += L(x + 8, 70, x + 15, 70, { c: AMBER, w: 2 }); }
-    [64.5, 156.5].forEach((x) => { s += cut(x, 70); });
+    // 10 glucose units cut at every second bond, so the 5 maltose and 10 glucose drawn to the right balance (QG2 R7).
+    for (let k = 0; k < 10; k++) { const x = 20 + k * 20; s += hex(x, 70, 8); if (k < 9) s += L(x + 7, 70, x + 13, 70, { c: AMBER, w: 2 }); }
+    [50, 90, 130, 170].forEach((x) => { s += `<path d="M${x - 3.5} 59 L${x + 3.5} 81 M${x + 3.5} 59 L${x - 3.5} 81" stroke="${ROSE}" stroke-width="2.2"/>`; });
     s += T(110, 102, "glucose units joined by glycosidic bonds", { s: 10, c: GREY });
     // amylase arrow
     s += L(220, 70, 300, 70, { w: 2.5, m: "cd" }) + T(260, 52, "amylase", { s: 12, w: 700, c: ROSE }) + T(260, 92, "+ H₂O", { s: 10, c: GREY }) + T(260, 120, "salivary glands → mouth;", { s: 9.5, c: GREY }) + T(260, 132, "pancreas → duodenum", { s: 9.5, c: GREY });
@@ -202,17 +242,19 @@ window.BIO = window.BIO || {};
     s += `<rect x="40" y="${base + 162}" width="680" height="26" fill="#dfb5a9" stroke="#a8674c" stroke-width="1"/>` + Array.from({ length: 22 }, (_, k) => `<ellipse cx="${56 + k * 31}" cy="${base + 175}" rx="9" ry="4" fill="#cf9d90" stroke="#a8674c" stroke-width=".8"/>`).join("");
     s += `<rect x="40" y="${base + 188}" width="680" height="8" fill="#f4f4f4" stroke="#9aa7b3" stroke-width="1"/>`;
     // inline labels on the first villus (capillary, lacteal) and a crypt
-    s += L(70, base - 120, 20, base - 120 - 0, { c: GREY, w: 1 }) + T(20, base - 126, "capillary", { s: 9.5, c: GREY, a: "start" });
-    s += L(83, base - 60, 20, base - 60, { c: GREY, w: 1 }) + T(20, base - 66, "lacteal", { s: 9.5, c: GREY, a: "start" });
+    s += L(70, base - 120, -6, base - 120, { c: GREY, w: 1 }) + T(-66, base - 115, "capillary", { s: 9.5, c: GREY, a: "start" });
+    s += L(83, base - 60, -6, base - 60, { c: GREY, w: 1 }) + T(-66, base - 55, "lacteal", { s: 9.5, c: GREY, a: "start" });
     s += T(83, base - 192, "villus", { s: 11, w: 700, c: ROSE });
     s += L(118, base + 40, 118, base + 60, { c: GREY, w: 1 }) + T(118, base + 70, "crypt", { s: 9.5, c: GREY });
     // legend under the drawing (avoids leader lines crossing the villi)
-    const rows = [["#f1d9cf", ROSE, "mucosa: villi and crypts, epithelium one cell thick on the surface"], ["#f7eee1", "#c9b28a", "submucosa: larger blood vessels and lymph vessels"], ["#e9c9c0", "#a8674c", "circular muscle (with the next layer: peristalsis)"], ["#dfb5a9", "#a8674c", "longitudinal muscle"], ["#f4f4f4", "#9aa7b3", "serosa: thin outer covering"]];
+    // Round 2 (N6): short legend entries, so the two columns never run into each other when the labels are enlarged
+    const rows = [["#f1d9cf", ROSE, "mucosa: villi, crypts, epithelium"], ["#f7eee1", "#c9b28a", "submucosa: larger vessels"], ["#e9c9c0", "#a8674c", "circular muscle"], ["#dfb5a9", "#a8674c", "longitudinal muscle"], ["#f4f4f4", "#9aa7b3", "serosa: thin outer covering"]];
     rows.forEach(([f, st, t], i) => { const x = i % 2 ? 400 : 40, y = base + 222 + Math.floor(i / 2) * 20; s += `<rect x="${x}" y="${y - 10}" width="16" height="12" fill="${f}" stroke="${st}"/>` + T(x + 22, y, t, { s: 10, a: "start" }); });
     // scale bar: 0.5 mm = 150 px at 30 px per 0.1 mm (vertical scale)
     s += `<line x1="742" y1="${base - 150}" x2="742" y2="${base}" stroke="${INK}" stroke-width="3"/><line x1="736" y1="${base - 150}" x2="748" y2="${base - 150}" stroke="${INK}" stroke-width="2"/><line x1="736" y1="${base}" x2="748" y2="${base}" stroke="${INK}" stroke-width="2"/>` + T(733, base - 75, "≈ 0.5 mm", { s: 10, w: 700, r: -90 });
     s += T(380, 534, "Schematic. Vertical scale approximate (bar ≈ 0.5 mm). Villi are drawn further apart than in life; capillaries and lacteals simplified.", { s: 9.5, c: GREY });
-    return s + "</svg>";
+    // round 2: a 70-unit margin on the left holds the capillary and lacteal labels, which are enlarged in the explorer
+    return s.replace('viewBox="0 0 760 540" width="760"', 'viewBox="-70 0 830 540" width="830"') + "</svg>";
   }
 
   // One villus: epithelium one cell thick with a brush border and goblet cells, capillary network, central lacteal.
@@ -279,7 +321,7 @@ window.BIO = window.BIO || {};
     let mvL = ""; for (let x = NL + 2; x < NR - 4; x += 8) { if (x > L0 - 6 && x < R0) continue; mvL += `M${x} ${top} v -14 a 3 3 0 0 1 6 0 v 14 `; } s += `<path d="${mvL}" fill="#eef7f4" stroke="${TEAL}" stroke-width="1"/>`;
     s += `<g data-part="cell"><rect x="${L0}" y="${top}" width="${R0 - L0}" height="${bot - top}" fill="#e3f3ef" stroke="${TEAL}" stroke-width="2.5"/></g>`;
     let mv = ""; for (let x = L0 + 2; x < R0 - 4; x += 8) mv += `M${x} ${top} v -16 a 3 3 0 0 1 6 0 v 16 `; s += `<g data-part="microvilli"><path d="${mv}" fill="#e3f3ef" stroke="${TEAL}" stroke-width="1.3"/></g>`;
-    // tight junctions (extension): small dark bars at the top of the lateral membranes
+    // tight junctions (stretch): small dark bars at the top of the lateral membranes
     s += `<g data-part="junction">${[L0, R0].map((x) => `<rect x="${x - 2}" y="${top + 2}" width="4" height="12" fill="${INK}"/>`).join("")}</g>`;
     // organelles (mitochondria ≈ 1–2 µm long: drawn 28 px ≈ 2 µm)
     s += `<g data-part="mito">${[[345, 112], [415, 120], [340, 196], [420, 205], [336, 262], [424, 258], [380, 150], [380, 236]].map(([x, y]) => `<ellipse cx="${x}" cy="${y}" rx="14" ry="7" fill="#fbe9d0" stroke="${AMBER}" stroke-width="1.4"/><path d="M${x - 9} ${y} q2.25 -4 4.5 0 t4.5 0 t4.5 0 t4.5 0" fill="none" stroke="${AMBER}" stroke-width="1"/>`).join("")}</g>`;
@@ -298,7 +340,7 @@ window.BIO = window.BIO || {};
       s += `<g data-label="basal">${lab(436, bot, 336, "basal membrane", "faces the blood")}</g>`;
       s += `<g data-label="basement">${L(560, bot + 7, 650, 382, { c: "#9aa7b3", w: 1 })}${T(656, 386, "basement membrane", { s: 9.5, c: GREY, a: "start" })}${T(656, 397, "(not part of the cell)", { s: 8.5, c: GREY, a: "start" })}</g>`;
       s += `<g data-label="capillaryC">${lab(584, bot + 44, 426, "capillary")}</g>`;
-      s += `<g data-label="junction">${L(232, 48, L0 - 3, top + 8, { c: GREY, w: 1 })}${T(228, 44, "tight junction (extension)", { s: 9.5, c: GREY, a: "end" })}</g>`;
+      s += `<g data-label="junction">${L(232, 48, L0 - 3, top + 8, { c: GREY, w: 1 })}${T(228, 44, "tight junction (stretch)", { s: 9.5, c: GREY, a: "end" })}</g>`;
     }
     s += `<line x1="70" y1="${bot - 140}" x2="70" y2="${bot}" stroke="${INK}" stroke-width="3"/><line x1="64" y1="${bot - 140}" x2="76" y2="${bot - 140}" stroke="${INK}" stroke-width="2"/><line x1="64" y1="${bot}" x2="76" y2="${bot}" stroke="${INK}" stroke-width="2"/>` + T(58, bot - 70, "≈ 10 µm", { s: 10.5, w: 700, r: -90 });
     s += T(380, 462, "Schematic, drawn to the bar in both directions: the cell is ≈ 21 µm tall and ≈ 10 µm wide (real cells are about 7–10 µm wide).", { s: 9.5, c: GREY });
@@ -310,48 +352,57 @@ window.BIO = window.BIO || {};
   // 6. Sodium-dependent co-transport across an ileum epithelial cell (lumen at the TOP, blood at the BOTTOM).
   //    opts: naCell 0..1 (drawn Na⁺ level in the cell), glcCell 0..1, pumpOn, flux {co, pump, fd} 0..1 for arrow weight.
   // =====================================================================================================
-  function cotransport({ pumpOn = true, naCell = 0.15, glcCell = 0.7, flux = { co: 1, pump: 1, fd: 1 }, labels = true, dots = true } = {}) {
-    uid();
-    const W = 760, H = 560; const top = 150, bot = 400;
+  const COTRANSPORT_CAPTION = "Schematic, not to scale. Lumen at the top, blood at the bottom. The co-transporter uses no ATP itself: the Na⁺ gradient made by the pump drives it.";
+  function cotransport({ pumpOn = true, naCell = 0.15, glcCell = 0.7, flux = { co: 1, pump: 1, fd: 1 }, labels = true, dots = true, caption = true, big = false } = {}) {
+    uid(); BIG = !!big; const z = (a, b) => (big ? b : a);
+    // big (the Simulator): the smaller labels and the ion glyphs are drawn larger, at the same anchor points
+    // caption false (the Simulator): the caption line is left out and shown as HTML text under the drawing instead, so it
+    // stays readable when the drawing is scaled to fit beside the controls
+    const W = 760, H = caption ? 560 : 548; const top = 150, bot = 400;
     let s = svgOpen(W, H, "sodium-glucose co-transport: a co-transporter in the microvillus membrane at the top lets sodium ions in down their gradient carrying glucose; a sodium-potassium pump in the basal membrane at the bottom pumps 3 sodium ions out and 2 potassium ions in using ATP; glucose leaves into the blood by facilitated diffusion") + `<defs>${mk("cn", NAVY)}${mk("ck", SAGE)}${mk("cg", AMBER)}${mk("ca", ROSE)}</defs>`;
     // lumen
     s += `<rect x="0" y="0" width="${W}" height="${top - 24}" fill="#fdf3e3"/>` + T(16, 22, "LUMEN OF THE ILEUM", { s: 12, w: 700, a: "start" }) + T(16, 38, "Na⁺ concentration high", { s: 10.5, c: NAVY, a: "start" });
     if (dots) { [[60, 70], [110, 92], [170, 60], [520, 66], [600, 92], [680, 62], [430, 80], [720, 100]].forEach(([x, y]) => { s += na(x, y); }); [[90, 110], [560, 112], [650, 116]].forEach(([x, y]) => { s += glc(x, y); }); }
     // below the cell (drawn first so the basal proteins and their arrows sit on top): tissue fluid, then the capillary
-    s += `<rect x="0" y="${bot}" width="${W}" height="${H - bot}" fill="#fbf4f4"/>` + T(16, bot + 54, "tissue fluid", { s: 10, c: GREY, a: "start" });
-    s += `<rect x="40" y="${bot + 92}" width="680" height="44" rx="22" fill="#f6dede" stroke="${ROSE}" stroke-width="2"/>` + [90, 650].map((x) => `<ellipse cx="${x}" cy="${bot + 114}" rx="15" ry="8" fill="#e7a3a3" stroke="${ROSE}"/>`).join("") + T(250, bot + 119, "BLOOD IN A CAPILLARY: glucose carried away", { s: 11, w: 700, c: ROSE });
+    s += `<rect x="0" y="${bot}" width="${W}" height="${H - bot}" fill="#fbf4f4"/>` + T(16, bot + 50, "tissue fluid", { s: z(10, 12), c: GREY, a: "start" });
+    s += `<rect x="40" y="${bot + 92}" width="680" height="44" rx="22" fill="#f6dede" stroke="${ROSE}" stroke-width="2"/>` + [90, 650].map((x) => `<ellipse cx="${x}" cy="${bot + 114}" rx="15" ry="8" fill="#e7a3a3" stroke="${ROSE}"/>`).join("") + T(z(250, 270), z(bot + 119, bot + 120), "BLOOD IN A CAPILLARY: glucose carried away", { s: z(11, 13), w: 700, c: ROSE });
     // epithelial cell with microvilli (apical membrane at y = top)
     s += `<rect x="40" y="${top}" width="680" height="${bot - top}" fill="#e9f5f2" stroke="${TEAL}" stroke-width="3"/>`;
     let mv = ""; for (let x = 44; x < 716; x += 26) { if (x > 196 && x < 300) continue; mv += `M${x} ${top} v -24 a 6 6 0 0 1 12 0 v 24 `; } s += `<path d="${mv}" fill="#e9f5f2" stroke="${TEAL}" stroke-width="2"/>`;
     s += T(700, top + 22, "EPITHELIAL CELL", { s: 11.5, w: 700, a: "end", c: TEAL });
     // co-transporter in the apical (microvillus) membrane
-    s += `<g data-part="co"><rect x="218" y="${top - 26}" width="64" height="52" rx="14" fill="#fff" stroke="${NAVY}" stroke-width="2.5"/>${T(250, top - 4, "co-trans-", { s: 9, w: 700, c: NAVY })}${T(250, top + 8, "porter", { s: 9, w: 700, c: NAVY })}</g>`;
+    // R5-32: the box is wider and reads "co-transport / protein" on two lines
+    s += `<g data-part="co"><rect x="202" y="${top - 26}" width="96" height="52" rx="14" fill="#fff" stroke="${NAVY}" stroke-width="2.5"/>${T(250, z(top - 4, top - 3), "co-transport", { s: z(10, 13), w: 700, c: NAVY })}${T(250, z(top + 9, top + 13), "protein", { s: z(10, 13), w: 700, c: NAVY })}</g>`;
     const wCo = 1.5 + 3 * (flux.co || 0), wP = 1.5 + 3 * (flux.pump || 0), wF = 1.5 + 3 * Math.abs(flux.fd || 0);
     const op = (f) => (f > 0.02 ? 1 : 0.25);
     s += `<g opacity="${op(flux.co)}">${L(232, 60, 232, top - 30, { c: NAVY, w: wCo, m: "cn" })}${L(232, top + 30, 232, top + 78, { c: NAVY, w: wCo, m: "cn" })}${L(268, 60, 268, top - 30, { c: AMBER, w: wCo, m: "cg" })}${L(268, top + 30, 268, top + 78, { c: AMBER, w: wCo, m: "cg" })}</g>`;
     s += na(232, 48) + glc(268, 48);
     // inside the cell
     const naPct = Math.round(naCell * 100);
-    s += `<rect x="70" y="${top + 96}" width="150" height="16" rx="8" fill="#fff" stroke="${NAVY}"/><rect x="70" y="${top + 96}" width="${Math.max(4, 150 * naCell)}" height="16" rx="8" fill="#9ec9f0"/>` + T(145, top + 128, `Na⁺ in cell: ${naCell < 0.35 ? "LOW" : naCell < 0.7 ? "rising" : "HIGH"}`, { s: 10.5, w: 700, c: NAVY });
-    s += `<rect x="70" y="${top + 140}" width="150" height="16" rx="8" fill="#fff" stroke="${AMBER}"/><rect x="70" y="${top + 140}" width="${Math.max(4, 150 * glcCell)}" height="16" rx="8" fill="#f3d88a"/>` + T(145, top + 172, `glucose in cell: ${glcCell > 0.5 ? "HIGH" : glcCell > 0.2 ? "moderate" : "low"}`, { s: 10.5, w: 700, c: AMBER });
-    s += `<g data-part="mito">${[[480, top + 128], [650, top + 118], [110, top + 215]].map(([x, y]) => `<ellipse cx="${x}" cy="${y}" rx="24" ry="11" fill="#fbe9d0" stroke="${AMBER}" stroke-width="1.4"/><path d="M${x - 16} ${y} q4 -6 8 0 t8 0 t8 0 t8 0" fill="none" stroke="${AMBER}" stroke-width="1"/>`).join("")}${T(480, top + 154, "mitochondria make ATP", { s: 9.5, c: GREY })}</g>`;
+    s += `<rect x="70" y="${top + 86}" width="150" height="16" rx="8" fill="#fff" stroke="${NAVY}"/><rect x="70" y="${top + 86}" width="${Math.max(4, 150 * naCell)}" height="16" rx="8" fill="#9ec9f0"/>` + T(145, top + 118, `Na⁺ in cell: ${naCell < 0.35 ? "LOW" : naCell < 0.7 ? "rising" : "HIGH"}`, { s: z(10.5, 13), w: 700, c: NAVY });
+    s += `<rect x="70" y="${top + 128}" width="150" height="16" rx="8" fill="#fff" stroke="${AMBER}"/><rect x="70" y="${top + 128}" width="${Math.max(4, 150 * glcCell)}" height="16" rx="8" fill="#f3d88a"/>` + T(145, top + 160, `glucose in cell: ${glcCell > 0.5 ? "HIGH" : glcCell > 0.2 ? "moderate" : "low"}`, { s: z(10.5, 13), w: 700, c: AMBER });
+    s += `<g data-part="mito">${[[480, top + 128], [650, top + 118], [110, top + 215]].map(([x, y]) => `<ellipse cx="${x}" cy="${y}" rx="24" ry="11" fill="#fbe9d0" stroke="${AMBER}" stroke-width="1.4"/><path d="M${x - 16} ${y} q4 -6 8 0 t8 0 t8 0 t8 0" fill="none" stroke="${AMBER}" stroke-width="1"/>`).join("")}${T(480, top + 154, "mitochondria make ATP", { s: z(9.5, 12), c: GREY })}</g>`;
     // basal membrane proteins: Na⁺/K⁺ pump and glucose carrier
-    s += `<g data-part="pump"><rect x="${370 - 36}" y="${bot - 28}" width="72" height="56" rx="14" fill="${pumpOn ? "#fff" : "#eeeeee"}" stroke="${ROSE}" stroke-width="2.5"${pumpOn ? "" : ' stroke-dasharray="5 3"'}/>${T(370, bot - 4, "Na⁺/K⁺", { s: 10, w: 700, c: ROSE })}${T(370, bot + 9, pumpOn ? "pump" : "pump stopped", { s: 9, w: 700, c: ROSE })}</g>`;
+    s += `<g data-part="pump"><rect x="${370 - 36}" y="${bot - 28}" width="72" height="56" rx="14" fill="${pumpOn ? "#fff" : "#eeeeee"}" stroke="${ROSE}" stroke-width="2.5"${pumpOn ? "" : ' stroke-dasharray="5 3"'}/>${T(370, z(bot - 4, bot - 3), "Na⁺/K⁺", { s: z(10, 13), w: 700, c: ROSE })}${T(370, z(bot + 9, bot + 13), pumpOn ? "pump" : big ? "pump off" : "pump stopped", { s: z(9, 12.5), w: 700, c: ROSE })}</g>`;
     s += `<g opacity="${op(flux.pump)}">${L(352, bot - 80, 352, bot - 32, { c: NAVY, w: wP, m: "cn" })}${L(352, bot + 32, 352, bot + 74, { c: NAVY, w: wP, m: "cn" })}${L(390, bot + 74, 390, bot + 32, { c: SAGE, w: wP, m: "ck" })}${L(390, bot - 32, 390, bot - 80, { c: SAGE, w: wP, m: "ck" })}</g>`;
     // ATP sits on the cytoplasmic side, just above and to the right of the pump, with its text directly beneath it, so
     // it reads as belonging to the pump and stays well clear of the glucose carrier at x 560 (QA finding D1)
-    s += `<circle cx="${436}" cy="${bot - 58}" r="16" fill="${pumpOn ? "#fbe3e3" : "#eeeeee"}" stroke="${ROSE}" stroke-width="1.5"/>` + T(436, bot - 54, "ATP", { s: 9.5, w: 700, c: ROSE }) + L(424, bot - 46, 409, bot - 30, { c: ROSE, w: 1.5, m: "ca" }) + T(412, bot - 12, pumpOn ? "ATP → ADP + Pi" : "no ATP used", { s: 9.5, w: 700, c: ROSE, a: "start" });
-    s += `<g data-part="fd"><rect x="${560 - 30}" y="${bot - 28}" width="60" height="56" rx="14" fill="#fff" stroke="${AMBER}" stroke-width="2.5"/>${T(560, bot - 4, "glucose", { s: 9, w: 700, c: AMBER })}${T(560, bot + 9, "carrier", { s: 9, w: 700, c: AMBER })}</g>`;
+    // R5-32: the "ATP → ADP + Pᵢ" text is now the last line of label 2 (left of the pump), clear of the glucose carrier
+    s += `<circle cx="${436}" cy="${bot - 58}" r="16" fill="${pumpOn ? "#fbe3e3" : "#eeeeee"}" stroke="${ROSE}" stroke-width="1.5"/>` + T(436, z(bot - 54, bot - 53.5), "ATP", { s: z(9.5, 10.5), w: 700, c: ROSE }) + L(424, bot - 46, 409, bot - 30, { c: ROSE, w: 1.5, m: "ca" });
+    s += `<g data-part="fd"><rect x="${560 - 30}" y="${bot - 28}" width="60" height="56" rx="14" fill="#fff" stroke="${AMBER}" stroke-width="2.5"/>${T(560, z(bot - 4, bot - 3), "glucose", { s: z(9, 12.5), w: 700, c: AMBER })}${T(560, z(bot + 9, bot + 13), "carrier", { s: z(9, 12.5), w: 700, c: AMBER })}</g>`;
     const fdDown = (flux.fd || 0) >= 0;
     s += `<g opacity="${op(Math.abs(flux.fd || 0))}">${fdDown ? L(560, bot - 80, 560, bot - 32, { c: AMBER, w: wF, m: "cg" }) + L(560, bot + 32, 560, bot + 82, { c: AMBER, w: wF, m: "cg" }) : L(560, bot + 82, 560, bot + 32, { c: AMBER, w: wF, m: "cg" }) + L(560, bot - 32, 560, bot - 80, { c: AMBER, w: wF, m: "cg" })}</g>`;
     // below the cell: tissue fluid then the capillary
     if (labels) {
-      s += T(300, top + 54, "1 Na⁺ diffuses IN, DOWN its", { s: 10.5, w: 700, c: NAVY, a: "start" }) + T(300, top + 68, "concentration gradient, carrying", { s: 10.5, w: 700, c: NAVY, a: "start" }) + T(300, top + 82, "glucose IN AGAINST its gradient", { s: 10.5, w: 700, c: AMBER, a: "start" });
-      s += T(326, bot - 44, "2 pump: 3 Na⁺ OUT,", { s: 10.5, w: 700, c: ROSE, a: "end" }) + T(326, bot - 30, "2 K⁺ IN (active", { s: 10.5, w: 700, c: ROSE, a: "end" }) + T(326, bot - 16, "transport, uses ATP)", { s: 10.5, w: 700, c: ROSE, a: "end" });
-      s += T(600, bot - 64, "3 glucose OUT by", { s: 10.5, w: 700, c: AMBER, a: "start" }) + T(600, bot - 50, "facilitated diffusion", { s: 10.5, w: 700, c: AMBER, a: "start" }) + T(600, bot - 36, "(down its gradient)", { s: 10.5, w: 700, c: AMBER, a: "start" });
-      s += T(352, bot + 86, "3 Na⁺", { s: 9.5, w: 700, c: NAVY }) + T(394, bot + 86, "2 K⁺", { s: 9.5, w: 700, c: SAGE }) + T(712, bot + 16, "basal membrane", { s: 9.5, c: GREY, a: "end" }) + T(300, top - 32, "microvillus membrane", { s: 9.5, c: GREY, a: "start" });
+      s += [["1 Na⁺ diffuses IN, DOWN its", NAVY], ["concentration gradient, carrying", NAVY], ["glucose IN AGAINST its gradient", AMBER]].map(([t, c], i) => T(z(300, 304), top + 52 + z(14, 17) * i, t, { s: z(10.5, 14.5), w: 700, c, a: "start" })).join("");
+      const f2 = z(10.5, 14.5), g2 = z(14, 17);
+      s += [["2 pump: 3 Na⁺ OUT,", ROSE], ["2 K⁺ IN (active", ROSE], ["transport)", ROSE], [pumpOn ? "ATP → ADP + Pᵢ" : "no ATP used", ROSE]].map(([t, c], i) => T(326, bot - 14 - g2 * (3 - i), t, { s: f2, w: 700, c, a: "end" })).join("");
+      // label 3 sits in the tissue fluid beside the outgoing glucose arrow, clear of the cell's border (R5-32)
+      s += ["3 glucose OUT by", "facilitated diffusion", "(down its gradient)"].map((t, i) => T(z(596, 592), bot + 42 + g2 * i, t, { s: f2, w: 700, c: AMBER, a: "start" })).join("");
+      s += T(z(352, 346), z(bot + 86, bot + 88), "3 Na⁺", { s: z(9.5, 12), w: 700, c: NAVY }) + T(z(394, 400), z(bot + 86, bot + 88), "2 K⁺", { s: z(9.5, 12), w: 700, c: SAGE }) + T(16, z(bot + 18, bot + 20), "basal membrane", { s: z(9.5, 12), c: GREY, a: "start" }) + T(z(300, 302), top - 32, "microvillus membrane", { s: z(9.5, 14), c: GREY, a: "start" });
     }
-    s += T(380, H - 6, "Schematic, not to scale. Lumen at the top, blood at the bottom. The co-transporter uses no ATP itself: the Na⁺ gradient made by the pump drives it.", { s: 9.5, c: GREY });
+    if (caption) s += T(380, H - 6, COTRANSPORT_CAPTION, { s: 9.5, c: GREY });
+    BIG = false;
     return s + "</svg>";
   }
 
@@ -387,7 +438,7 @@ window.BIO = window.BIO || {};
     s += g(5, vesicle(470, 360) + vesicle(520, 395) + `<path d="M590 ${bot} a 16 16 0 0 1 32 0" fill="none" stroke="${TEAL}" stroke-width="3"/>` + chylo(606, bot + 12) + L(540, 404, 588, 420, { c: PLUM, w: 2, m: "lp" }) + T(560, 330, "5 exocytosis: vesicles", { s: 10.5, w: 700, c: PLUM, a: "start" }) + T(560, 344, "carrying chylomicrons fuse", { s: 10, c: GREY, a: "start" }) + T(560, 357, "with the cell-surface membrane", { s: 10, c: GREY, a: "start" }));
     // below: lacteal and capillary
     s += g(6, `<rect x="420" y="${bot + 40}" width="300" height="56" rx="28" fill="#fdf6cf" stroke="#b5952c" stroke-width="2.5"/>` + chylo(480, bot + 68) + chylo(530, bot + 62) + chylo(600, bot + 72) + T(570, bot + 114, "6 LACTEAL (lymph): chylomicrons are too large to", { s: 10.5, w: 700, c: "#8a6f1a" }) + T(570, bot + 128, "enter the capillaries; lymph later drains into the blood", { s: 10, c: GREY }));
-    s += `<rect x="40" y="${bot + 40}" width="320" height="44" rx="22" fill="#f6dede" stroke="${ROSE}" stroke-width="2"/>` + T(200, bot + 66, "blood capillary (monosaccharides, amino acids)", { s: 10, c: ROSE, w: 700 });
+    s += `<rect x="40" y="${bot + 40}" width="320" height="44" rx="22" fill="#f6dede" stroke="${ROSE}" stroke-width="2"/>` + T(200, bot + 67, "blood capillary", { s: 10, c: ROSE, w: 700 });
     s += T(380, H - 6, "Schematic, not to scale: a micelle is a few nanometres across; chylomicrons are far larger (tens to hundreds of nanometres).", { s: 9.5, c: GREY });
     return s + "</svg>";
   }
@@ -406,16 +457,15 @@ window.BIO = window.BIO || {};
   //                 G_C/G_L at most Na_L/Na_C, so with no Na⁺ gradient no glucose is moved against its gradient.)
   //   Na⁺ leak      Lk = kL · max(0, Na_L − Na_C)/140 + kB · max(0, Na_T − Na_C)/140 (lumen side and tissue-fluid
   //                 side; the tissue-fluid leak is why cell Na⁺ settles near 11, not 0, when lumen Na⁺ is removed)
-  //   Apical facilitated diffusion  A = kA · max(0, G_L − G_C)   (slow; only DOWN the glucose gradient)
+  //   Apical facilitated diffusion  A = kA · max(0, G_L − G_C)   (release review R5-11: kA = 0, so glucose enters only
+  //                                 by co-transport, the route the specification teaches; the term is kept for clarity)
   //   Basal facilitated diffusion   F = kF · (G_C − G_B)         (sign gives direction; carriers work either way)
   //   Per step (4 Euler sub-steps of 0.25): ΔNa_C = J + Lk − 3P;  ΔG_C = J + A − F;  ΔG_L = −v·(J + A), v = 0.2
-  //   Results from init(20) (see the fixer report): pump working, 60 steps: 19.4 absorbed, lumen 0.6 (below the cell's
-  //   5.4: uptake against the gradient). Pump stopped or no ATP from the start, 60 steps: 7.1 absorbed, lumen 12.9,
-  //   cell Na⁺ 137, none against the gradient. No lumen Na⁺, 60 steps: 2.0 absorbed (facilitated diffusion only),
-  //   cell Na⁺ 11. Stopping the pump part-way: uptake against the gradient stops within about 20 steps.
+  //   Results from init(20) with kA = 0 are checked by the simulator's own messages; with no lumen Na⁺ nothing is
+  //   absorbed, and with the pump stopped uptake falls to almost nothing once cell Na⁺ approaches the lumen value.
   // =====================================================================================================
   const digestModel = {
-    K: { kP: 10.4, KP: 20, kC: 3.2, kL: 1.8, kB: 5, kA: 0.012, kF: 0.5, v: 0.2, NaT: 140, sub: 4 },
+    K: { kP: 10.4, KP: 20, kC: 3.2, kL: 1.8, kB: 5, kA: 0, kF: 0.5, v: 0.2, NaT: 140, sub: 4 },
     init: (gL = 20) => ({ NaL: 140, NaC: 15, GL: gL, GC: 8, GB: 5, t: 0, absorbed: 0, against: 0 }),
     step(st, { pumpOn = true, atp = true } = {}) {
       const k = digestModel.K, s = { ...st }, dt = 1 / k.sub; const f = { pump: 0, co: 0, fd: 0, fa: 0, leak: 0 };
@@ -438,6 +488,36 @@ window.BIO = window.BIO || {};
     },
   };
 
-  B.digestArt = { minW, digestiveSystem, carbDigestion, lipidDigestion, proteinDigestion, ileumWall, villus, epithelialCell, cotransport, lipidAbsorption, ASSESSED, NUMBERS, colours: { INK, GREY, TEAL, SAGE, NAVY, AMBER, ROSE, PLUM }, T, glyph: { hex, pent, bead, na, kk, glc, micelle, chylo, vesicle, bileSalt, tri, fa } };
+  // Figure d-3.2.2.3-2 (Phase 4 Batch 5): OpenStax "2418 Histology Small Intestines" panel (a), middle and right parts
+  // (assets/img/ileum-villi-openstax.jpg: CC BY 3.0; cropped to x 386–1079, y 0–480 of the 1079 × 824 original and
+  // enlarged ×2; all its English labels removed; the two duodenal (Brunner's) glands and their leader painted out because
+  // they belong to the duodenum, not the ileum; the muscularis mucosae leader painted out). Overlay coordinates are the
+  // ORIGINAL image's pixels (the image is drawn at x 386, 693 × 480). Where a published leader line crossed the drawing it
+  // was kept and our leader is drawn exactly over it: lacteal (550,26)→(477,77); capillary (735,57)→(628,57); arteriole
+  // (735,85)→(650,85); goblet cell (735,112)→(685,112); crypt (735,249)→(553,249); lymph vessel (559,373) downwards; the
+  // microvilli bracket (1010,86)→(1010,104), (979–1039,104), legs to y 126. Not to scale.
+  function ileumPhoto() {
+    uid(); const X0 = 276, W = 803, H = 482, SUB = "#46566a";
+    const ld = (pts, dot = true) => { const d = "M" + pts.map((p) => p.join(" ")).join(" L"); const [ex, ey] = pts[pts.length - 1];
+      return `<path d="${d}" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" stroke-opacity=".9"/><path d="${d}" fill="none" stroke="${INK}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>${dot ? `<circle cx="${ex}" cy="${ey}" r="3.6" fill="${INK}" stroke="#fff" stroke-width="1.2"/>` : ""}`; };
+    const lab = (x, y, lines, a = "start") => lines.map((l, i) => { const sup = l.startsWith("~"); const t = l.replace(/^~/, "");
+      return `<text x="${x}" y="${y + i * 18}" text-anchor="${a}" font-size="${sup ? 15 : 17}" font-weight="${sup ? 500 : 800}" fill="${sup ? SUB : INK}" stroke="#fff" stroke-width="3.5" stroke-linejoin="round" paint-order="stroke">${t}</text>`; }).join("");
+    let s = `<svg viewBox="${X0} 0 ${W} ${H}" width="${W}" role="img" aria-label="Two villi of the ileum in section and one epithelial cell magnified. Each villus is a finger-like fold covered by a single layer of epithelial cells, some of them goblet cells. Inside each villus is a central lacteal and a network of blood capillaries between an arteriole and a venule. A crypt dips down between the villi. The lacteals join a lymph vessel below. The magnified epithelial cell has a brush border of microvilli on its surface facing the lumen and many mitochondria." font-family="system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif" style="max-width:100%;min-width:${minW(W)}px;height:auto">`;
+    s += `<rect x="${X0}" y="0" width="${W}" height="${H}" fill="#ffffff"/><image href="assets/img/ileum-villi-openstax.jpg" x="386" y="0" width="693" height="480"/>`;
+    s += ld([[386, 99], [440, 99]]) + lab(380, 104, ["Villus"], "end");
+    s += lab(300, 34, ["~Lumen"]);
+    s += ld([[550, 26], [477, 77]]) + lab(521, 20, ["Lacteal"]);
+    s += ld([[734, 27], [662, 27]]) + lab(740, 22, ["Epithelium", "one cell thick"]);
+    s += ld([[735, 57], [637, 58]]) + lab(740, 63, ["Capillaries"]); // R5-33: the dot sits on a capillary joining the arteriole (red) to the venule (blue)
+    s += ld([[735, 85], [650, 85]]) + lab(740, 90, ["~Arteriole"]);
+    s += ld([[735, 112], [685, 112]]) + lab(740, 117, ["~Goblet cell"]);
+    s += ld([[735, 249], [553, 249]]) + lab(740, 254, ["~Crypt"]);
+    s += ld([[559, 437], [559, 373]]) + lab(559, 454, ["~Lymph vessel"], "middle");
+    s += ld([[1010, 86], [1010, 104]], false) + ld([[979, 126], [979, 104], [1039, 104], [1039, 126]], false) + lab(1010, 64, ["Microvilli", "~(brush border)"], "middle");
+    s += ld([[990, 372], [962, 324]]) + ld([[1010, 372], [1021, 332]]) + lab(1000, 390, ["~Mitochondria"], "middle") + lab(1000, 420, ["~One epithelial cell", "~(magnified)"], "middle");
+    return s + "</svg>";
+  }
+
+  B.digestArt = { COTRANSPORT_CAPTION, DIG_CREDIT, minW, digestiveSystem, DIG_IMG, DIG_SHAPES, DIG_LABELS, carbDigestion, lipidDigestion, proteinDigestion, ileumWall, ileumPhoto, villus, epithelialCell, cotransport, lipidAbsorption, ASSESSED, NUMBERS, colours: { INK, GREY, TEAL, SAGE, NAVY, AMBER, ROSE, PLUM }, T, glyph: { hex, pent, bead, na, kk, glc, micelle, chylo, vesicle, bileSalt, tri, fa } };
   B.digestModel = digestModel;
 })(window.BIO);

@@ -1,0 +1,293 @@
+/* ==========================================================================================================
+   Shared layout for interactives, simulations and virtual benches ("stage + controls"), 2026-11-14.
+   Problem it solves: on laptop screens a tall block of controls pushed the picture below the fold, so a student
+   had to scroll down to see the effect of a control and back up to change it.
+
+   Markup (built by B.ix.split in js/core/ix-layout.js, or written by hand):
+     <div class="ix">                     container (queries use its width, so menu shown/hidden both work)
+       <div class="ix-body">
+         <div class="ix-stage">…</div>    the picture: figure, SVG, canvas, chart (and a short readout or legend)
+         <div class="ix-panel">…</div>    the controls: compact fieldsets, sliders, buttons, readouts
+       </div>
+     </div>
+   Anything that is not needed while experimenting (assumptions, long tables, questions) stays after .ix.
+   DOM order is always stage, then controls, so reading and Tab order match what is seen at every width.
+
+   Wide (the .ix box is at least 700px): two columns, picture left and controls right. The picture is sticky and
+   capped to the viewport height, so it stays in view while a long control column scrolls past it.
+   Narrow (phones, small windows): one column, picture first. The picture sticks under the top bar at a capped
+   height (about 40 % of the screen) and the controls scroll underneath it, so each change is still visible.
+   Modifiers:
+     .ix-wide-stage   stage gets more of the width (for wide landscape drawings)
+     .ix-even         two equal columns
+     .ix-fit-2        the stage holds two stacked visuals: each is capped to half the available height
+     .ix-nosticky-sm  do not pin the stage on narrow screens (for stages that are tall by nature, such as a microscope)
+     .ix-stack        keep one column at every width (for a pair of drawings that need the full width); the stage is
+                      still pinned on narrow screens
+   ========================================================================================================== */
+.ix { container: ix / inline-size; margin-top: .75rem; --ix-top: calc(var(--topbar-h, 64px) + .5rem); --ix-avail: calc(100vh - var(--topbar-h, 64px) - 1.5rem); }
+@supports (height: 100svh) { .ix { --ix-avail: calc(100svh - var(--topbar-h, 64px) - 1.5rem); } }
+.ix-body { display: flex; flex-direction: column; align-items: stretch; gap: .8rem; min-width: 0; }
+.ix-stage, .ix-panel { min-width: 0; }
+.ix-stage > :first-child, .ix-panel > :first-child { margin-top: 0; }
+.ix-stage > :last-child, .ix-panel > :last-child { margin-bottom: 0; }
+.ix-stage .figure { margin: 0; padding: .35rem; }
+.ix-stage .figure + .figure, .ix-stage > * + * { margin-top: .5rem; }
+
+/* ---------- Compact controls ---------- */
+.ix-panel { display: flex; flex-direction: column; gap: .5rem; }
+.ix-panel > * { margin-top: 0; margin-bottom: 0; }
+.ix-panel fieldset { border: 1px solid var(--line); border-radius: 10px; padding: .3rem .6rem .45rem; margin: 0; min-width: 0; }
+.ix-panel legend { font-size: .8rem; font-weight: 700; color: var(--ink-2); padding: 0 .25rem; }
+.ix-panel fieldset > br { display: none; }
+.ix-panel fieldset > label { display: flex; gap: .4rem; align-items: baseline; margin: .12rem 0; line-height: 1.3; }
+.ix-panel fieldset > label > input[type=radio], .ix-panel fieldset > label > input[type=checkbox] { flex: none; margin: 0; transform: translateY(.1em); }
+.ix-panel fieldset > label > select { margin-left: auto; }
+.ix-panel .row { gap: .35rem; }
+.ix-panel .btn.sm { padding-block: .3rem; }
+.ix-panel input[type=range] { width: 100% !important; max-width: none !important; accent-color: var(--teal); }
+.ix-panel .tbl { font-size: .84rem; }
+.ix-panel .tbl th, .ix-panel .tbl td { padding: .28rem .4rem; }
+.ix-panel .readout, .ix-readout { font-size: .86rem; background: var(--surface-2); padding: .45rem .65rem; border-radius: 8px; line-height: 1.4; }
+.ix-group { display: flex; flex-direction: column; gap: .35rem; }
+.ix-group-title { font-size: .8rem; font-weight: 700; color: var(--ink-2); margin: 0; }
+
+/* Focus stays visible on every control inside the layout */
+.ix :is(button, input, select, textarea, summary, [tabindex]):focus-visible { outline: 3px solid var(--focus, var(--teal)); outline-offset: 2px; }
+
+/* ---------- Narrow: one column, picture pinned under the top bar ---------- */
+.ix-stage { --ix-vis-max: 40vh; }
+@supports (height: 100svh) { .ix-stage { --ix-vis-max: 40svh; } }
+.ix-stage :is(svg, canvas, img):not(.ix-free):not(.ix-free *) { max-height: var(--ix-vis-max); }
+.ix-stage svg svg { max-height: none !important; }
+.ix:not(.ix-nosticky-sm) .ix-stage { position: sticky; top: var(--topbar-h, 64px); z-index: 4; background: var(--surface); padding: .35rem 0 .45rem; box-shadow: 0 10px 12px -12px rgba(6, 24, 20, .45); }
+.ix.ix-fit-2 .ix-stage { --ix-vis-max: 17vh; }
+@supports (height: 100svh) { .ix.ix-fit-2 .ix-stage { --ix-vis-max: 17svh; } }
+.ix.ix-nosticky-sm .ix-stage { --ix-vis-max: 70vh; }
+
+/* ---------- Wide: picture left (sticky, fits the screen), controls right ---------- */
+@container ix (min-width: 700px) {
+  /* readability pass: the picture takes all the width the controls do not need (controls column 250 to 320 px) */
+  .ix-body { display: grid; grid-template-columns: minmax(0, 1fr) clamp(250px, 30cqi, 320px); gap: 1.1rem; align-items: start; }
+  .ix.ix-wide-stage .ix-body { grid-template-columns: minmax(0, 1fr) clamp(240px, 27cqi, 300px); }
+  .ix.ix-even .ix-body { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .ix:not(.ix-nosticky-sm) .ix-stage, .ix.ix-nosticky-sm .ix-stage { position: sticky; top: var(--ix-top); z-index: auto; background: none; padding: 0; box-shadow: none; --ix-vis-max: calc(var(--ix-avail) - 1rem); }
+  .ix.ix-fit-2 .ix-stage { --ix-vis-max: calc((var(--ix-avail) - 7rem) / 2); }
+  .ix.ix .ix-stage[data-ix-cap] { --ix-vis-max: calc(var(--ix-avail) - var(--ix-cap-less, 4rem)); }
+  /* drawings that keep a minimum width for phones may shrink to fit the stage column on wide screens */
+  .ix-stage svg { min-width: 0 !important; }
+  .ix.ix-stack .ix-body { display: flex; }
+  .ix.ix-stack .ix-panel { flex-direction: row; flex-wrap: wrap; align-items: flex-start; gap: .6rem 1rem; }
+  .ix.ix-stack .ix-panel > * { flex: 1 1 240px; }
+  .ix.ix-stack:not(.ix-nosticky-sm) .ix-stage { position: static; --ix-vis-max: calc(var(--ix-avail) - 8rem); }
+  .ix.ix-stack.ix-fit-2 .ix-stage { --ix-vis-max: calc(var(--ix-avail) - 8rem); }
+}
+/* A very short window (landscape phone): do not pin anything, it would cover the controls */
+@media (max-height: 520px) { .ix .ix-stage { position: static !important; box-shadow: none !important; } }
+
+/* Dark theme: the pinned stage needs the dark surface behind it */
+html[data-theme="dark"] .ix:not(.ix-nosticky-sm) .ix-stage { background: var(--surface); }
+@container ix (min-width: 700px) { html[data-theme="dark"] .ix:not(.ix-nosticky-sm) .ix-stage { background: none; } }
+html[data-theme="dark"] .ix-panel fieldset { border-color: var(--line-strong); }
+
+/* Motion: nothing here animates, but make sure scrolling to a pinned stage is not smooth when motion is reduced */
+@media (prefers-reduced-motion: reduce) { .ix, .ix * { scroll-behavior: auto; } }
+
+/* ---------- Virtual benches (RP pages): bench drawing pinned beside its controls ---------- */
+.bench-wrap { --ix-top: calc(var(--topbar-h, 64px) + .5rem); }
+@media (min-width: 761px) {
+  .bench-wrap > .bench-svg, .bench-wrap > .ix-bench-stage { position: sticky; top: var(--ix-top); align-self: start; }
+  .bench-wrap > .bench-svg { max-height: calc(100vh - var(--topbar-h, 64px) - 1.5rem); }
+}
+
+/* A zoomable stage (its own zoom buttons set the drawing's width): cap the box, not the drawing, and let it scroll */
+.ix-stage .ix-free { max-height: var(--ix-vis-max) !important; overflow: auto !important; }
+
+/* Compact apparatus shelf on wide screens, so the bench drawing and its controls sit higher on the page */
+@media (min-width: 761px) {
+  .bench-wrap { gap: .7rem 1rem; }
+  .bench-shelf { padding: .4rem; gap: .35rem; min-height: 0; }
+  .bench-shelf .shelf-item { width: 92px; padding: .25rem .25rem .3rem; font-size: .68rem; line-height: 1.2; }
+  .bench-shelf .shelf-item > svg { width: 40px; height: 40px; }
+  .bench-steps .bstep { padding: .18rem .5rem; }
+  .bench-controls { gap: .55rem; }
+}
+/* Long option text (for example the slide names) must not push a control past the panel edge */
+.ix-panel label, .ix-panel select { max-width: 100%; min-width: 0; }
+.ix-panel select { text-overflow: ellipsis; }
+
+/* ==========================================================================================================
+   Readability pass (2026-11-14): pictures large enough to read. Per-interactive choices are recorded in the report;
+   the shared pieces are below.
+   ========================================================================================================== */
+/* One drawing at a time: a small tab row above the drawings (used where two stacked drawings were each too small) */
+.ix-views { display: flex; flex-wrap: wrap; gap: .35rem; margin: 0 0 .45rem; }
+.ix-views .btn[aria-selected="true"] { cursor: default; }
+.ix-stage .ix-views + .figure, .ix-stage .ix-views ~ .figure { margin-top: 0; }
+/* A drawing with its explanatory text as HTML: side by side when there is room, text below otherwise */
+.ix-fig-notes { display: flex; flex-wrap: wrap; gap: .4rem .8rem; align-items: flex-start; }
+.ix-fig-notes > :first-child { flex: 1 1 440px; min-width: 0; }
+.ix-fig-notes > :last-child { flex: 1 1 190px; min-width: 0; }
+.mf-notes { display: flex; flex-direction: column; gap: .45rem; font-size: .9rem; line-height: 1.4; color: #1d2b28; background: #fff; border-radius: 10px; padding: .5rem .65rem; }
+.mf-notes p, .mf-notes ul { margin: 0; }
+.mf-notes ul { list-style: none; padding: 0; }
+.mf-notes li { margin: .1rem 0; }
+.mf-notes .mf-xylem { color: #1f63b5; }
+/* The notes sit on a white panel like the drawing, in both themes, so they keep dark ink */
+html[data-theme="dark"] .figure .mf-notes { color: #1d2b28; }
+html[data-theme="dark"] .figure .mf-notes .mf-xylem { color: #1f63b5; }
+/* Narrow (phones): readability first. The picture is no longer pinned at 40 % of the screen (that shrank labels to 3 to 6
+   px); it takes the full width and up to 80 % of the screen height, and a drawing too detailed for the phone width keeps a
+   readable minimum width and scrolls sideways inside its own box (set by B.ix.readable, class ix-hscroll). */
+@container ix (max-width: 699.98px) {
+  .ix .ix-stage, .ix.ix-fit-2 .ix-stage, .ix.ix-nosticky-sm .ix-stage { position: static !important; box-shadow: none !important; padding: 0 !important; --ix-vis-max: 80vh; }
+}
+.ix-hscroll { overflow-x: auto !important; overflow-y: hidden; -webkit-overflow-scrolling: touch; max-width: 100%; contain: inline-size; min-width: 0; }
+.ix-hscroll > svg { max-width: none !important; max-height: none !important; }
+/* Controls in one row above a wide drawing shown at the full card width (wide drawings with a short row of controls):
+   the drawing is capped so the row and the drawing fit on a laptop screen together; any longer text follows it */
+.ix-toprow { margin-top: .75rem; display: flex; flex-direction: column; gap: .55rem; }
+.ix-toprow > * { margin-top: 0; margin-bottom: 0; }
+.ix-toprow .ix-full .figure { margin: 0; padding: .35rem; }
+.ix-toprow .ix-full svg { max-height: calc(100vh - var(--topbar-h, 64px) - 6.5rem); }
+.ix-toprow :is(button, input, select, summary):focus-visible { outline: 3px solid var(--focus, var(--teal)); outline-offset: 2px; }
+/* An explorer whose drawing is a wide row of panels with captions: drawing at the full width, the details below it */
+.explorer.ix-explorer-stack { grid-template-columns: minmax(0, 1fr); }
+.explorer.ix-explorer-stack > .figure { margin: 0; }
+/* A two-column interactive whose left column holds the drawing: the drawing column gets more of the width */
+@media (min-width: 761px) { .grid.grid-2.ix-grid-pic { grid-template-columns: minmax(0, 1.6fr) minmax(220px, 1fr); } }
+/* A small chart that moved from the controls column into the picture column (binary fission, part B) */
+.ix-stage .card.ix-hist { padding: .5rem .7rem; }
+.ix-stage .card.ix-hist h4 { margin: 0 0 .3rem; }
+/* ==========================================================================================================
+   Virtual benches, layout pass 2 (2026-11-15). Teacher report on RP4: the step buttons sat far below the drawing, so the
+   animation of a step happened off screen. Every bench built with .ix-bench-full (RP1, RP1 alternative, RP2, RP3, RP4,
+   RP6) now has this order, which is also the reading and Tab order:
+     .bench-steps   progress chips (no controls)
+     .bench-stage   the bench drawing, PINNED under the top bar (position: sticky) at a capped height
+     .bench-shelf   apparatus to drag or click onto the bench
+     .bench-controls  steps, choices and buttons, in compact columns
+   Because the drawing comes before every control and stays pinned while the controls scroll underneath it, the drawing is
+   on screen whenever a control is: the result of a click is always in view without scrolling. The drawing's height is
+   capped (--bench-h) so that a band of controls (about 15 rem) is still visible below it on a 720 px high laptop screen.
+   Controls focused by keyboard are kept clear of the pinned drawing by scroll-margin-top. Phones keep the readable
+   minimum width (sideways-scrolling box from B.ix.readable) and the same pinned drawing (about 300 px high).
+   ========================================================================================================== */
+.bench-wrap.ix-bench-full { --bench-ar: 2.093; /* viewBox 900 x 430 */ --bench-h: clamp(220px, calc(100vh - var(--topbar-h, 64px) - 15.5rem), 600px); --bench-pin: calc(var(--topbar-h, 64px) + var(--bench-h) + 1.5rem); grid-template-columns: minmax(0, 1fr); gap: .55rem 1rem; }
+@supports (height: 100svh) { .bench-wrap.ix-bench-full { --bench-h: clamp(220px, calc(100svh - var(--topbar-h, 64px) - 15.5rem), 600px); } }
+/* Benches with a short block of controls (RP1, RP1 alternative, RP2, RP3: sliders, a few choices and one action button)
+   need only about 12 rem below the drawing, so their drawing is larger; the step-list benches keep 15.5 rem (RP4) */
+.bench-wrap:is(.bench-cat, .bench-tryp, .bench-osm, .bench-chroma) { --bench-h: clamp(220px, calc(100vh - var(--topbar-h, 64px) - 13rem), 600px); }
+@supports (height: 100svh) { .bench-wrap:is(.bench-cat, .bench-tryp, .bench-osm, .bench-chroma) { --bench-h: clamp(220px, calc(100svh - var(--topbar-h, 64px) - 13rem), 600px); } }
+.bench-wrap.bench-rt { --bench-ar: 2.25; /* viewBox 900 x 400 */ }
+/* RP6: the live readings line sits under the drawing inside the pinned block, so the drawing is a little shorter */
+.bench-wrap.bench-pot { --bench-h: clamp(220px, calc(100vh - var(--topbar-h, 64px) - 16rem), 580px); }
+@supports (height: 100svh) { .bench-wrap.bench-pot { --bench-h: clamp(220px, calc(100svh - var(--topbar-h, 64px) - 16rem), 580px); } }
+.bench-wrap.ix-bench-full > .bench-stage { position: sticky; top: var(--topbar-h, 64px); z-index: 6; min-width: 0; margin: 0 -.4rem; padding: .3rem .4rem .45rem; background: var(--surface); box-shadow: 0 12px 10px -12px rgba(6, 24, 20, .5); }
+.bench-wrap.ix-bench-full > .bench-stage .bench-svg { position: static; max-height: none; margin-inline: auto; width: min(100%, calc(var(--bench-h) * var(--bench-ar))); }
+.bench-wrap.ix-bench-full > .bench-stage > #plive { margin-top: .35rem; }
+.bench-wrap.ix-bench-full > .bench-stage > #plive:empty { display: none; }
+.bench-wrap.ix-bench-full > .bench-shelf { min-height: 0; }
+.bench-wrap.ix-bench-full > :is(.bench-shelf, .bench-controls) :is(button, input, select, summary, a, [tabindex]) { scroll-margin-top: var(--bench-pin); scroll-margin-bottom: 1rem; }
+/* Controls: compact columns under the drawing. Lists of method steps (RP4, RP6) and the RP6 conditions take the full width
+   and lay their buttons out in a grid, so a whole list fits in the band below the drawing. */
+.bench-wrap.ix-bench-full > .bench-controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); align-items: start; gap: .5rem 1.1rem; }
+.bench-wrap.ix-bench-full > .bench-controls > * { margin-top: 0; }
+.bench-wrap.ix-bench-full > .bench-controls > :empty { display: none; }
+.bench-wrap.ix-bench-full > .bench-controls > :is(#rtproc, #rtdec, #pproc, #prun) { grid-column: 1 / -1; }
+.bench-wrap.ix-bench-full :is(#rtproc, #pproc) > .stack { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: .35rem .45rem !important; margin-top: .3rem; }
+.bench-wrap.ix-bench-full :is(#rtproc, #pproc) > .stack > .btn { padding-block: .3rem; line-height: 1.3; }
+.bench-wrap.ix-bench-full > .bench-controls > #prun:not([hidden]) { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: .35rem 1rem; align-items: end; }
+.bench-wrap.ix-bench-full > .bench-controls > #prun > :is(strong, p, .row, details) { grid-column: 1 / -1; margin: 0; }
+.bench-wrap.ix-bench-full > .bench-controls > #prun > label > select { display: block; width: 100%; }
+.bench-wrap.ix-bench-full #rtdec .stack { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+@media (max-width: 760px) {
+  .bench-wrap.ix-bench-full { --bench-pin: calc(var(--topbar-h, 64px) + 21rem); }
+  .bench-wrap.ix-bench-full > .bench-stage { margin: 0; padding: .25rem 0 .35rem; }
+}
+/* A short window (landscape phone): pinning the drawing would hide the controls */
+@media (max-height: 560px) { .bench-wrap.ix-bench-full > .bench-stage { position: static; box-shadow: none; } .bench-wrap.ix-bench-full { --bench-pin: 0px; } }
+/* Phones: the bench drawing keeps a readable width inside its own sideways-scrolling box (made by B.ix.readable) */
+.bench-wrap > [data-ix-wrap], .bench-stage [data-ix-wrap] { min-width: 0; border-radius: 12px; }
+
+/* ==========================================================================================================
+   RP5 pulse bench (layout pass 2, 2026-11-15). It keeps its own stage + controls layout (B.ix.split): picture left and
+   pinned, controls right. Some stages stack two to four pictures (scene, timeline, pulse strip), which made the picture
+   column taller than a laptop screen, so a count happened below the fold. The pictures of a stage now share the screen
+   height: each is capped at 1/n of the room left under the top bar, the stage list and the intro line (--pl-room), where n
+   is the number of pictures showing (the pulse strip box is empty until a counting mode is chosen). A stage chosen from
+   the stage list scrolls the bench to its top when the picture would not be fully on screen (as the Next buttons do).
+   Phones: the picture column is pinned under the top bar at up to about 44 % of the screen, the controls scroll beneath.
+   The Calculate stage (a table of inputs) is not pinned.
+   ========================================================================================================== */
+[data-pl="bench"] { scroll-margin-top: calc(var(--topbar-h, 64px) + .5rem); }
+[data-pl="body"] .ix { --pl-room: calc(100vh - var(--topbar-h, 64px) - 7.5rem); }
+@supports (height: 100svh) { [data-pl="body"] .ix { --pl-room: calc(100svh - var(--topbar-h, 64px) - 7.5rem); } }
+@container ix (min-width: 700px) {
+  [data-pl="body"] .ix.ix .ix-stage { --ix-vis-max: calc(var(--pl-room) - 3rem); }
+  [data-pl="body"] .ix.ix .ix-stage:has(> .pl-fig:not(:empty) ~ .pl-fig:not(:empty)) { --ix-vis-max: calc((var(--pl-room) - 2.5rem) / 2); }
+  [data-pl="body"] .ix.ix .ix-stage:is(:has(> .pl-fig:not(:empty) ~ .pl-fig:not(:empty) ~ .pl-fig:not(:empty)), :has(> .pl-fig:not(:empty) ~ .pl-fig > [data-pl="sc"])) { --ix-vis-max: calc((var(--pl-room) - 3.5rem) / 3); }
+  [data-pl="body"] .ix.ix .ix-stage:has(> .pl-fig:not(:empty) ~ .pl-fig:not(:empty) ~ .pl-fig > [data-pl="sc"]) { --ix-vis-max: calc((var(--pl-room) - 4.5rem) / 4); }
+}
+@container ix (max-width: 699.98px) {
+  [data-pl="body"] .ix.ix .ix-stage:not(:has(> .pl-tbl)) { position: sticky !important; top: var(--topbar-h, 64px); z-index: 4; background: var(--surface); padding: .25rem 0 .4rem !important; box-shadow: 0 10px 10px -12px rgba(6, 24, 20, .5) !important; --pl-room: 44vh; --ix-vis-max: calc(var(--pl-room) - 1.5rem); }
+  [data-pl="body"] .ix.ix .ix-stage:not(:has(> .pl-tbl)):has(> .pl-fig:not(:empty) ~ .pl-fig:not(:empty)) { --ix-vis-max: calc((var(--pl-room) - 1.5rem) / 2); }
+  [data-pl="body"] .ix.ix .ix-stage:not(:has(> .pl-tbl)):is(:has(> .pl-fig:not(:empty) ~ .pl-fig:not(:empty) ~ .pl-fig:not(:empty)), :has(> .pl-fig:not(:empty) ~ .pl-fig > [data-pl="sc"])) { --ix-vis-max: calc((var(--pl-room) - 2rem) / 3); }
+  [data-pl="body"] .ix.ix .ix-stage:not(:has(> .pl-tbl)):has(> .pl-fig:not(:empty) ~ .pl-fig:not(:empty) ~ .pl-fig > [data-pl="sc"]) { --ix-vis-max: calc((var(--pl-room) - 2.5rem) / 4); }
+}
+@supports (height: 100svh) { @container ix (max-width: 699.98px) { [data-pl="body"] .ix.ix .ix-stage:not(:has(> .pl-tbl)) { --pl-room: 44svh; } } }
+@media (max-height: 560px) { [data-pl="body"] .ix.ix .ix-stage { position: static !important; } }
+[data-pl="body"] .ix :is(.ix-panel) :is(button, input, select, summary) { scroll-margin-top: calc(var(--topbar-h, 64px) + 1rem); }
+@container ix (max-width: 699.98px) { [data-pl="body"] .ix .ix-panel :is(button, input, select, summary, a) { scroll-margin-top: calc(var(--topbar-h, 64px) + 44svh + 1rem); } }
+/* RP4 microscope (opened by "Examine the slide"): the card is scrolled into view below the top bar, and on phones the field of
+   view is pinned under the top bar (it is about 270 px square there) so identifying and recording cells stays in view */
+#rtmicro-card { scroll-margin-top: calc(var(--topbar-h, 64px) + .5rem); }
+@container ix (max-width: 699.98px) {
+  #rtmicro .ix.ix .ix-stage { position: sticky !important; top: var(--topbar-h, 64px); z-index: 4; background: var(--surface); padding: .25rem 0 .4rem !important; box-shadow: 0 10px 10px -12px rgba(6, 24, 20, .5) !important; --ix-vis-max: 46vh; }
+  #rtmicro .ix .ix-panel :is(button, input, select, summary, a) { scroll-margin-top: calc(var(--topbar-h, 64px) + 50vh); }
+}
+@media (max-height: 560px) { #rtmicro .ix.ix .ix-stage { position: static !important; } }
+/* RP5 counting layout (teacher decision, 2026-11-15): on the Rest and Recovery stages, while a count is showing (the
+   counting scene and pulse strip in "Count in real time", or the pulse strip alone in "Read the strip" and "Auto count"), the
+   stage scene at the top shrinks to a compact band (its caption and floor, drawn at 0.8 scale so the caption stays readable)
+   and the room goes to the timeline, the counting scene and the strip. Their heights share the screen in proportion to the
+   height each needs for 11 px labels (timeline 116, counting scene 186, strip 220 px). When counting ends (all counts done,
+   or another stage) the count area is empty, the rule no longer matches and the normal layout returns. Laptop widths only;
+   phones keep their pinned 44 % stage. Matched only where the first picture is the stage scene (not the Measure wrist). */
+[data-pl="body"] .ix { --plc: calc(100vh - var(--topbar-h, 64px) - 96px); }
+@supports (height: 100svh) { [data-pl="body"] .ix { --plc: calc(100svh - var(--topbar-h, 64px) - 96px); } }
+@container ix (min-width: 700px) {
+  [data-pl="body"] .ix.ix .ix-stage:has(> .pl-fig:first-child:not([data-pl]) + .pl-fig + [data-pl="pv"]:not(:empty)) > * + * { margin-top: .3rem; }
+  [data-pl="body"] .ix.ix .ix-stage:has(> .pl-fig:first-child:not([data-pl]) + .pl-fig + [data-pl="pv"]:not(:empty)) > .pl-fig:first-child { height: 46px; padding: 0 .25rem; overflow: hidden; display: flex; justify-content: center; align-items: flex-end; -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 70%); mask-image: linear-gradient(to bottom, transparent 0, #000 70%); }
+  [data-pl="body"] .ix.ix .ix-stage:has(> .pl-fig:first-child:not([data-pl]) + .pl-fig + [data-pl="pv"]:not(:empty)) > .pl-fig:first-child > svg { flex: none; width: 480px; height: 184px; max-width: none; max-height: none !important; }
+  [data-pl="body"] .ix.ix .ix-stage:has(> .pl-fig:first-child:not([data-pl]) + .pl-fig + [data-pl="pv"]:not(:empty)) > .pl-fig:nth-child(2) svg { max-height: max(116px, calc(var(--plc) * .2222)) !important; }
+  [data-pl="body"] .ix.ix .ix-stage:has(> .pl-fig:first-child:not([data-pl]) + .pl-fig + [data-pl="pv"]:not(:empty)) [data-pl="sc"] svg { max-height: max(186px, calc(var(--plc) * .3563)) !important; }
+  [data-pl="body"] .ix.ix .ix-stage:has(> .pl-fig:first-child:not([data-pl]) + .pl-fig + [data-pl="pv"]:not(:empty)) [data-pl="pv"] > svg { max-height: max(220px, calc(var(--plc) * .4215)) !important; }
+  /* strip alone (no counting scene): the strip may use the counting scene's share too */
+  [data-pl="body"] .ix.ix .ix-stage:has(> .pl-fig:first-child:not([data-pl]) + .pl-fig + [data-pl="pv"]:not(:empty)):not(:has([data-pl="sc"])) [data-pl="pv"] > svg { max-height: max(220px, calc(var(--plc) * .75)) !important; }
+}
+
+/* Lab Method diagrams on phones (F9, R9-36): the apparatus and stage drawings keep a readable width and scroll sideways
+   inside their own box, with a cue in the caption. Lab practical pages only (.pane[data-pane="method"]). */
+@media (max-width: 600px) {
+  .pane[data-pane="method"] .figure .fig-view { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .pane[data-pane="method"] .figure .fig-view > svg { min-width: 600px; max-width: none !important; }
+  .pane[data-pane="method"] .figure:has(> .fig-view) > figcaption::before { content: "Scroll the drawing sideways to see all of it. "; font-weight: 600; }
+}
+
+/* Release review (2026-11-15): drawings that scroll sideways on phones show it, with edge shadows and a one-line cue */
+.ix-hscroll { background:
+  linear-gradient(to right, var(--surface, #fff) 30%, rgba(255,255,255,0)) left center / 32px 100% no-repeat local,
+  linear-gradient(to left, var(--surface, #fff) 30%, rgba(255,255,255,0)) right center / 32px 100% no-repeat local,
+  radial-gradient(farthest-side at 0 50%, rgba(0,0,0,.22), rgba(0,0,0,0)) left center / 12px 100% no-repeat scroll,
+  radial-gradient(farthest-side at 100% 50%, rgba(0,0,0,.22), rgba(0,0,0,0)) right center / 12px 100% no-repeat scroll; }
+.ix-swipe { margin: .25rem 0 0; text-align: center; }
+@media (min-width: 600px) { .ix-swipe { display: none; } }
+
+/* Phones (F9, round 2, P-03): the bench instruction is shown as a line of page text above the drawing, because the
+   drawing scrolls sideways and its own headline would be cut off. Laptops keep the headline inside the drawing. */
+.bench-stage > .bench-say { display: none; }
+@media (max-width: 600px) {
+  .bench-stage > .bench-say:not(:empty) { display: block; margin: 0 0 .3rem; font-size: .85rem; font-weight: 600; line-height: 1.35; color: var(--ink, inherit); }
+  .bench-stage svg text[id$="msg"] { display: none; }
+}
