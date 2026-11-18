@@ -72,7 +72,7 @@ window.BIO = window.BIO || {}; window.BIO.content = window.BIO.content || {};
 <tr><th>Genetic identity</th><td>Circular DNA identical; plasmid numbers may differ</td><td>Genetically identical</td><td>Genetically different</td></tr>
 <tr><th>Used for</th><td>Reproduction of a single-celled prokaryote</td><td>Growth, repair, asexual reproduction</td><td>Making gametes for sexual reproduction</td></tr></tbody></table></div>
 <p>${sup} The comparison of mitosis and meiosis is taught in 3.1.9.1 and 3.2.10.2; it is included here so that you can see where binary fission fits.</p>
-<p>Twelve sorting questions in Check yourself ask you to decide whether a statement describes binary fission, mitosis or meiosis.</p>
+<p>The sorting questions below ask you to decide whether a statement describes binary fission, mitosis or meiosis. Use the table.</p>
 <h2 data-stmt="${R}.s2">6. Conjugation: DNA passed to another bacterium ${req}</h2>
 <p><strong>DNA may also be passed from one bacterium to another during conjugation</strong>, including from one species of bacterium to another. The DNA passed across is often a plasmid.</p>
 <ol><li>The <strong>donor</strong> cell contains the plasmid; the <strong>recipient</strong> does not.</li>
@@ -121,6 +121,8 @@ window.BIO = window.BIO || {}; window.BIO.content = window.BIO.content || {};
           { id: `q-${R}-cj3`, ref: R, stmts: S(2), type: "mcq", marks: 1, stem: "Which structure grows from the donor and attaches to the recipient during conjugation?", options: ["A pilus", "A flagellum", "A spindle fibre", "A capsule"], answer: 0, explanation: "The pilus links the cells and draws them together." },
           { id: `q-${R}-cj4`, ref: R, stmts: S(2), type: "mcq", marks: 1, stem: "When conjugation is complete, which cells contain the plasmid?", options: ["Both the donor and the recipient", "Only the recipient", "Only the donor", "Neither: the plasmid is broken down"], answer: 0, explanation: "A copy passes across and the donor keeps its own copy." },
         ] },
+      { kind: "checkpoint", title: "Binary fission, mitosis or meiosis? (1)", qids: ["q-3.2.10.3-cmp1", "q-3.2.10.3-cmp2", "q-3.2.10.3-cmp3", "q-3.2.10.3-cmp4", "q-3.2.10.3-cmp5", "q-3.2.10.3-cmp6"] },
+      { kind: "checkpoint", title: "Binary fission, mitosis or meiosis? (2)", qids: ["q-3.2.10.3-cmp7", "q-3.2.10.3-cmp8", "q-3.2.10.3-cmp9", "q-3.2.10.3-cmp10", "q-3.2.10.3-cmp11", "q-3.2.10.3-cmp12"] },
     ],
     examFocus: `<ul>
 <li>Learn the sequence: <strong>circular DNA replicates</strong> and <strong>plasmids replicate</strong> → the cell grows and the DNA copies move apart → the <strong>cytoplasm divides</strong> → <strong>two daughter cells</strong>, each with <strong>one copy of the circular DNA</strong>; <strong>plasmid number may vary</strong>.</li>

@@ -3,26 +3,27 @@
    Design system + layout + components
    ============================================================ */
 
+/* Plain white light theme (teacher's decision 2026-11-18); dark mode unchanged. */
 :root {
   /* Theme C "Specimen Plate" (2026-11-05): pale sage paper, forest-green ink, fine hairlines, gold highlights.
      Colours from the teacher's palette: #020806 #061814 #0f2e27 #3f6f62 #c3d3d0. Dark mode (Theme B) below. */
-  --bg: #e6eeeb;
-  --surface: #f6f9f8;
-  --surface-2: #edf3f0;
-  --surface-3: #dde7e3;
-  --line: #c3d3d0;
-  --line-strong: #9fb6af;
+  --bg: #ffffff;
+  --surface: #ffffff;
+  --surface-2: #edf2f0;
+  --surface-3: #eceff0;
+  --line: #d5dcd9;
+  --line-strong: #c5cfcc;
   --ink: #061814;
   --ink-2: #2f4d45;
   --ink-3: #3f6f62;
   --ink-4: #6d8a82;
   --teal: #0f2e27;
   --teal-strong: #061814;
-  --teal-soft: #d4e1dd;
+  --teal-soft: #edf2f0;
   --sage: #3f6f62;
-  --sage-soft: #dfe8e4;
+  --sage-soft: #eff4f2;
   --mint: #8fb9ab;
-  --mint-soft: #e9f0ed;
+  --mint-soft: #f5f8f7;
   --amber: #b0802f;
   --amber-soft: #f1e3c4;
   --rose: #b4544a;
@@ -32,7 +33,7 @@
   --on-accent: #f6f9f8;
   --on-ink: #f6f9f8;
   --paper: #ffffff;
-  --sage-ink: #2f5a45; --amber-ink: #7a5512; --rose-ink: #8f3a30; --navy-soft: #e3ebe8;
+  --sage-ink: #2f5a45; --amber-ink: #7a5512; --rose-ink: #8f3a30; --navy-soft: #eef2f1;
   --font-display: "Sora", "Inter", ui-sans-serif, system-ui, sans-serif;
 
   --radius-s: 8px;
@@ -384,6 +385,7 @@ svg text { font-family: var(--font); }
 @keyframes shimmer { from { background-position: -200% 0; } to { background-position: 200% 0; } }
 
 body { background: radial-gradient(900px 500px at 100% -10%, rgba(158,217,200,.28), transparent 60%), radial-gradient(700px 400px at -10% 100%, rgba(15,46,39,.10), transparent 60%), var(--bg); }
+html:not([data-theme="dark"]) body { background: #ffffff; } /* plain white (2026-11-18) */
 .content > * { animation: fadeUp .45s cubic-bezier(.2,.7,.2,1) both; }
 .content > *:nth-child(2) { animation-delay: .05s; } .content > *:nth-child(3) { animation-delay: .1s; } .content > *:nth-child(4) { animation-delay: .15s; } .content > *:nth-child(5) { animation-delay: .2s; } .content > *:nth-child(n+6) { animation-delay: .25s; }
 .tabpanes .pane > * { animation: fadeUp .35s ease both; }
@@ -398,7 +400,9 @@ a.tile:hover, .tile:hover { transform: translateY(-3px); box-shadow: var(--shado
 .brand-mark { background: linear-gradient(135deg, var(--teal), var(--mint)); box-shadow: 0 6px 16px rgba(15,46,39,.25); }
 .nav a { position: relative; }
 .nav a.active::before { content: ""; position: absolute; left: -6px; top: 22%; height: 56%; width: 3px; border-radius: 3px; background: var(--teal); }
-.topbar { backdrop-filter: blur(10px); background: rgba(230,238,235,.85); }
+.topbar { backdrop-filter: blur(10px); background: rgba(255,255,255,.92); border-bottom: 1px solid var(--line); }
+html:not([data-theme="dark"]) .sidebar { background: #fafbfb; }
+html:not([data-theme="dark"]) .card, html:not([data-theme="dark"]) .tile { box-shadow: 0 1px 2px rgba(6,24,20,.05); }
 .tabs button { transition: color var(--t), border-color var(--t); }
 .badge { transition: transform var(--t); }
 
@@ -730,7 +734,11 @@ html:not(.teacher-view) .badge.status-verified, html:not(.teacher-view) .badge.s
 .gl-term:hover { background: color-mix(in srgb, var(--teal, #2f7d6d) 12%, transparent); }
 .gl-term:focus-visible { outline: 3px solid var(--focus, #2f7d6d); outline-offset: 1px; }
 .gl-term[aria-expanded="true"] { background: #1f5f52; color: #fff; border-bottom-color: transparent; padding: 0 .15em; } /* fixed dark teal: readable in both themes */
-.gl-pop { position: fixed; z-index: 60; background: var(--surface, #fff); color: var(--ink, #10231d); border: 1px solid var(--line, #d7e2dd); border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,.18); padding: .8rem 1rem .9rem; max-width: 380px; }
+.gl-pop { position: fixed; z-index: 60; color: var(--ink, #10231d); max-width: 380px; padding: .8rem 1rem .9rem; border-radius: 12px;
+  /* a teal-tinted card with a teal top edge, so it stands out from the page in both themes */
+  background: color-mix(in srgb, var(--teal, #2f7d6d) 15%, var(--surface, #fff));
+  border: 1.5px solid color-mix(in srgb, var(--teal, #2f7d6d) 65%, var(--line, #d7e2dd)); border-top: 5px solid var(--teal, #2f7d6d);
+  box-shadow: 0 12px 32px rgba(0,0,0,.28); }
 .gl-pop[hidden] { display: none; }
 .gl-pop-head { display: flex; align-items: flex-start; justify-content: space-between; gap: .6rem; }
 .gl-pop h3 { margin: 0; font-size: 1.05rem; }
@@ -750,8 +758,8 @@ html:not(.teacher-view) .badge.status-verified, html:not(.teacher-view) .badge.s
 }
 /* Phones: tap a notes figure to enlarge it (js/core/figzoom.js) */
 @media (max-width: 600px) {
-  .notes figure[data-fig] .fig-view, .learn-pane figure[data-fig] .fig-view { cursor: zoom-in; }
-  .notes figure[data-fig] .fig-view::after, .learn-pane figure[data-fig] .fig-view::after { content: "Tap to enlarge"; display: block; text-align: center; font-size: .78rem; color: var(--ink-3, #5b6b66); margin-top: .2rem; }
+  .notes figure[data-fig] .fig-view, .learn-pane figure[data-fig] .fig-view, .lbl-fig .fig-view { cursor: zoom-in; }
+  .notes figure[data-fig] .fig-view::after, .learn-pane figure[data-fig] .fig-view::after, .lbl-fig .fig-view::after { content: "Tap to enlarge"; display: block; text-align: center; font-size: .78rem; color: var(--ink-3, #5b6b66); margin-top: .2rem; }
 }
 .figfull { position: fixed; inset: 0; z-index: 80; background: var(--surface, #fff); display: flex; flex-direction: column; }
 .figfull[hidden] { display: none; }
@@ -774,3 +782,19 @@ html.figfull-open, html.figfull-open body { overflow: hidden; }
 .nav .nav-tag { font-size: .68rem; font-weight: 700; letter-spacing: .03em; padding: .05rem .4rem; border-radius: 999px; background: var(--surface-2); color: var(--ink-3); border: 1px solid var(--line); flex: none; }
 .nav .nav-sub a.nav-centre { font-weight: 600; }
 .nav .nav-subhead { font-size: .68rem; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-3); margin: .5rem 0 .15rem .75rem; }
+/* "Check your understanding" boxes in the Learn notes (2026-11-16) */
+.interactive-host.checkpoint { border-left: 4px solid var(--teal); background: var(--surface-2); }
+.checkpoint .cp-kicker { display: block; font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--teal-ink, var(--teal)); margin-bottom: .15rem; }
+/* Linking topics shortcut in the Revision Centre lands below the sticky top bar (2026-11-16) */
+#uh-link-h { scroll-margin-top: calc(var(--topbar-h, 64px) + 16px); }
+/* Phones: labelling questions inside interactives lose nested padding so the drawing is as wide as possible
+   (Phase 5 Batch 3 verification VE-4); tapping it still opens it full size. */
+@media (max-width: 600px) {
+  .interactive-host section.q { padding-left: .5rem; padding-right: .5rem; }
+  .lbl-split .lbl-fig { padding: .25rem; }
+}
+/* 3.3.6.2 crossing-over and epistasis figures: keep within about 56 % of the screen height (verification VF-5) */
+@media (min-width: 601px) { figure[data-fig="d-3.3.6.2-1"] .fig-view > svg, figure[data-fig="d-3.3.6.2-2"] .fig-view > svg { max-height: 56vh; width: auto; max-width: 100%; display: block; margin: 0 auto; } }
+
+/* Light theme: form controls keep a 3:1 boundary on white (WCAG 1.4.11; Phase 5 Batch 4 review RS-05) */
+html:not([data-theme="dark"]) input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), html:not([data-theme="dark"]) select, html:not([data-theme="dark"]) textarea { border-color: #7f938d !important; } /* !important: some interactives set the border inline (review VI, RS-05) */

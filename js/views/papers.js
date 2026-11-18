@@ -220,7 +220,7 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
   const KIND_LABEL = { comprehension: "Comprehension (passage)", prose: "Structured question (continuous prose)", extended: "Structured question (continuous prose)" };
   // The specification (p. 10) fixes the 10-mark question by paper: BL01 a comprehension, BL02 a structured question
   // requiring continuous prose. A BL02 question still marked "comprehension" is therefore described as prose.
-  const PROSE_CODES = ["BL02"];
+  const PROSE_CODES = ["BL02", "BL03"];
   const kindOf = (p, q) => (q.kind === "comprehension" && p && PROSE_CODES.includes(p.code) ? "prose" : q.kind);
   const kindLabel = (p, q) => KIND_LABEL[kindOf(p, q)] || "Short-answer";
   // Short label after "Question n" and in the report: BL01's 10-mark question is a comprehension; BL02's is a structured

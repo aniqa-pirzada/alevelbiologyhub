@@ -50,9 +50,9 @@ window.BIO = window.BIO || {}; window.BIO.labModels = window.BIO.labModels || {}
       case "bath": return `<rect x="6" y="20" width="48" height="32" rx="4" fill="#dbeefa" stroke="#476a85" stroke-width="2"/><rect x="40" y="6" width="4" height="34" fill="#e9eef2" stroke="#8a97a3"/><circle cx="42" cy="40" r="3" fill="#c0392b"/>`;
       case "rack": return `<rect x="8" y="34" width="44" height="6" fill="#8c6f4e"/>${[14, 24, 34, 44].map((x) => `<path d="M${x - 3} 10v34a3 3 0 0 0 6 0V10" fill="#f4f9ff" stroke="#476a85" stroke-width="1.5"/>`).join("")}`;
       case "marker": return `<rect x="8" y="26" width="38" height="9" rx="3" fill="#1d3a52"/><path d="M46 27l8 3.5-8 3.5z" fill="#111"/>`;
-      case "milk": return `<path d="M20 8h20v8l6 6v30H14V22l6-6z" fill="#fbfaf6" stroke="#9aa5ad" stroke-width="2"/><rect x="16" y="30" width="28" height="12" fill="#eee9dd"/><text x="30" y="39" font-size="7" text-anchor="middle" fill="#5a4631">3%</text>`;
-      case "trypsin": return `<path d="M22 8h16v8l5 6v30H17V22l5-6z" fill="#fff8ee" stroke="#9c7b3a" stroke-width="2"/><rect x="19" y="30" width="22" height="12" fill="#f6e7c8"/><text x="30" y="39" font-size="6.5" text-anchor="middle" fill="#5a4631">tryp</text>`;
-      case "buffer": return `<path d="M22 8h16v8l5 6v30H17V22l5-6z" fill="#f4f9ff" stroke="#476a85" stroke-width="2"/><text x="30" y="40" font-size="8" text-anchor="middle" fill="#476a85">pH 7</text>`;
+      case "milk": return `<path d="M20 8h20v8l6 6v30H14V22l6-6z" fill="#fbfaf6" stroke="#9aa5ad" stroke-width="2"/><rect x="16" y="30" width="28" height="12" fill="#eee9dd"/>`;
+      case "trypsin": return `<path d="M22 8h16v8l5 6v30H17V22l5-6z" fill="#fff8ee" stroke="#9c7b3a" stroke-width="2"/><rect x="19" y="30" width="22" height="12" fill="#f6e7c8"/>`;
+      case "buffer": return `<path d="M22 8h16v8l5 6v30H17V22l5-6z" fill="#f4f9ff" stroke="#476a85" stroke-width="2"/><rect x="20" y="30" width="20" height="12" fill="#e6f1fb"/>`;
       case "syringe": return `<rect x="10" y="26" width="34" height="9" fill="#f4f9ff" stroke="#476a85" stroke-width="1.5"/><rect x="44" y="28" width="8" height="5" fill="#9aa5ad"/><line x1="4" y1="30.5" x2="10" y2="30.5" stroke="#476a85" stroke-width="2"/>`;
       case "bungs": return `<rect x="8" y="34" width="16" height="12" rx="3" fill="#8c6f4e"/><circle cx="40" cy="30" r="13" fill="#fff" stroke="#476a85" stroke-width="2"/><line x1="40" y1="30" x2="40" y2="21" stroke="#1d3a52" stroke-width="2"/>`;
     }
@@ -72,7 +72,7 @@ window.BIO = window.BIO || {}; window.BIO.labModels = window.BIO.labModels || {}
         <div class="bench-stage"><p class="bench-say" aria-hidden="true"></p><svg class="bench-svg" id="bench" viewBox="0 0 900 430" role="img" aria-label="Laboratory bench for the trypsin and milk practical">
           <rect x="0" y="380" width="900" height="50" fill="#d8cfc2"/><rect x="0" y="376" width="900" height="6" fill="#bfb3a3"/>
           <g id="zmilk" class="zone"><rect x="20" y="230" width="100" height="146" rx="8" class="zone-rect"/><text x="70" y="306" class="zone-label">milk</text></g>
-          <g id="g-milk" hidden><path d="M45 250h50v20l14 14v88H31v-88l14-14z" fill="#fbfaf6" stroke="#9aa5ad" stroke-width="2"/><rect x="34" y="310" width="72" height="40" fill="#eee9dd"/><text x="70" y="334" font-size="11" text-anchor="middle" fill="#5a4631">3% milk</text></g>
+          <g id="g-milk" hidden><path d="M45 250h50v20l14 14v88H31v-88l14-14z" fill="#fbfaf6" stroke="#9aa5ad" stroke-width="2"/><rect x="34" y="310" width="72" height="40" fill="#eee9dd"/><text x="70" y="334" font-size="12" text-anchor="middle" fill="#5a4631">3% milk</text></g>
           <g id="ztrypsin" class="zone"><rect x="130" y="230" width="90" height="146" rx="8" class="zone-rect"/><text x="175" y="306" class="zone-label">trypsin</text></g>
           <g id="g-trypsin" hidden><path d="M158 262h34v18l10 12v80h-54v-80l10-12z" fill="#fff8ee" stroke="#9c7b3a" stroke-width="2"/><rect x="150" y="316" width="50" height="38" fill="#f6e7c8"/><text x="175" y="332" font-size="12" text-anchor="middle" fill="#5a4631">trypsin</text><text x="175" y="348" font-size="12" text-anchor="middle" fill="#5a4631">0.5%</text></g>
           <g id="zbuffer" class="zone"><rect x="230" y="230" width="90" height="146" rx="8" class="zone-rect"/><text x="275" y="306" class="zone-label">buffer</text></g>

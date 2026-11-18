@@ -38,7 +38,7 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
   .cl-node.g-digest .box { fill: var(--sage-soft); stroke: var(--sage); }
   .cl-node.g-cholera .box { fill: var(--amber-soft); stroke: var(--amber); }
   .cl-node.concept .box { stroke-dasharray: 6 4; }
-  .cl-node .kick { fill: var(--ink-3); font-size: 12px; font-weight: 600; }
+  .cl-node .kick { fill: var(--ink-3); font-size: 14.5px; font-weight: 600; }
   .cl-node .lab { fill: var(--ink); font-size: 14.5px; font-weight: 700; }
   .cl-node .ring, .cl-link .ring { fill: none; stroke: transparent; }
   .cl-node:focus-visible .ring, .cl-link:focus-visible .ring { stroke: var(--focus); stroke-width: 4; }
@@ -46,7 +46,7 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
   .cl-edge { stroke: var(--line-strong); stroke-width: 2.2; fill: none; }
   .cl-arrow { fill: var(--line-strong); }
   .cl-link .dot { fill: var(--paper); stroke: var(--ink-3); stroke-width: 1.8; }
-  .cl-link text { fill: var(--ink); font-size: 12.5px; font-weight: 700; }
+  .cl-link text { fill: var(--ink); font-size: 14.5px; font-weight: 700; }
   .cl-link:hover .dot, .cl-link:focus-visible .dot { fill: var(--teal-soft); stroke: var(--teal); }
   .cl-svg.has-sel .cl-edge, .cl-svg.has-sel .cl-link, .cl-svg.has-sel .cl-node { opacity: .3; }
   .cl-svg.has-sel .on { opacity: 1; }
@@ -180,7 +180,8 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
 
   B.views.cluster = function (id, tab) {
     const C = (B.clusters || {})[id];
-    const crumbs = [{ label: "Library", href: "#/library" }, { label: "Unit 2", href: "#/library/3.2" }, { label: "Cross-topic consolidation" }];
+    const cu = (C && C.unit) || "3.2"; const cn = "Unit " + cu.split(".")[1]; // linking topics sit inside the unit's Revision Centre (2026-11-16)
+    const crumbs = [{ label: cn + " Revision Centre", href: "#/unit/" + cu }, { label: (C && C.title) || "Linking topics" }];
     if (!C) return B.app.render(h`<div class="page-head"><div><h1>Cross-topic consolidation</h1></div></div><div class="card"><div class="empty"><h3>No consolidation with this name</h3><p>There is no cross-topic consolidation called “${id}”.</p><a class="btn" href="#/library">Back to the library</a></div></div>`, { title: "Cross-topic consolidation", crumbs });
     const S = specIndex();
     const unit = B.spec.units.find((u) => u.ref === C.unit) || { short: "", code: "" };
@@ -277,7 +278,7 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
         <section class="pane cl-pane" id="cl-pane-deck" role="tabpanel" aria-labelledby="cl-tab-deck" data-pane="deck" tabindex="0" ${initial === "deck" ? "" : "hidden"}><div id="cl-deck"></div></section>
       </div>
     </div>`);
-    B.app.render(page, { title: `${C.topics.join("–")} consolidation`, crumbs });
+    B.app.render(page, { title: `${C.title} · Linking topics`, crumbs });
 
     const reduce = () => (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) || document.documentElement.classList.contains("reduce-motion");
 

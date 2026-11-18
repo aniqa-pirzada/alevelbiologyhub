@@ -200,6 +200,15 @@ window.BIO = window.BIO || {}; window.BIO.interactives = window.BIO.interactives
   // Clickable diagram parts get an accessible name from their data attribute when the interactive did not give one
   // (learning audit 2026-11-08), so screen readers announce e.g. "guard cell" rather than just "button".
   const nameParts = (host) => host.querySelectorAll("[data-part], [data-org], [data-zone]").forEach((e) => { if (e.getAttribute("aria-label") || e.getAttribute("aria-labelledby")) return; const ttl = e.querySelector(":scope > title"); const v = (ttl && ttl.textContent) || e.dataset.part || e.dataset.org || e.dataset.zone; if (!v) return; const interactive = e.hasAttribute("tabindex") || e.getAttribute("role") === "button" || e.tagName === "BUTTON" || e.tagName === "A"; if (interactive || getComputedStyle(e).cursor === "pointer") { e.setAttribute("aria-label", v.replace(/[-_]/g, " ")); if (!interactive) { e.setAttribute("role", "button"); e.setAttribute("tabindex", "0"); e.addEventListener("keydown", (ev) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); e.dispatchEvent(new MouseEvent("click", { bubbles: true })); } }); } } });
+  // "Check your understanding" box in the Learn notes (2026-11-16): a few of the page's own questions placed beside the
+  // notes, data or model they test, so students check as they go. spec: { kind: "checkpoint", title, intro (HTML,
+  // optional: e.g. a data table the questions use), qids: [question ids from c.questions] }. The questions keep their ids,
+  // marking and saved attempts, and are not repeated in Check yourself.
+  B.interactives.checkpoint = function (spec, host) {
+    host.classList.add("checkpoint");
+    host.innerHTML = `<div class="card-head"><h3><span class="cp-kicker">Check your understanding</span>${spec.title ? " " + B.util.esc(spec.title) : ""}</h3></div>${spec.intro || ""}<div class="cp-qs"></div>`;
+    const box = host.querySelector(".cp-qs"); (spec._qs || []).forEach((q) => box.append(B.questions.render(q)));
+  };
   B.views.interactive = function (spec, host) { const fn = B.interactives[spec.kind]; if (fn) { fn(spec, host); try { nameParts(host); } catch (e) {} } else host.innerHTML = `<p class="muted">Animation "${esc(spec.kind)}" not implemented.</p>`; };
 })(window.BIO);
 

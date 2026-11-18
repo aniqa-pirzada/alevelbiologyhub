@@ -22,7 +22,7 @@ window.BIO = window.BIO || {};
   function icon(id) {
     switch (id) {
       case "tube": return `<path d="M22 6h16v38a8 8 0 0 1-16 0z" fill="#f4f9ff" stroke="#476a85" stroke-width="2"/><rect x="8" y="48" width="44" height="6" fill="#8c6f4e"/>`;
-      case "solvent": return `<path d="M18 10h24v8l6 30H12l6-30z" fill="#fff7e0" stroke="#9c7b3a" stroke-width="2"/><rect x="16" y="30" width="28" height="12" fill="#f2d98a"/><text x="30" y="40" font-size="8" text-anchor="middle" fill="#5a4631">solv</text>`;
+      case "solvent": return `<path d="M18 10h24v8l6 30H12l6-30z" fill="#fff7e0" stroke="#9c7b3a" stroke-width="2"/><rect x="16" y="30" width="28" height="12" fill="#f2d98a"/>`;
       case "paper": return `<rect x="22" y="6" width="16" height="48" fill="#fbf8ef" stroke="#c9c2b0" stroke-width="2"/><line x1="22" y1="44" x2="38" y2="44" stroke="#444"/>`;
       case "bung": return `<rect x="14" y="20" width="32" height="20" rx="5" fill="#8c6f4e" stroke="#5a4631" stroke-width="2"/><path d="M30 40v8" stroke="#444" stroke-width="2"/>`;
       case "leaves": return `<path d="M12 46C12 26 30 12 50 14c2 20-12 34-38 32z" fill="#4f9b4a" stroke="#2f7d3a" stroke-width="2"/><path d="M14 44L46 16" stroke="#2f7d3a"/>`;
@@ -68,7 +68,7 @@ window.BIO = window.BIO || {};
           <g id="g-solvent" hidden><rect x="660" y="160" width="210" height="216" rx="6" fill="#eef4f7" stroke="#8aa9bd" stroke-dasharray="6 4"/><text x="765" y="180" font-size="12" text-anchor="middle" fill="#476a85">fume cupboard</text><path d="M740 230h50v12l12 110H728l12-110z" fill="#fff7e0" stroke="#9c7b3a" stroke-width="2"/><rect x="736" y="290" width="58" height="50" fill="#f2d98a"/><text x="765" y="322" font-size="12" text-anchor="middle" fill="#5a4631">solvent</text><text x="765" y="368" font-size="12" text-anchor="middle" fill="#933">⚠ flammable · irritant</text></g>
           <text id="msg" x="450" y="30" font-size="15" text-anchor="middle" fill="#1d3a52" font-weight="600"></text>
           <text id="clock" x="880" y="30" font-size="20" text-anchor="end" fill="#1d3a52" font-family="ui-monospace, monospace" font-weight="700">0 min</text>
-          <text id="frontread" x="330" y="150" font-size="11" text-anchor="start" fill="#1d3a52"></text>
+          <text id="frontread" x="330" y="150" font-size="12" text-anchor="start" fill="#1d3a52"></text>
         </svg></div>
         <div class="bench-shelf" id="shelf" aria-label="Apparatus shelf" data-empty="Everything is on the bench. Make your method choices below, then work through the steps with the blue button."></div>
         <div class="bench-controls">

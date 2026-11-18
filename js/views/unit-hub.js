@@ -52,28 +52,40 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
       seen.add(q.id);
       out.push({ id: q.id, q, ref: q.ref, topic: idx[q.ref].topic, order: idx[q.ref].order, type: q.type, marks: +q.marks, difficulty: difficulty(q), source, where, ctx: ctx || null });
     };
+    // A question drawn on its own keeps what it needs (Phase 5 Batch 4 review RS-01, RS-02): a "Check your understanding"
+    // box brings its data table, and a question that refers to an earlier one ("the previous question", "described
+    // above", "the table also") brings the earlier question(s), back to the one holding the table or graph.
+    const DEPENDS = /previous question|described above|the table also|in (the table in )?question c?\d+|^\s*use the (table|graph|data) of\b|^\s*use the [a-z ]{2,40} (data|table|results)\b/i;
+    const hasData = (q) => /<table|<svg|<img/.test(String(q.stem)) || (String(q.stem).replace(/<[^>]+>/g, " ").match(/\d+(?:\.\d+)?/g) || []).length >= 6;
+    const priorOf = (list, i) => { const out = []; for (let k = i - 1; k >= 0 && out.length < 3; k--) { out.unshift({ num: k + 1, stem: list[k].stem }); if (hasData(list[k])) break; } return out; };
+    const ctxFor = (list, i, base) => { const t = String(list[i].stem).replace(/<[^>]+>/g, " ");
+      if (!DEPENDS.test(t) || (base && !/previous question|the table also/i.test(t))) return base || null; // "described above" in a box means the box
+      const prior = priorOf(list, i); return { type: "prior", prior: /previous question(?!s)/i.test(t) && !/table|graph|data/i.test(t) ? prior.slice(-1) : prior, base }; };
     for (const [ref, c] of Object.entries(B.content || {})) {
       if (!c || c.status === "not_started") continue;
-      (c.quickCheck || []).forEach((q) => add(q, "page", `${ref} quick retrieval check`));
-      (c.questions || []).forEach((q) => add(q, "page", `${ref} practice questions`));
+      const boxes = {}; for (const it of c.interactives || []) if (it && it.kind === "checkpoint") for (const id of it.qids || []) boxes[id] = it;
+      const boxCtx = (q) => { const it = boxes[q.id]; if (!it) return null; const intro = typeof it.intro === "function" ? it.intro() : it.intro; return intro ? { type: "data", ref, title: it.title, blocks: [{ title: it.title || "Check your understanding", html: intro }] } : null; };
+      (c.quickCheck || []).forEach((q, i, l) => add(q, "page", `${ref} quick retrieval check`, ctxFor(l, i, boxCtx(q))));
+      (c.questions || []).forEach((q, i, l) => add(q, "page", boxes[q.id] ? `${ref} Check your understanding: ${boxes[q.id].title || ""}` : `${ref} practice questions`, ctxFor(l, i, boxCtx(q))));
       for (const it of [...(c.interactive ? [c.interactive] : []), ...(c.interactives || [])]) {
         const title = it.title || it.kind; const base = { ref, title, kind: it.kind };
         const data = [...(it.datasets || []), ...(it.cards || [])];
-        (it.questions || []).forEach((q) => add(q, "interactive", `${ref} interactive: ${title}`, data.length ? { ...base, type: "data", blocks: data } : { ...base, type: "interactive" }));
+        (it.questions || []).forEach((q, i, l) => add(q, "interactive", `${ref} interactive: ${title}`, ctxFor(l, i, data.length ? { ...base, type: "data", blocks: data } : { ...base, type: "interactive" })));
         (it.items || []).forEach((x) => (x.questions || []).forEach((q) => add(q, "interactive", `${ref} interactive: ${title}${x.label ? " (" + x.label + ")" : ""}`, x.graph ? { ...base, type: "graph", graph: x.graph, label: x.label } : { ...base, type: "interactive", label: x.label })));
       }
       (c.focus || []).forEach((f) => f && f.question && add(f.question, "focus", `${ref} Biology in Focus: ${f.title || ""}`, { type: "focus", ref, focus: f }));
     }
-    for (const [t, c] of Object.entries(B.consolidation || {})) ((c && c.assessment && c.assessment.questions) || []).forEach((q) => add(q, "consolidation", `${t} topic assessment`));
+    for (const [t, c] of Object.entries(B.consolidation || {})) ((c && c.assessment && c.assessment.questions) || []).forEach((q, i, l) => add(q, "consolidation", `${t} topic assessment`, ctxFor(l, i, null)));
     for (const [n, p] of Object.entries(B.practicals || {})) {
       if (!p || p.status === "not_started") continue;
       const ctx = { type: "practical", n };
-      (p.questions || []).forEach((q) => add(q, "practical", `Required practical ${n}: questions`, ctx));
-      (p.planQuestions || []).forEach((q) => add(q, "practical", `Required practical ${n}: planning`, ctx));
-      (p.evalQuestions || []).forEach((q) => add(q, "practical", `Required practical ${n}: evaluation`, ctx));
+      (p.questions || []).forEach((q, i, l) => add(q, "practical", `Required practical ${n}: questions`, ctxFor(l, i, ctx)));
+      (p.planQuestions || []).forEach((q, i, l) => add(q, "practical", `Required practical ${n}: planning`, ctxFor(l, i, ctx)));
+      (p.evalQuestions || []).forEach((q, i, l) => add(q, "practical", `Required practical ${n}: evaluation`, ctxFor(l, i, ctx)));
       const aq = (p.assessment && p.assessment.questions) || [];
       aq.forEach((q, i) => { const refd = [...String(q.stem).matchAll(/question (\d+)/gi)].map((m) => +m[1]).filter((k) => k >= 1 && k <= aq.length && k !== i + 1);
-        add(q, "practical", `Required practical ${n}: practical assessment, question ${i + 1}`, { type: "practical", n, prior: refd.map((k) => ({ num: k, stem: aq[k - 1].stem })) }); });
+        const c0 = { type: "practical", n, prior: refd.map((k) => ({ num: k, stem: aq[k - 1].stem })) }; const cf = c0.prior.length ? c0 : ctxFor(aq, i, c0);
+        add(q, "practical", `Required practical ${n}: practical assessment, question ${i + 1}`, cf); });
     }
     return out.sort((a, b) => a.order - b.order);
   }
@@ -117,7 +129,40 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
     return { items, marks: items.reduce((n, x) => n + x.marks, 0), poolSize: matches.length, poolMarks: matches.reduce((n, x) => n + x.marks, 0), target: mode === "marks" ? Math.floor(+o.target || 0) : null, mode };
   }
 
-  B.unitHub = { pool, difficulty, filter, pickByMarks, build, incorrectIds, DIFFICULTY_RULE };
+  // DEVELOPMENT STATUS (Phase 5 Batch 1, for the first Unit 3 page; pure, computed from the data, never assumed).
+  // A subsection is
+  //   "not yet developed" when it has no content (no entry in B.content, status "not_started" or empty notes: a stub);
+  //   "developed"         when every one of its statements is taught (tagged data-stmt in its Learn notes) AND assessed by
+  //                       at least two questions (page questions, quick check, interactive questions and item banks,
+  //                       Biology in Focus, and the topic consolidation assessment), the release standard of Units 1-2;
+  //   "in development"    otherwise (content exists but some statement is not yet taught or assessed twice).
+  // A topic is developed only when every subsection is developed, not yet developed when no subsection has content, and
+  // in development otherwise. "Developed" is not a quality judgement: content status (draft, reviewed, approved) is
+  // reported separately and teacher approval is never inferred.
+  function notesHTML(c) { try { return typeof c.notes === "function" ? String(c.notes() || "") : String(c.notes || ""); } catch (e) { return ""; } }
+  function subQuestions(c, cons) { return [...(c.quickCheck || []), ...(c.questions || []), ...[...(c.interactive ? [c.interactive] : []), ...(c.interactives || [])].flatMap((it) => [...(it.items || []).flatMap((x) => x.questions || []), ...(it.questions || [])]), ...(c.focus || []).map((f) => f && f.question).filter(Boolean), ...((cons && cons.assessment && cons.assessment.questions) || [])]; }
+  function development(u) {
+    const unit = unitOf(u); if (!unit) return null; const STATE = ["not yet developed", "in development", "developed"];
+    const topics = unit.topics.map((t) => {
+      const cons = (B.consolidation || {})[t.ref];
+      const subs = t.subsections.map((s) => {
+        const c = (B.content || {})[s.ref]; const notes = c && c.status !== "not_started" ? notesHTML(c) : "";
+        const has = !!(c && c.status !== "not_started" && notes.replace(/<[^>]+>/g, "").trim().length);
+        const tagged = has ? new Set([...notes.matchAll(/data-stmt="([^"]+)"/g)].flatMap((m) => m[1].split(/\s+/))) : new Set();
+        const qs = has ? subQuestions(c, cons) : []; const seen = new Set(); const uq = qs.filter((q) => q && q.id && !seen.has(q.id) && seen.add(q.id));
+        const stmts = s.statements.map((x) => ({ id: x.id, taught: tagged.has(x.id), assessed: uq.filter((q) => (q.stmts || []).includes(x.id)).length }));
+        const nT = stmts.filter((x) => x.taught).length, nA = stmts.filter((x) => x.assessed >= 2).length, nB = stmts.filter((x) => x.taught && x.assessed >= 2).length;
+        const state = !has ? 0 : nB === stmts.length ? 2 : 1;
+        return { ref: s.ref, title: s.title, status: has ? c.status || "draft" : "not_started", state: STATE[state], level: state, stmts, taught: nT, assessed: nA, both: nB, total: stmts.length };
+      });
+      const any = subs.some((s) => s.level > 0), all = subs.every((s) => s.level === 2); const sum = (k) => subs.reduce((n, s) => n + s[k], 0);
+      return { ref: t.ref, title: t.title, subs, state: all ? "developed" : any ? "in development" : "not yet developed", level: all ? 2 : any ? 1 : 0, taught: sum("taught"), assessed: sum("assessed"), both: sum("both"), total: sum("total"), consolidation: !!(cons && cons.assessment) };
+    });
+    const sum = (k) => topics.reduce((n, t) => n + t[k], 0);
+    return { unit: u, topics, taught: sum("taught"), assessed: sum("assessed"), both: sum("both"), total: sum("total"), developed: topics.filter((t) => t.level === 2).length, inDev: topics.filter((t) => t.level === 1).length };
+  }
+
+  B.unitHub = { pool, difficulty, filter, pickByMarks, build, incorrectIds, DIFFICULTY_RULE, development };
 
   // ---------------------------------------------------------------- view helpers
   const authored = (ref) => !!(B.content && B.content[ref] && B.content[ref].status !== "not_started");
@@ -134,9 +179,15 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
   const CONSOLIDATE_BELOW = 70;
   const stmtTitle = (id) => { for (const u of B.spec.units) for (const t of u.topics) for (const s of t.subsections) for (const x of s.statements) if (x.id === id) return { ref: s.ref, text: x.text }; return null; };
 
+  // Linking topics (teacher's decision, 2026-11-16): the cross-topic pages of a unit, listed inside its Revision Centre.
+  function linkingFor(u) { return Object.values(B.clusters || {}).filter((c) => c && (c.unit === u || (c.topics || []).some((t) => t.startsWith(u + ".")))); }
+  function linkingHTML(u) { const L = linkingFor(u); if (!L.length) return "";
+    return h`<section class="card mb" aria-labelledby="uh-link-h"><div class="card-head"><h2 class="h3" id="uh-link-h">Linking topics</h2><span class="badge">${L.length}</span></div>
+      <p class="small muted">Revision that runs across several topics, the way longer exam questions do: a chain of ideas, a map and exam-style questions.</p>
+      <ul class="uh-list">${raw(L.map((c) => h`<li><a href="#/cluster/${c.id}"><strong>${c.title}</strong></a> <span class="small muted">Topics ${c.topics.join(", ")}</span></li>`).join(""))}</ul></section>`; }
   function tabsNav(u, tab) {
     const t = (key, href, label) => h`<a href="${href}" class="${tab === key ? "on" : ""}" ${raw(tab === key ? 'aria-current="page"' : "")}>${label}</a>`;
-    return h`<nav class="uh-tabs" aria-label="Revision Centre sections">${raw(t("overview", `#/unit/${u}`, "Overview and mastery"))}${raw(t("test", `#/unit/${u}/test`, "Custom retrieval test"))}<a href="#/unit/${u}/map">Concept map</a></nav>`;
+    return h`<nav class="uh-tabs" aria-label="Revision Centre sections">${raw(t("overview", `#/unit/${u}`, "Overview and mastery"))}${raw(t("test", `#/unit/${u}/test`, "Custom retrieval test"))}<a href="#/unit/${u}/map">Concept map</a>${linkingFor(u).length ? raw(`<button type="button" class="linkbtn" onclick="var t=document.getElementById('uh-link-h');if(t){t.scrollIntoView({behavior:'smooth',block:'start'});}">Linking topics</button>`) : ""}</nav>`;
   }
 
   // Horizontal bar chart (hand-built SVG) of topic mastery; a table alternative accompanies it.
@@ -394,6 +445,7 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
         </section>
       </div>
 
+      ${raw(linkingHTML(u))}
       <section class="card mb" aria-labelledby="uh-ck-h"><div class="card-head"><h2 class="h3" id="uh-ck-h">Specification checklist</h2><span class="badge">${stmts.length} statements · ${per.length} subsections</span></div>
         <p class="small muted">Every ${esc(unitName(unit))} statement from the OxfordAQA 9610 specification (v${esc(B.spec.meta.specVersion)}), ${/^3\.[12]$/.test(unit.ref) ? "quoted from the specification (long paragraphs are split into separate statements)" : "paraphrased"}: check the full context in the <a href="${B.spec.meta.specPdfUrl}" target="_blank" rel="noopener">official specification</a>. Tick a statement when you can do it from memory; ticks are shared with the topic pages and the main checklist. For each subsection you can see whether its page is written, whether you have visited and completed it, and your mastery.</p>
         <div class="row mb"><button class="btn sm" id="uh-open-all" type="button">Expand all topics</button><button class="btn sm ghost" id="uh-close-all" type="button">Collapse all</button></div>
@@ -414,7 +466,7 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
           ${unitPapers.length ? raw(h`<ul class="uh-list compact" id="uh-papers">${raw(unitPapers.map((p) => { const runs = (st.papers || {})[p.id] || []; const last = runs[runs.length - 1]; return h`<li><a href="#/papers/${p.id}">${p.title}</a> <span class="badge mono">${p.code || unit.code}</span>${last ? raw(h` <span class="badge navy">latest ${last.score}/${last.max}</span> <a class="small" href="#/papers/${p.id}/review/${last.ts}">Exam Review</a>`) : ""}</li>`; }).join(""))}</ul>`) : raw(h`<p class="small muted" id="uh-papers-none">The ${unit.code}-style practice papers for ${unitName(unit)} are still being written and checked. They will be listed here when they are ready.</p>`)}
           <p class="small">${paperRuns.length ? raw(paperRuns.map((p) => h`${p.title}: ${p.n} run${p.n === 1 ? "" : "s"}, latest ${p.last.max ? `${p.last.score}/${p.last.max}` : ""} (${fmtDate(p.last.ts)})`).join("<br>")) : "No practice-paper runs yet. Papers are kept out of the custom tests so they stay unseen."} <a href="#/papers/unit/${u}">${unitName(unit)} practice papers →</a> · <a href="#/papers">All practice papers</a></p>
           <p class="tiny muted">These are original papers written for this platform in the ${unit.code} style; they are not official OxfordAQA papers.</p>
-          ${earlierMaps.length ? raw(h`<h3 class="h4 mt">Principles from earlier units</h3><p class="small">${unit.code} questions are not set on earlier units' topics but may draw on their biological principles. The ${unitName(unit)} concept map labels each one; revise them with ${raw(earlierMaps.map((x) => h`the <a href="#/unit/${x.ref}/map">Unit ${x.ref.split(".")[1]} concept map</a> and <a href="#/unit/${x.ref}">Unit ${x.ref.split(".")[1]} Revision Centre</a>`).join("; "))}.</p>`) : ""}
+          ${earlierMaps.length ? raw(h`<h3 class="h4 mt">Principles from earlier units</h3><p class="small">${unit.code} questions are not set on earlier units' topics but may draw on their biological principles. The ${unitName(unit)} concept map labels each one; revise them with ${raw(earlierMaps.map((x) => h`the Unit ${x.ref.split(".")[1]} <a href="#/unit/${x.ref}/map">concept map</a> and <a href="#/unit/${x.ref}">Revision Centre</a>`).join(", and "))}.</p>`) : ""}
         </section>
       </div>
     </div>`);
@@ -463,6 +515,7 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
     const c = e.ctx; const from = h`<p class="tiny muted uh-from">From: ${e.where}</p>`; if (!c) return from;
     const oneLine = (s) => String(s || "").replace(/\s*\n\s*/g, " ");
     const block = (title, body, open = true) => `<details class="uh-ctx" ${open ? "open" : ""}><summary>${esc(title)}</summary><div class="uh-ctx-body">${oneLine(body)}</div></details>`;
+    if (c.type === "prior") { let s0 = c.base ? ctxHTML(Object.assign({}, e, { ctx: c.base })) : from; for (const pr of c.prior || []) s0 += block(`Question ${pr.num} of the same set (referred to below)`, String(pr.stem).replace(/\n/g, "<br>")); return s0; }
     if (c.type === "data") return from + block("Data for this question (from the interactive)", c.blocks.map((b) => `<h4 class="small">${esc(b.title || "")}</h4>${typeof b.html === "function" ? b.html() : b.html}`).join(""));
     if (c.type === "graph") { const A = B.enzymeArt; const g = A && { temp: A.tempCurve, substrate: A.substrateCurve, enzyme: A.enzymeConcCurve, pH: A.pHCurve, inhibition: A.inhibitionCurves }[c.graph];
       if (g) { try { return from + block(`${c.label || "Graph"} (from the interactive)`, `<div class="figure"><div class="fig-view">${g.call(A)}</div></div>`); } catch (err) { /* fall through */ } } }
@@ -581,8 +634,68 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
     live();
   }
 
+  // ---------------------------------------------------------------- first Unit 3 page (Phase 5 Batch 1)
+  // #/unit/3.3 while Unit 3 is being written: a simpler page in the Revision Centre style. It shows the eight official
+  // topics with their development status (computed by development(), so a stub or unfinished topic is never shown as
+  // developed), specification coverage, the student's own progress, the three required practicals (linked only when
+  // built) and that the unit is A-level only. No practice papers, custom tests or concept map are offered here yet.
+  const FIRST_PAGE = new Set([]); // Unit 3 complete (Phase 5 Batch 4): it now has the full Revision Centre, as Units 1 and 2 do
+  const DEV_BADGE = { developed: '<span class="badge teal">developed</span>', "in development": '<span class="badge amber">in development</span>', "not yet developed": '<span class="badge">not yet developed</span>' };
+  function firstPage(unit) {
+    const u = unit.ref; const st = B.store.get(); const P = B.progress; const D = development(u); const N = unitName(unit);
+    const per = Object.fromEntries(P.perSubsection().filter((s) => s.unit === u).map((s) => [s.ref, s]));
+    const allIds = unit.topics.flatMap((t) => t.subsections.flatMap((s) => s.statements.map((x) => x.id)));
+    const ticked = allIds.filter((id) => st.checklist[id]).length;
+    const inUnit = (ref) => !!per[ref]; const um = P.mastery((a) => inUnit(a.ref));
+    const live = D.topics.flatMap((t) => t.subs).filter((s) => s.level > 0);
+    const nVis = live.filter((s) => per[s.ref].visited).length, nDone = live.filter((s) => per[s.ref].completed).length;
+    const inCourse = B.profile ? B.profile.unitRefs().includes(u) : true; const course = B.profile ? B.profile.COURSES[B.profile.course()] : null;
+    const ex = unit.exam || {}; const lvl = unit.level === "A2";
+    const pct = (a, b) => (b ? Math.round((100 * a) / b) : 0);
+    const statusOf = (s) => (s.level > 0 && B.views.lib && B.views.lib.statusBadge ? B.views.lib.statusBadge(s.status) : "");
+    const subRow = (s) => { const p = per[s.ref] || {}; const nt = s.stmts.filter((x) => st.checklist[x.id]).length;
+      return h`<li class="uh3-sub"><div class="uh-sub-head">${s.level > 0 ? raw(h`<a href="#/topic/${s.ref}"><span class="mono">${s.ref}</span> ${s.title}</a>`) : raw(h`<span><span class="mono">${s.ref}</span> ${s.title}</span>`)}<span class="uh-flags">${raw(DEV_BADGE[s.state])}${raw(statusOf(s))}</span></div>
+        <div class="small muted">${s.level > 0 ? `${s.taught} of ${s.total} statement${s.total === 1 ? "" : "s"} taught · ${s.assessed} of ${s.total} assessed at least twice` : `${s.total} statement${s.total === 1 ? "" : "s"}; the page has not been written yet`}</div>
+        ${s.level > 0 ? raw(h`<div class="small">You: ${p.completed ? "completed" : p.visited ? "visited" : "not opened yet"} · ${nt} of ${s.total} ticked · ${raw(masteryBadge(p.mastery || { questions: 0 }))}</div>`) : ""}</li>`; };
+    const topicRow = (t) => { const m = P.mastery((a) => t.subs.some((s) => s.ref === a.ref)); const nt = t.subs.reduce((n, s) => n + s.stmts.filter((x) => st.checklist[x.id]).length, 0);
+      return h`<details class="acc uh3-topic" data-topic="${t.ref}" data-state="${t.state}" ${raw(t.level > 0 ? "open" : "")}><summary><span><span class="mono">${t.ref}</span> ${t.title}</span><span class="uh-flags">${raw(DEV_BADGE[t.state])}${t.level > 0 ? raw(h`<span class="badge">${t.both} of ${t.total} statements taught and assessed</span>${raw(masteryBadge(m))}`) : raw(h`<span class="badge">${t.total} statements</span>`)}</span></summary>
+        <div class="acc-body"><ul class="uh-list">${raw(t.subs.map(subRow).join(""))}</ul>
+        <p class="small mt">${t.consolidation ? raw(h`<a href="#/consolidate/${t.ref}">Topic ${t.ref} consolidation and assessment →</a>`) : t.level > 0 ? raw(h`<span class="muted">The ${t.ref} consolidation page has not been built yet.</span>`) : raw(h`<span class="muted">Revise this topic from the specification and your class notes for now.</span>`)}${t.level > 0 && nt ? raw(h` <span class="tiny muted">You have ticked ${nt} of ${t.total} statements in this topic.</span>`) : ""}</p></div></details>`; };
+    const pracs = (B.spec.practicals || []).filter((p) => p.unit === u);
+    const pracRow = (p) => { const pr = (B.practicals || {})[p.n]; const built = !!(pr && pr.status && pr.status !== "not_started"); const runs = (st.labRuns || {})[p.n] || [];
+      const links = (p.links || []).map((l) => { const f = B.views.lib.findSub(l); const t = f ? `${l} ${f.s.title}` : l; const ready = !!((B.content || {})[l] && B.content[l].status !== "not_started"); return ready ? h`<a href="#/topic/${l}">${t}</a>` : h`<span>${t}</span>`; });
+      return h`<li class="uh3-prac" data-rp="${p.n}"><div class="uh-sub-head" style="flex-direction:column;align-items:flex-start;gap:.25rem">${built ? raw(h`<a href="#/lab/${p.n}"><strong>RP${p.n}</strong> ${p.title}</a>`) : raw(h`<span><strong>RP${p.n}</strong> ${p.title}</span>`)}<span class="uh-flags">${built ? raw('<span class="badge teal">virtual lab</span>' + (B.views.lib.statusBadge ? B.views.lib.statusBadge(pr.status) : "")) : raw('<span class="badge">not built yet</span>')}${built ? raw(h`<span class="badge ${runs.length ? "sage" : ""}">${runs.length ? `${runs.length} run${runs.length === 1 ? "" : "s"}` : "no runs yet"}</span>`) : ""}</span></div>
+        <div class="small">Specification links: ${raw(links.join(" · "))}</div>${built ? "" : raw('<div class="small muted">Not on the platform yet: carry it out in school and revise its method, variables, risks and calculations from your practical notes.</div>')}</li>`; };
+    const html = el(h`<div class="uh uh3">
+      <div class="page-head"><div><div class="eyebrow">${unit.code} · ${N} Revision Centre</div><h1>${N}: ${unit.short}</h1><p class="lede">${N} is being written now. This page shows which of its eight topics are ready to revise, how much of the specification is taught and assessed so far, your own progress and the three required practicals.</p></div>
+        <div class="row"><a class="btn" href="#/library/${u}">${N} in the Revision Library</a>${linkingFor(u).length ? raw(`<button type="button" class="btn ghost" onclick="var t=document.getElementById('uh-link-h');if(t){t.scrollIntoView({behavior:'smooth',block:'start'});}">Linking topics</button>`) : ""}</div></div>
+      <div class="notice ${inCourse ? "" : "amber"} mb uh3-level" role="note"><strong>${lvl ? "A-level only (Year 13)." : "AS and A-level."}</strong> ${lvl ? `${N} is not part of the AS course: it is studied in Year 13 and examined only in the A-level paper ${unit.code}` : `${N} is examined in paper ${unit.code}`}${ex.duration_min ? ` (${ex.duration_min} minutes, ${ex.marks} marks${ex.alevel_weight ? `, ${ex.alevel_weight} % of the A-level` : ""})` : ""}.${ex.structure ? " " + ex.structure : ""}${!inCourse && course ? ` Your course on this site is ${course.short}, so this unit is here to look ahead.` : ""}</div>
+      <div class="grid grid-4 mb uh-stats">
+        <div class="card"><div class="stat"><span class="v" id="uh3-dev">${D.developed} of ${D.topics.length}</span><span class="l">topics developed · ${D.inDev} in development</span></div></div>
+        <div class="card"><div class="stat"><span class="v" id="uh3-cov">${D.both} of ${D.total}</span><span class="l">statements taught and assessed (${pct(D.both, D.total)}%)</span></div><div class="progress mt" aria-hidden="true"><span style="width:${pct(D.both, D.total)}%"></span></div></div>
+        <div class="card"><div class="stat"><span class="v" id="uh3-ticked">${ticked} of ${allIds.length}</span><span class="l">statements you have ticked</span></div><div class="progress mt" aria-hidden="true"><span style="width:${pct(ticked, allIds.length)}%"></span></div></div>
+        <div class="card"><div class="stat"><span class="v">${um.sufficient ? um.pct + "%" : "–"}</span><span class="l">${um.sufficient ? `your ${N} mastery · ${um.questions} questions` : um.questions ? `not enough evidence yet (${um.questions} question${um.questions === 1 ? "" : "s"})` : `your ${N} mastery · no attempts yet`}</span></div></div>
+      </div>
+      <section class="card mb" aria-labelledby="uh3-cov-h"><div class="card-head"><h2 class="h3" id="uh3-cov-h">Specification coverage so far</h2><span class="badge">${D.total} statements</span></div>
+        <ul class="uh-list compact uh3-covlist">
+          <li><strong>${D.taught}</strong> of ${D.total} statements are taught in the Learn notes of a ${N} page.</li>
+          <li><strong>${D.assessed}</strong> of ${D.total} are assessed by at least two questions.</li>
+          <li><strong>${D.both}</strong> of ${D.total} are both taught and assessed: the standard every ${N} statement will meet.</li>
+          <li>Your progress: ${nDone} of ${live.length} written subsection${live.length === 1 ? "" : "s"} completed, ${nVis} visited.</li>
+        </ul></section>
+      <section class="card mb" aria-labelledby="uh3-t-h"><div class="card-head"><h2 class="h3" id="uh3-t-h">The eight ${N} topics</h2><span class="badge">${D.topics.length} topics</span></div>
+        <p class="small muted">The official OxfordAQA 9610 topics (specification v${B.spec.meta.specVersion}). A topic is <strong>developed</strong> when every statement in it is taught in the notes and assessed by at least two questions; <strong>in development</strong> when some of it is written but not yet every statement; <strong>not yet developed</strong> when none are. New pages are drafts until your teacher has reviewed them.</p>
+        ${raw(D.topics.map(topicRow).join(""))}</section>
+      ${raw(linkingHTML(u))}
+      <section class="card mb" aria-labelledby="uh3-rp-h"><div class="card-head"><h2 class="h3" id="uh3-rp-h">Required practicals</h2><span class="badge">${pracs.length}</span></div>
+        <ul class="uh-list">${raw(pracs.map(pracRow).join(""))}</ul></section>
+    </div>`);
+    B.app.render(html, { title: `${N} Revision Centre`, crumbs: [{ label: `${N} Revision Centre` }] });
+  }
+
   B.views.unitHub = function (u, tab) {
     const unit = unitOf(u);
+    if (unit && FIRST_PAGE.has(u) && (!tab || tab === "overview")) return firstPage(unit);
     if (!unit) return B.app.render(h`<div class="card"><h1>Unit not found</h1><p class="muted">There is no unit ${u} in the specification.</p><a class="btn" href="#/library">Revision Library</a></div>`, { title: "Not found" });
     if (tab === "test") return testTab(unit);
     if (tab === "run") {

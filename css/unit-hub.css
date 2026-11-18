@@ -76,3 +76,7 @@ html.reduce-motion .uh-tabs a { transition: none; }
 /* dark theme: chart labels drawn with fixed colours stay readable (B4-RC2 finding 2) */
 html[data-theme="dark"] .uh-chart text[fill="#16263a"] { fill: var(--ink); }
 html[data-theme="dark"] .uh-chart text[fill="#166f70"] { fill: var(--teal); }
+/* "Linking topics" in the tab bar looks like the other tabs (Phase 5 Batch 4 review RS-10) */
+.uh-tabs .linkbtn { padding: .55rem .9rem; color: var(--ink-3); font-weight: 600; font-size: .9rem; border: 0; border-bottom: 2px solid transparent; margin-bottom: -1px; background: none; text-decoration: none; cursor: pointer; font-family: inherit; }
+.uh-tabs .linkbtn:hover { color: var(--ink); }
+@media (max-width: 600px) { .uh-ctx-body:has(table)::before { content: "↔ Swipe sideways if the table is cut off"; display: block; font-size: .75rem; color: #3f6f62; margin-bottom: .3rem; } } /* review VI-2 */

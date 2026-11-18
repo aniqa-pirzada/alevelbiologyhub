@@ -163,3 +163,13 @@
 /* Dark theme: figures keep a light "paper" panel (as elsewhere on the site), so their captions keep dark ink. */
 html[data-theme="dark"] .pp-intro figure { background: var(--paper); color: #061814; }
 html[data-theme="dark"] .pp-intro figure figcaption { color: #2f4d45; }
+/* Dark theme: tables inside the white figure panels keep light cells and dark text (Phase 5 Batch 4, C4 request) */
+html[data-theme="dark"] .pp-intro figure th, html[data-theme="dark"] .pp-stem figure th { background: #eef3f1; color: #061814; }
+html[data-theme="dark"] .pp-intro figure td, html[data-theme="dark"] .pp-stem figure td { background: #ffffff; color: #061814; }
+html[data-theme="dark"] .pp-intro figure th, html[data-theme="dark"] .pp-intro figure td, html[data-theme="dark"] .pp-stem figure th, html[data-theme="dark"] .pp-stem figure td { border-color: #c5cfcc; }
+/* Phones: paper drawings enlarge on tap; wide tables scroll sideways (Phase 5 Batch 4 review RO) */
+@media (max-width: 600px) {
+  .pp-intro figure svg, .pp-stem figure svg { cursor: zoom-in; }
+  .pp-intro figure:has(svg)::after, .pp-stem figure:has(svg)::after { content: "Tap the drawing to enlarge it"; display: block; text-align: center; font-size: .75rem; color: #3f6f62; margin-top: .3rem; }
+  .pp-intro figure:has(table)::before, .pp-stem figure:has(table)::before { content: "↔ Swipe sideways if the table is cut off"; display: block; font-size: .75rem; color: #3f6f62; margin-bottom: .3rem; }
+}

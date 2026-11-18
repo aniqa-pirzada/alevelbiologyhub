@@ -166,7 +166,7 @@ window.BIO = window.BIO || {};
     reveal.addEventListener("click", () => {
       if (!ta.value.trim()) { B.util.toast("Write your answer before revealing the mark scheme."); return; }
       revealed = true; reveal.disabled = true; ta.readOnly = true; schemeBox.hidden = false;
-      schemeBox.innerHTML = h`<div class="markscheme"><strong>Mark scheme (${q.marks} marks).</strong> Tick each point your answer makes clearly.
+      schemeBox.innerHTML = h`<div class="markscheme"><strong>Mark scheme (${q.marks} marks).</strong> Tick each point your answer makes clearly.${(q.scheme || []).reduce((t, x) => t + (x.marks || 0), 0) > q.marks ? ` Maximum ${q.marks} marks in total.` : ""}
         <div class="selfmark">${raw(q.scheme.map((p, i) => h`<label><input type="checkbox" data-m="${p.marks}" data-i="${i}"> <span>${p.point} <span class="badge">${p.marks}</span></span></label>`).join(""))}</div>
         ${q.alternatives ? raw(`<p class="small mt"><strong>Marking notes:</strong> ${esc(q.alternatives)}</p>`) : ""}
         ${q.commonErrors ? raw(`<p class="small"><strong>Common errors:</strong> ${esc(q.commonErrors)}</p>`) : ""}

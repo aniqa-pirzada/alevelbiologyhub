@@ -11,7 +11,7 @@ window.BIO = window.BIO || {};
 (function (B) {
   const SKIP = "a, button, h1, h2, h3, h4, h5, h6, figure, svg, code, pre, label, summary, select, textarea, input, .interactive-host, [data-int], section.q, .gl-term, .gl-pop, .no-gloss, .fig-tools, .badge, .callout-exam, .notice, details.tiny, figcaption, cite, .src, .credit, .no-gloss, td, th, strong, b";
   // phrases in which a glossary word is used in an everyday sense, not the biological one
-  const NOT_THIS_SENSE = ["surface tension", "community health", "poor communit", "lysis (splitting)", "(splitting)", "vein of a leaf", "veins of the leaf", "leaf vein", "veins or patches", "in the veins", "of the capillary", "capillary tube", "respiratory substrate", "selection bias", "self-reported", "bias: exposures", "nitrogen source", "source of the", "source of new", "two sources", "source: who", "remove its sources"];
+  const NOT_THIS_SENSE = ["surface tension", "community health", "poor communit", "lysis (splitting)", "(splitting)", "vein of a leaf", "veins of the leaf", "leaf vein", "veins or patches", "in the veins", "of the capillary", "capillary tube", "selection bias", "self-reported", "bias: exposures", "nitrogen source", "source of the", "source of new", "two sources", "source: who", "remove its sources", "food source", "substrate-level", "source of energy", "non-random sample", "seed source", "reduces the source", "sources of carbon", "carbon source", "dominant species", "dominant tree", "dominant plant", "significant part", "significant role", "significant amount", "series of carrier proteins", "source:", "significant figure"];
   let index = null, re = null, pop = null, openBtn = null;
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   const rx = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -91,6 +91,7 @@ window.BIO = window.BIO || {};
       while ((m = re.exec(s))) {
         const word = m[2] + (m[3] || ""); const e = entryFor(m[2]) || entryFor(word); if (!e) continue;
         const around = s.slice(Math.max(0, m.index - 20), m.index + m[0].length + 20).toLowerCase(); if (NOT_THIS_SENSE.some((x) => around.includes(x))) continue;
+        if (e.scope && !e.scope.some((x) => String(ref || "").startsWith(x))) continue; // an entry used in one sense only on some pages (Phase 5 Batch 3 review RJ-2)
         const i = index.list.indexOf(e); if (seen.has(i)) continue;
         const start = m.index + m[1].length;
         frag.append(document.createTextNode(s.slice(last, start)));

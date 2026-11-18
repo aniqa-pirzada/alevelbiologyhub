@@ -117,7 +117,8 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
     for (const ou of B.spec.units) if (ou.ref !== u) for (const t of ou.topics) { otherUnit[t.ref] = ou; if (!topicTitle[t.ref]) topicTitle[t.ref] = t.title; for (const s of t.subsections) { otherUnit[s.ref] = ou; if (!topicTitle[s.ref]) topicTitle[s.ref] = s.title; for (const st of s.statements) if (!stmtText[st.id]) { stmtText[st.id] = st.text; otherUnit[st.id] = ou; } } }
     const unitTag = (id) => { const ou = otherUnit[id]; return ou ? ` (Unit ${ou.ref.split(".")[1]})` : ""; };
     const KIND = { topic: "Topic", practical: "Required practical", concept: "Key concept", principle: "Unit 1 principle" };
-    const kindName = (n) => n.kind === "principle" ? `Unit ${(otherUnit[n.ref] || { ref: "3.1" }).ref.split(".")[1]} principle` : KIND[n.kind] || "Key concept";
+    const nodeUnitNo = (n) => (otherUnit[n.ref] || { ref: "3.1" }).ref.split(".")[1];
+    const kindName = (n) => n.kind === "principle" ? (n.kindLabel || `Unit ${nodeUnitNo(n)} principle`) : KIND[n.kind] || "Key concept"; // kindLabel, e.g. "Unit 2 background" (Phase 5 Batch 4)
     const node = Object.fromEntries(M.nodes.map((n) => [n.id, n]));
     const links = M.links.map((l, i) => Object.assign({ n: i + 1 }, l));
     const linkById = Object.fromEntries(links.map((l) => [l.id, l]));
@@ -249,7 +250,7 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
       showDetail(h`<span class="badge ${n.kind === "practical" ? "amber" : n.kind === "concept" ? "sage" : n.kind === "principle" ? "navy" : "teal"}">${kindName(n)}</span>${outstanding(n) ? raw(' <span class="badge rose">Outstanding: not built on the platform yet</span>') : ""}
         <h2 id="umap-detail-h" tabindex="-1" class="mt">${fullTitle(n)}</h2>
         <p>${n.desc}</p>
-        <div class="row"><a class="btn primary" href="${n.href}">Open ${n.kind === "topic" ? "the topic" : n.kind === "principle" ? `${kindName(n).replace(" principle", "")} ${/^\d+\.\d+\.\d+$/.test(n.ref) ? "topic" : "subsection"} ${n.ref}` : "subsection " + n.ref}</a>${n.lab ? raw(h`<a class="btn" href="${n.lab}">Open RP${n.rp} in the Virtual Laboratory</a>`) : ""}<button class="btn ghost" data-back>Back to where I was</button></div>
+        <div class="row"><a class="btn primary" href="${n.href}">Open ${n.kind === "topic" ? "the topic" : n.kind === "principle" ? `Unit ${nodeUnitNo(n)} ${/^\d+\.\d+\.\d+$/.test(n.ref) ? "topic" : "subsection"} ${n.ref}` : "subsection " + n.ref}</a>${n.lab ? raw(h`<a class="btn" href="${n.lab}">Open RP${n.rp} in the Virtual Laboratory</a>`) : ""}<button class="btn ghost" data-back>Back to where I was</button></div>
         <h3 class="mt">Connections (${conns.length})</h3>
         <ul class="umap-conn">${raw(conns.map((l) => h`<li><button class="btn sm" data-open-link="${l.id}"><span class="mono">${l.n}.</span> ${shortName(node[l.from])} <em>${l.label}</em> ${shortName(node[l.to])}</button></li>`).join(""))}</ul>`, opts.focus !== false);
     }

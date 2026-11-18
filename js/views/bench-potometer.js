@@ -158,7 +158,7 @@ window.BIO = window.BIO || {}; window.BIO.labSims = window.BIO.labSims || {};
           <g id="g-towel" hidden><g id="towelg"><rect x="540" y="56" width="56" height="9" fill="#fff" stroke="#b9c2ca"/><rect x="540" y="67" width="56" height="9" fill="#fff" stroke="#b9c2ca"/><rect x="540" y="78" width="56" height="9" fill="#fff" stroke="#b9c2ca"/></g><text x="568" y="106" font-size="12" text-anchor="middle" fill="#3f5a6e">paper towels</text></g>
           <g id="zwatch" class="zone"><rect x="616" y="40" width="90" height="72" rx="8" class="zone-rect"/><text x="661" y="80" class="zone-label">stop watch</text></g>
           <g id="g-watch" hidden><rect x="624" y="50" width="74" height="40" rx="7" fill="#fff" stroke="#476a85" stroke-width="2"/><rect x="630" y="56" width="62" height="24" fill="#1d3a52"/><text id="pclock" x="661" y="73" font-size="14" text-anchor="middle" fill="#9ef0c0" font-family="ui-monospace, monospace">00:00</text><text x="661" y="106" font-size="12" text-anchor="middle" fill="#3f5a6e">min : s</text></g>
-          <g id="ztherm" class="zone"><rect x="714" y="40" width="80" height="72" rx="8" class="zone-rect"/><text x="754" y="80" class="zone-label">thermometer</text></g>
+          <g id="ztherm" class="zone"><rect x="709" y="40" width="90" height="72" rx="8" class="zone-rect"/><text x="754" y="80" class="zone-label">thermometer</text></g>
           <g id="g-therm" hidden><rect x="728" y="50" width="8" height="44" rx="4" fill="#fff" stroke="#476a85" stroke-width="2"/><circle cx="732" cy="96" r="6" fill="#d9534f" stroke="#476a85" stroke-width="1.5"/><rect x="730.5" y="70" width="3" height="24" fill="#d9534f"/><text id="ptemp" x="744" y="78" font-size="13" fill="#1d3a52" font-weight="700">– °C</text></g>
           <g id="zbeaker" class="zone"><rect x="802" y="40" width="86" height="72" rx="8" class="zone-rect"/><text x="845" y="80" class="zone-label">beaker</text></g>
           <g id="g-beaker" hidden><path d="M826 52h38v40a4 4 0 0 1-4 4h-30a4 4 0 0 1-4-4z" fill="#f4f9ff" stroke="#476a85" stroke-width="2"/><text x="845" y="108" font-size="12" text-anchor="middle" fill="#3f5a6e">100 cm³ beaker</text></g>
@@ -210,8 +210,13 @@ window.BIO = window.BIO || {}; window.BIO.labSims = window.BIO.labSims || {};
     function drawShelf() {
       shelf.innerHTML = ""; shelf.hidden = ITEMS.every((i) => S.placed.has(i.id));
       ITEMS.forEach((it) => { if (S.placed.has(it.id)) return; const ok = !(it.needs || []).some((d) => !S.placed.has(d)); shelf.append(el(`<button class="shelf-item apparatus ${ok ? "" : "locked"}" data-id="${it.id}" title="${ok ? "Drag onto the bench or press Enter to place" : "Needs: " + it.needs.map((d) => ITEMS.find((x) => x.id === d).name).join(", ")}"><svg viewBox="0 0 60 60" width="56" height="56" aria-hidden="true">${icon(it.id)}</svg><span>${esc(it.name)}</span></button>`)); });
-      topSteps(); drawProc();
+      topSteps(); drawProc(); refocus();
     }
+    function moveFocus(e) { if (e && S.fm) e.focus({ preventScroll: !S.fm.key }); }
+    function refocus() { const f = S.fm; if (!f || S.busy) return;
+      const items = $$(".shelf-item:not(.locked)", shelf), steps = $$(".pstep", host);
+      const t = f.list === "shelf" && items.length ? items[Math.min(f.i, items.length - 1)] : steps.length ? steps[Math.min(f.list === "proc" ? f.i : 0, steps.length - 1)] : !$("#prun", host).hidden ? $("#prun select", host) : null;
+      moveFocus(t); S.fm = steps.length || items.length ? S.fm : null; }
     function place(id) {
       const it = ITEMS.find((x) => x.id === id); if (!it || S.placed.has(id)) return false;
       if ((it.needs || []).some((d) => !S.placed.has(d))) { say(`First you need: ${it.needs.filter((d) => !S.placed.has(d)).map((d) => ITEMS.find((x) => x.id === d).name).join(", ")}.`); return false; }
@@ -227,8 +232,12 @@ window.BIO = window.BIO || {}; window.BIO.labSims = window.BIO.labSims || {};
     shelf.addEventListener("pointermove", move);
     const end = (e) => { if (!drag) return; const z = zoneAt(e.clientX, e.clientY); const it = ITEMS.find((i) => i.id === drag.dataset.id); if (z === it.zone) place(it.id); $$(".zone", svg).forEach((zz) => zz.classList.remove("over")); drag = null; if (ghost) { ghost.remove(); ghost = null; } };
     shelf.addEventListener("pointerup", end); shelf.addEventListener("pointercancel", end);
-    shelf.addEventListener("click", (e) => { const b = e.target.closest(".shelf-item"); if (b && !b.classList.contains("locked")) place(b.dataset.id); });
-    shelf.addEventListener("keydown", (e) => { const b = e.target.closest(".shelf-item"); if (b && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); place(b.dataset.id); } });
+    // Keyboard focus (maintenance, 2026-11-16): the shelf and the step list are rebuilt after every action, which used to
+    // drop focus to the top of the page. The control in the same place in the rebuilt list (the next item or step) now
+    // takes focus; when the list is finished, the first run control does. After a pointer click focus moves without scrolling.
+    const mark = (list, b, e) => { const all = $$(list === "shelf" ? ".shelf-item" : ".pstep", host); S.fm = { list, i: Math.max(0, all.indexOf(b)), key: !e || e.detail === 0 }; };
+    shelf.addEventListener("click", (e) => { const b = e.target.closest(".shelf-item"); if (b && !b.classList.contains("locked")) { mark("shelf", b, e); place(b.dataset.id); } });
+    shelf.addEventListener("keydown", (e) => { const b = e.target.closest(".shelf-item"); if (b && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); mark("shelf", b); place(b.dataset.id); } });
 
     // ---- procedure chooser ----
     function shuffleOrder() { const g = rng(seed0 + 5); const ids = PROC.map((p) => p.id); for (let i = ids.length - 1; i > 0; i--) { const j = Math.floor(g() * (i + 1)); [ids[i], ids[j]] = [ids[j], ids[i]]; } S.order = ids; }
@@ -240,7 +249,7 @@ window.BIO = window.BIO || {}; window.BIO.labSims = window.BIO.labSims || {};
       const next = steps().find((p) => !S.done.has(p.id)); const guided = $("#dguide", host).checked;
       const left = S.order.filter((id) => steps().some((p) => p.id === id) && !S.done.has(id)).map((id) => PROC.find((p) => p.id === id));
       box.innerHTML = `<strong class="small">Choose the next step</strong> <span class="tiny muted">(${S.done.size} of ${steps().length} done)</span><div class="stack mt" style="gap:.35rem">${left.map((p) => `<button class="btn sm pstep" data-step="${p.id}" style="text-align:left;justify-content:flex-start;white-space:normal;height:auto${guided && p.id === next.id ? ";outline:3px solid var(--teal);outline-offset:1px" : ""}">${esc(p.label)}</button>`).join("")}</div><div id="pprocfb" class="small mt" aria-live="polite"></div>`;
-      $$(".pstep", box).forEach((b) => b.addEventListener("click", () => choose(b.dataset.step)));
+      $$(".pstep", box).forEach((b) => b.addEventListener("click", (e) => { mark("proc", b, e); choose(b.dataset.step); }));
     }
     async function choose(id) {
       const next = steps().find((p) => !S.done.has(p.id)); const fb = () => $("#pprocfb", host);
@@ -282,10 +291,12 @@ window.BIO = window.BIO || {}; window.BIO.labSims = window.BIO.labSims || {};
     }
     ["#cli", "#cwi", "#chi", "#cte", "#csh", "#cbo"].forEach((s) => $(s, host).addEventListener("change", () => { if (s !== "#cbo") { S.men = S.men; } runButtons(); }));
     $("#dguide", host).addEventListener("change", drawProc);
-    $("#badj", host).addEventListener("click", async () => { S.running = true; runButtons(); say("Leaving the shoot for 5 minutes in the new conditions…"); await clock(300, 1500); S.adjustedKey = condKey(cond()) + "|" + $("#csh", host).value; S.running = false; $("#ptemp", svg).textContent = `${cond().temp} °C`; say("Adjusted. Now set the meniscus."); runButtons(); });
-    $("#bset", host).addEventListener("click", async () => { S.running = true; runButtons(); const pl = $("#plunger", svg), t = $("#taph", svg); t.style.transition = reduceMotion() ? "none" : "transform .4s"; t.style.transform = ""; await wait(300); pl.style.transition = reduceMotion() ? "none" : "transform .8s"; pl.style.transform = "translate(0px,-14px)"; await wait(800); pl.style.transform = ""; S.men = r1(1 + rng(runSeed * 31 + 3)()); setMen(S.men); if (!S.faults.tap) t.style.transform = "rotate(90deg)"; S.running = false; say(`Meniscus pushed back to ${S.men.toFixed(1)} cm with the syringe; tap turned back.`); readout.textContent = "Meniscus set. Start the clock and read the scale at 0, 3, 6, 9 and 12 minutes."; topSteps(); runButtons(); });
+    // Run controls disable themselves while they work; focus then moves on to the control that comes next in the method
+    const runFocus = (e, id) => { const b = $(id, host); if (b && !b.disabled) b.focus({ preventScroll: e.detail !== 0 }); };
+    $("#badj", host).addEventListener("click", async (e) => { S.running = true; runButtons(); say("Leaving the shoot for 5 minutes in the new conditions…"); await clock(300, 1500); S.adjustedKey = condKey(cond()) + "|" + $("#csh", host).value; S.running = false; $("#ptemp", svg).textContent = `${cond().temp} °C`; say("Adjusted. Now set the meniscus."); runButtons(); runFocus(e, "#bset"); });
+    $("#bset", host).addEventListener("click", async (e) => { S.running = true; runButtons(); const pl = $("#plunger", svg), t = $("#taph", svg); t.style.transition = reduceMotion() ? "none" : "transform .4s"; t.style.transform = ""; await wait(300); pl.style.transition = reduceMotion() ? "none" : "transform .8s"; pl.style.transform = "translate(0px,-14px)"; await wait(800); pl.style.transform = ""; S.men = r1(1 + rng(runSeed * 31 + 3)()); setMen(S.men); if (!S.faults.tap) t.style.transform = "rotate(90deg)"; S.running = false; say(`Meniscus pushed back to ${S.men.toFixed(1)} cm with the syringe; tap turned back.`); readout.textContent = "Meniscus set. Start the clock and read the scale at 0, 3, 6, 9 and 12 minutes."; topSteps(); runButtons(); runFocus(e, "#bstart"); });
     function clock(seconds, ms) { return new Promise((res) => { const t0 = performance.now(); const tick = (now) => { const f = Math.min(1, Math.max(0, now - t0) / ms); const s = f * seconds; $("#pclock", svg).textContent = `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(Math.floor(s % 60)).padStart(2, "0")}`; if (f < 1) requestAnimationFrame(tick); else res(); }; if (reduceMotion()) { $("#pclock", svg).textContent = `${String(Math.floor(seconds / 60)).padStart(2, "0")}:00`; res(); } else requestAnimationFrame(tick); }); }
-    $("#bstart", host).addEventListener("click", async () => {
+    $("#bstart", host).addEventListener("click", async (e) => {
       if (S.running || S.men === null) return; S.running = true; runButtons();
       const c = cond(), shoot = $("#csh", host).value, bore = +$("#cbo", host).value; const seed = runSeed++;
       const sim = simulateRun({ c, shoot, bore, faults: S.faults, seed, jointFrac: S.jointFrac, start: S.men });
@@ -308,7 +319,7 @@ window.BIO = window.BIO || {}; window.BIO.labSims = window.BIO.labSims || {};
       S.lastRun = r; S.runsDone = (S.runsDone || 0) + 1; S.men = null; S.running = false; topSteps();
       say(offScale ? "The meniscus ran off the end of the scale: reset it sooner, or use the wider capillary." : "12 minutes done. Reset the meniscus with the syringe before the next run.");
       readout.textContent = `Run saved to the results table. Repeat with the same conditions (at least three times), then change one condition. ${irregular(sim.pts) ? "The meniscus moved irregularly in this run: try the leak checks." : ""}`;
-      runButtons(); onRun(r);
+      runButtons(); onRun(r); runFocus(e, "#bset"); // next: reset the meniscus for a repeat
     });
     // ---- leak checks and diagnosis ----
     $$("[data-chk]", host).forEach((b) => b.addEventListener("click", () => { const k = b.dataset.chk; const F = S.faults; let t = "";
@@ -327,7 +338,7 @@ window.BIO = window.BIO || {}; window.BIO.labSims = window.BIO.labSims || {};
       const st = B.store.get(); (st.labRuns[S.key] || []).forEach((r) => { if (r.hidden === v) r.revealed = true; }); B.store.save(); document.dispatchEvent(new Event("labrun"));
       $("#pfix", host).addEventListener("click", () => { S.faults[v] = false; if (S.hidden === v) S.hidden = null; if (v === "joint") { S.deliberate.joint = false; S.done.add("vaseline"); show("jointbub", false); show("vasring"); $("#vasring", svg).style.opacity = 1; } if (v === "tap") { const t = $("#taph", svg); t.style.transformBox = "fill-box"; t.style.transformOrigin = "center"; t.style.transform = "rotate(90deg)"; } if (v === "bubble") { S.deliberate.bubble = false; show("airbub", false); ["submerge", "tap", "trim", "fit", "clamp", "vaseline", "dry", "temp"].forEach((k) => S.done.delete(k)); show("fitted", false); show("underwater", false); $("#shootfree", svg).style.opacity = 1; $("#clamparm", svg).style.opacity = .35; } S.men = null; setMen(null); fb.innerHTML = `<span style="color:var(--sage-ink)">${v === "bubble" ? "Shoot taken out under water. Re-assemble from submerging the potometer." : "Fixed. Reset the meniscus and repeat the run."}</span>`; $("#pobs", host).textContent = ""; drawShelf(); });
     });
-    $("#preset", host).addEventListener("click", () => { bench(host, onRun, key); host.querySelector("#pread").textContent = "Bench cleared. Set up the apparatus again."; });
+    $("#preset", host).addEventListener("click", (e) => { bench(host, onRun, key); host.querySelector("#pread").textContent = "Bench cleared. Set up the apparatus again."; const f = host.querySelector(".shelf-item:not(.locked)"); if (f) f.focus({ preventScroll: e.detail !== 0 }); });
     shuffleOrder(); drawShelf(); say("Put the apparatus on the bench: start with the bowl of water.");
     B.labSims.potometer._state = S; B.labSims.potometer._place = place; B.labSims.potometer._choose = choose; // exposed for tests
     return S;

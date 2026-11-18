@@ -20,13 +20,16 @@ window.BIO = window.BIO || {};
     $$(".nav a").forEach((a) => {
       const href = a.getAttribute("href");
       let on;
-      if (a.closest(".nav-sub") && /^#\/library\//.test(href)) {
+      if (a.classList.contains("nav-overview")) on = hash === href; // the unit overview (topic list) page itself
+      else if (a.closest(".nav-sub") && /^#\/library\//.test(href)) {
         // Topic links (#/library/<unit>/<topic>): only the topic being viewed is highlighted, including its subsections,
         // consolidation page and practice routes, never the whole unit at once.
         const t = href.split("/")[3];
         on = hash === href || new RegExp("^#/(topic|consolidat(?:e|ion)|flashcards/deck:|library/[^/]+)/?" + t.replace(/\./g, "\\.") + "(\\.|/|$)").test(hash);
       } else if (href === "#/dashboard") on = hash === "#/dashboard" || hash === "";
-      else if (/^#\/(unit|cluster)\//.test(href)) on = hash === href || hash.startsWith(href + "/"); // one unit centre or cluster at a time
+      else if (href === "#/exam") on = /^#\/(exam|papers|pastpapers)(\/|$)/.test(hash); // practice papers belong to Exam Practice & Papers (review RS-08)
+      else if (/^#\/(unit|cluster)\//.test(href)) { const cl = /^#\/cluster\/([^/]+)/.exec(hash); const cu = cl && B.clusters && B.clusters[decodeURIComponent(cl[1])] ? B.clusters[decodeURIComponent(cl[1])].unit : null;
+        on = hash === href || hash.startsWith(href + "/") || (!!cu && href === "#/unit/" + cu); } // one unit centre at a time; a linking-topics page highlights its unit's Revision Centre
       else on = hash.startsWith(href.split("/").slice(0, 2).join("/"));
       a.classList.toggle("active", on);
     });
@@ -44,18 +47,17 @@ window.BIO = window.BIO || {};
   // Units in the sidebar follow the student's course (Year 12 sees Units 1–2 first); every other unit stays one click away
   // under "More units", so nothing is ever locked.
   // Sidebar units (teacher's design, 2026-11-16): one folding section per unit. Each opens with its Revision Centre (where
-  // one exists), then any cross-topic pages, then the topics. Units outside the student's course are marked "Year 13" (or
+  // one exists), then the topics. Units outside the student's course are marked "Year 13" (or
   // "AS") rather than hidden. Unit 5 is the synoptic paper.
-  const UNIT_EXTRAS = {
-    "3.1": { centre: "#/unit/3.1" },
-    "3.2": { centre: "#/unit/3.2", cross: [["#/cluster/3.2.1-3.2.3", "Disease to rehydration"], ["#/cluster/3.2.4-3.2.5", "HIV to vaccination"], ["#/cluster/3.2.6-exchange", "Circulation to exchange"], ["#/cluster/3.2.7-3.2.9", "Heart disease to plant viruses"]] },
-  };
+  // Consistent layout (teacher's decision, 2026-11-16): every unit section is "Unit N Revision Centre" then its topics.
+  // Cross-topic ("Linking topics") pages live inside each Revision Centre, not in the sidebar.
+  const UNIT_EXTRAS = { "3.1": { centre: "#/unit/3.1" }, "3.2": { centre: "#/unit/3.2" }, "3.3": { centre: "#/unit/3.3" } };
   function unitsNavHTML() { const spec = B.spec; const inC = B.profile ? B.profile.unitRefs() : spec.units.map((u) => u.ref);
     const item = (u, i) => { const x = UNIT_EXTRAS[u.ref] || {}; const other = !inC.includes(u.ref);
       return h`<details class="nav-unit"><summary class="nav-btn" title="${u.title}">${`Unit ${i + 1}`} <span class="nav-unit-name">${u.short}</span>${other ? raw(`<span class="nav-tag">${u.level === "AS" ? "AS" : "Year 13"}</span>`) : ""}</summary><div class="nav-sub">${raw(
+        h`<a class="nav-centre nav-overview" href="#/library/${u.ref}">Unit ${i + 1} overview: all topics</a>` + // teacher's request 2026-11-18
         (x.centre ? h`<a class="nav-centre" href="${x.centre}">Unit ${i + 1} Revision Centre</a>` : "") +
-        (x.cross ? h`<div class="nav-subhead">Cross-topic pages</div>` + x.cross.map(([href, t]) => h`<a class="nav-cross" href="${href}">${t}</a>`).join("") + h`<div class="nav-subhead">Topics</div>` : "") +
-        u.topics.map((t) => h`<a href="#/library/${u.ref}/${t.ref}">${t.ref} ${t.title}</a>`).join(""))}</div></details>`; };
+        u.topics.map((t) => { const built = (t.subsections || []).some((ss) => B.content && B.content[ss.ref] && B.content[ss.ref].status !== "not_started"); return h`<a href="#/library/${u.ref}/${t.ref}">${t.ref} ${t.title}${built ? "" : raw(' <span class="tiny muted nav-coming">coming</span>')}</a>`; }).join(""))}</div></details>`; };
     return spec.units.map(item).join("") + h`<details class="nav-unit"><summary class="nav-btn">Unit 5 <span class="nav-unit-name">Synoptic paper (BL05)</span></summary><div class="nav-sub"><a href="#/synoptic">Synoptic links and BL05 guide</a></div></details>`; }
   function profileFootHTML() { const n = B.profile ? B.profile.name() : ""; const c = B.profile ? B.profile.COURSES[B.profile.course()].short : ""; return h`<span class="nav-profile">${n ? n + " · " : ""}${c}</span> <button type="button" class="linkbtn" id="profile-edit">Change</button><br><a href="#/about">About Biology Lab, privacy and data</a>`; }
   function rebuildNav() { const box = document.querySelector(".nav-units"); if (box) box.innerHTML = unitsNavHTML(); const foot = document.querySelector(".sidebar-foot"); if (foot) foot.innerHTML = profileFootHTML(); }

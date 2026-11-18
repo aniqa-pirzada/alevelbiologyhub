@@ -87,8 +87,9 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
   function authoredHTML(c, ref) {
     const figs = (c.diagrams || []).map(figHTML).join("");
     const syn = (c.synoptic || []).map((x) => h`<li><a href="#/topic/${x.ref}">${x.ref}</a>: ${x.text}</li>`).join("");
-    const nQ = (c.questions || []).length, nF = (c.flashcards || []).length;
     const ints = interactivesOf(c);
+    const inLearn = embeddedIds(ints);
+    const nQ = (c.questions || []).filter((q) => !inLearn.has(q.id)).length, nF = (c.flashcards || []).length;
     const notes = typeof c.notes === "function" ? c.notes() : c.notes;
     const bannerImg = c.banner ? B.views.photo(c.banner, { ratio: "3:1" }) : ""; const banner = bannerImg ? `<div class="banner">${bannerImg}<div class="banner-text">${esc(c.bannerText || "")}</div></div>` : "";
     const focus = (c.focus || []).length;
@@ -178,34 +179,19 @@ window.BIO = window.BIO || {}; window.BIO.views = window.BIO.views || {};
     $$(".figure", root).filter((f) => $(".zoom-in", f)).forEach((f) => { const svg = $("svg", f); let z = 1; let base = 0; const apply = () => { if (z === 1) { svg.style.width = ""; svg.style.maxWidth = "100%"; return; } svg.style.width = base * z + "px"; svg.style.maxWidth = "none"; };
       const fit = () => { if (z === 1) base = svg.getBoundingClientRect().width || svg.viewBox.baseVal.width || 700; }; $(".zoom-in", f).onclick = () => { fit(); z = Math.min(3, z + 0.25); apply(); }; $(".zoom-out", f).onclick = () => { fit(); z = Math.max(0.5, z - 0.25); apply(); }; $(".zoom-reset", f).onclick = () => { z = 1; apply(); }; });
     (c.quickCheck || []).forEach((q) => $("#quickcheck", root).append(B.questions.render(q)));
-    (c.questions || []).forEach((q) => $("#practice", root).append(B.questions.render(q)));
-    const ints = interactivesOf(c);
+    const ints = interactivesOf(c), inLearn = embeddedIds(ints);
+    // questions placed in a "Check your understanding" box in Learn are shown there only, not repeated in Check yourself
+    (c.questions || []).filter((q) => !inLearn.has(q.id)).forEach((q) => $("#practice", root).append(B.questions.render(q)));
+    ints.forEach((i) => { if (i && i.kind === "checkpoint") i._qs = (i.qids || []).map((id) => (c.questions || []).find((q) => q.id === id)).filter(Boolean); });
     $$(".interactive-host", root).forEach((hst) => B.views.interactive(ints[+hst.dataset.int], hst));
     // pop-up keyword definitions in the Learn notes only (js/core/glossary.js)
     if (B.glossaryLinker) { try { B.glossaryLinker.apply($(".learn-pane .notes", root), ref); } catch (e) { /* glossary is optional */ } }
-    // Release review (2026-11-15, teacher's decision): question banks attached to interactive models move from Learn to
-    // Check yourself, grouped by model, each group with a button back to its model. The questions keep their ids, marking
-    // and saved attempts (the same elements are moved, not copied). Learn keeps the notes, diagrams and models.
-    const learn = $(".learn-pane", root), prac = $("#practice", root);
-    if (learn && prac) {
-      const groups = [];
-      $$(".interactive-host", learn).forEach((hst, gi) => {
-        const qs = $$("section.q[data-qid]", hst); if (!qs.length) return;
-        const title = (($(".card-head h3", hst) || $("h3", hst) || {}).textContent || "the interactive model").trim();
-        if (!hst.id) hst.id = "ixm-" + gi;
-        const g = document.createElement("div"); g.className = "card mb ix-qgroup";
-        g.innerHTML = h`<div class="card-head"><h3>Questions on: ${title}</h3><button type="button" class="btn sm" data-back="${hst.id}">Open the model</button></div><p class="small muted">Use the model in Learn to help you answer these.</p>`;
-        qs.forEach((q) => g.append(q));
-        $$("h4, h5", hst).forEach((x) => { if (!/^\s*(questions?|try these|check your understanding|test yourself|marked questions)\b/i.test(x.textContent) || $("section.q", x.parentElement)) return;
-          const box = x.parentElement; if (box !== hst && box.children.length <= 2) { box.hidden = true; return; }
-          x.hidden = true; const nx = x.nextElementSibling; if (nx && nx.tagName === "P" && /marked and recorded|answer these|these questions/i.test(nx.textContent)) nx.hidden = true; });
-        groups.push(g);
-      });
-      if (groups.length) { const wrap = document.createElement("div"); wrap.className = "ix-qgroups"; groups.forEach((g) => wrap.append(g)); prac.before(wrap);
-        $$("[data-back]", wrap).forEach((b) => b.addEventListener("click", () => { show("notes"); const t = document.getElementById(b.dataset.back); if (t) t.scrollIntoView({ behavior: "smooth", block: "start" }); })); }
-    }
+    // Questions attached to a model stay inside it, in Learn, so students check their understanding as they go (the
+    // teacher's decision of 2026-11-16, reversing the 2026-11-15 move to Check yourself).
     (c.focus || []).forEach((f) => B.views.focusCard(f, $("#focus", root)));
   }
+  // ids of page questions embedded in Learn by "checkpoint" boxes (teacher's decision, 2026-11-16)
+  function embeddedIds(ints) { return new Set(ints.filter((i) => i && i.kind === "checkpoint").flatMap((i) => i.qids || [])); }
   function interactivesOf(c) { return [...(c.interactive ? [c.interactive] : []), ...(c.interactives || [])]; }
   B.views.lib.interactivesOf = interactivesOf;
 
